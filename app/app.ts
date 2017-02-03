@@ -3,15 +3,15 @@
 let maze: Maze;
 
 function setup() {
-    maze = new Maze(20, 30);
+    let mazeGenerator = new MazeGenerator();
+    maze = mazeGenerator.newMaze(20, 30);
     createCanvas(maze.width, maze.height);
     frameRate(30);
 }
 
 function draw() {
-  background(124);
-  maze.draw();
-  maze.iterate();
+    background(124);
+    maze.draw();
 }
 
 /**
@@ -23,8 +23,6 @@ class Maze {
     public readonly width: number;
     public readonly height: number;
     private grid: Cell[][];
-    private currentCell: Cell;
-    private backtracking: Cell[];
 
     constructor(nRows: number, nCols: number) {
         this.nRows = nRows;
@@ -32,7 +30,6 @@ class Maze {
         this.height = nRows * Cell.cellWidth + 1;
         this.width = nCols * Cell.cellWidth + 1;
         this.grid = [];
-        this.backtracking = [];
 
         for (var r = 0; r < this.nRows; r++) {
             this.grid[r] = [];
@@ -40,9 +37,10 @@ class Maze {
                 this.grid[r][c] = new Cell(r, c);
             }
         }
+    }
 
-        this.currentCell = this.grid[0][0];
-        this.currentCell.visited = true;
+    public cell(row: number, col: number) {
+        return this.grid[row][col];
     }
 
     public draw() {
@@ -51,48 +49,68 @@ class Maze {
                 cell.draw();
             }
         }
-        this.currentCell.highlight();
     }
+}
 
-    public iterate() {
-        let next = this.getNextNeighbor();
-        if (next) {
-            next.visited = true;
-            this.backtracking.push(this.currentCell);
-            this.removeWalls(this.currentCell, next);
-            this.currentCell = next;
-        } else if (this.backtracking.length > 0) {
-            next = this.backtracking.pop();
-            this.currentCell = next;
-        } else {
-            console.log("FINISH");
-            noLoop();
+
+/**
+ * @class MazeGenerator
+ */
+class MazeGenerator {
+
+    public newMaze(nRows: number, nCols: number): Maze {
+        let maze = new Maze(nRows, nCols);
+        let backtracking: Cell[] = [];
+        let currentCell = maze.cell(0, 0);
+        currentCell.visited = true;
+        let finished = false;
+        while (!finished) {
+            let next = this.getNextNeighbor(maze, currentCell);
+            if (next) {
+                next.visited = true;
+                backtracking.push(currentCell);
+                this.removeWalls(currentCell, next);
+                currentCell = next;
+            } else if (backtracking.length > 0) {
+                next = backtracking.pop();
+                currentCell = next;
+            } else {
+                console.log("FINISH");
+                finished = true;
+            }
         }
+
+        for (var r = 0; r < nRows; r++) {
+            for (var c = 0; c < nCols; c++) {
+                maze.cell(r, c).visited = false;
+            }
+        }
+
+        return maze;
     }
 
-    private getNextNeighbor(): Cell {
+    private getNextNeighbor(maze: Maze, cell: Cell): Cell {
         let neighbors: Cell[] = [];
-        let cell = this.currentCell;
         if (cell.row > 0) {
-            let left = this.grid[cell.row-1][cell.col];
+            let left = maze.cell(cell.row - 1, cell.col);
             if (!left.visited) {
                 neighbors.push(left);
             }
         }
-        if (cell.row < this.nRows - 1) {
-            let right = this.grid[cell.row+1][cell.col];
+        if (cell.row < maze.nRows - 1) {
+            let right = maze.cell(cell.row + 1, cell.col);
             if (!right.visited) {
                 neighbors.push(right);
             }
         }
         if (cell.col > 0) {
-            let top = this.grid[cell.row][cell.col-1];
+            let top = maze.cell(cell.row, cell.col - 1);
             if (!top.visited) {
                 neighbors.push(top);
             }
         }
-        if (cell.col < this.nCols - 1) {
-            let bottom = this.grid[cell.row][cell.col+1];
+        if (cell.col < maze.nCols - 1) {
+            let bottom = maze.cell(cell.row, cell.col + 1);
             if (!bottom.visited) {
                 neighbors.push(bottom);
             }
@@ -122,6 +140,7 @@ class Maze {
         }
     }
 }
+
 
 /**
  * @class CellBorders
@@ -158,16 +177,16 @@ class Cell {
         let x = this.col * Cell.cellWidth;
         let y = this.row * Cell.cellWidth;
         if (this.borders.top) {
-            line(x, y, x+w, y);
+            line(x, y, x + w, y);
         }
         if (this.borders.right) {
-            line(x+w, y, x+w, y+w);
+            line(x + w, y, x + w, y + w);
         }
         if (this.borders.bottom) {
-            line(x+w, y+w, x, y+w);
+            line(x + w, y + w, x, y + w);
         }
         if (this.borders.left) {
-            line(x, y+w, x, y);
+            line(x, y + w, x, y);
         }
         if (this.visited) {
             noStroke();
@@ -182,6 +201,6 @@ class Cell {
         let w = Cell.cellWidth;
         let x = this.col * Cell.cellWidth;
         let y = this.row * Cell.cellWidth;
-        ellipse(x + w/2, y + w/2, w/2, w/2);
+        ellipse(x + w / 2, y + w / 2, w / 2, w / 2);
     }
 }

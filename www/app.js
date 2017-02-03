@@ -1,13 +1,13 @@
 var maze;
 function setup() {
-    maze = new Maze(20, 30);
+    var mazeGenerator = new MazeGenerator();
+    maze = mazeGenerator.newMaze(20, 30);
     createCanvas(maze.width, maze.height);
     frameRate(30);
 }
 function draw() {
     background(124);
     maze.draw();
-    maze.iterate();
 }
 var Maze = (function () {
     function Maze(nRows, nCols) {
@@ -16,16 +16,16 @@ var Maze = (function () {
         this.height = nRows * Cell.cellWidth + 1;
         this.width = nCols * Cell.cellWidth + 1;
         this.grid = [];
-        this.backtracking = [];
         for (var r = 0; r < this.nRows; r++) {
             this.grid[r] = [];
             for (var c = 0; c < this.nCols; c++) {
                 this.grid[r][c] = new Cell(r, c);
             }
         }
-        this.currentCell = this.grid[0][0];
-        this.currentCell.visited = true;
     }
+    Maze.prototype.cell = function (row, col) {
+        return this.grid[row][col];
+    };
     Maze.prototype.draw = function () {
         for (var _i = 0, _a = this.grid; _i < _a.length; _i++) {
             var rows = _a[_i];
@@ -34,48 +34,64 @@ var Maze = (function () {
                 cell.draw();
             }
         }
-        this.currentCell.highlight();
     };
-    Maze.prototype.iterate = function () {
-        var next = this.getNextNeighbor();
-        if (next) {
-            next.visited = true;
-            this.backtracking.push(this.currentCell);
-            this.removeWalls(this.currentCell, next);
-            this.currentCell = next;
+    return Maze;
+}());
+var MazeGenerator = (function () {
+    function MazeGenerator() {
+    }
+    MazeGenerator.prototype.newMaze = function (nRows, nCols) {
+        var maze = new Maze(nRows, nCols);
+        var backtracking = [];
+        var currentCell = maze.cell(0, 0);
+        currentCell.visited = true;
+        var finished = false;
+        while (!finished) {
+            var next = this.getNextNeighbor(maze, currentCell);
+            if (next) {
+                next.visited = true;
+                backtracking.push(currentCell);
+                this.removeWalls(currentCell, next);
+                currentCell = next;
+            }
+            else if (backtracking.length > 0) {
+                next = backtracking.pop();
+                currentCell = next;
+            }
+            else {
+                console.log("FINISH");
+                finished = true;
+            }
         }
-        else if (this.backtracking.length > 0) {
-            next = this.backtracking.pop();
-            this.currentCell = next;
+        for (var r = 0; r < nRows; r++) {
+            for (var c = 0; c < nCols; c++) {
+                maze.cell(r, c).visited = false;
+            }
         }
-        else {
-            console.log("FINISH");
-            noLoop();
-        }
+        return maze;
     };
-    Maze.prototype.getNextNeighbor = function () {
+    MazeGenerator.prototype.getNextNeighbor = function (maze, cell) {
         var neighbors = [];
-        var cell = this.currentCell;
         if (cell.row > 0) {
-            var left = this.grid[cell.row - 1][cell.col];
+            var left = maze.cell(cell.row - 1, cell.col);
             if (!left.visited) {
                 neighbors.push(left);
             }
         }
-        if (cell.row < this.nRows - 1) {
-            var right = this.grid[cell.row + 1][cell.col];
+        if (cell.row < maze.nRows - 1) {
+            var right = maze.cell(cell.row + 1, cell.col);
             if (!right.visited) {
                 neighbors.push(right);
             }
         }
         if (cell.col > 0) {
-            var top_1 = this.grid[cell.row][cell.col - 1];
+            var top_1 = maze.cell(cell.row, cell.col - 1);
             if (!top_1.visited) {
                 neighbors.push(top_1);
             }
         }
-        if (cell.col < this.nCols - 1) {
-            var bottom = this.grid[cell.row][cell.col + 1];
+        if (cell.col < maze.nCols - 1) {
+            var bottom = maze.cell(cell.row, cell.col + 1);
             if (!bottom.visited) {
                 neighbors.push(bottom);
             }
@@ -87,7 +103,7 @@ var Maze = (function () {
         }
         return next;
     };
-    Maze.prototype.removeWalls = function (a, b) {
+    MazeGenerator.prototype.removeWalls = function (a, b) {
         if (a.col > b.col) {
             a.borders.left = false;
             b.borders.right = false;
@@ -105,7 +121,7 @@ var Maze = (function () {
             b.borders.top = false;
         }
     };
-    return Maze;
+    return MazeGenerator;
 }());
 var CellBorders = (function () {
     function CellBorders() {
