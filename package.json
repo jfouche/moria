@@ -9,16 +9,10 @@
     "author": "jf",
     "license": "WTFPL",
     "dependencies": {
-        "ts-loader": "^0.8.2",
-        "tslint": "^3.15.1",
         "typescript": "^2.1.5"
     },
     "devDependencies": {
-        "awesome-typescript-loader": "^1.1.1",
-        "eslint": "^3.4.0",
-        "eslint-config-google": "^0.6.0",
-        "typescript": "^1.8.10",
-        "webpack": "^1.13.2",
-        "webpack-dev-server": "^1.15.1"
+        "tslint": "^3.15.1",
+        "eslint": "^3.4.0"
     }
 }

@@ -1,14 +1,80 @@
-var maze;
+var game;
 function setup() {
-    var mazeGenerator = new MazeGenerator();
-    maze = mazeGenerator.newMaze(20, 30);
-    createCanvas(maze.width, maze.height);
-    frameRate(30);
+    game = new MoriaGame(20, 30);
+    createCanvas(game.width, game.height);
+    frameRate(10);
 }
 function draw() {
-    background(124);
-    maze.draw();
+    background(0);
+    game.draw();
 }
+function keyPressed() {
+    if (keyCode === UP_ARROW) {
+        game.moveHero(0, -1);
+    }
+    else if (keyCode === DOWN_ARROW) {
+        game.moveHero(0, 1);
+    }
+    else if (keyCode === LEFT_ARROW) {
+        game.moveHero(-1, 0);
+    }
+    else if (keyCode === RIGHT_ARROW) {
+        game.moveHero(1, 0);
+    }
+}
+var MoriaGame = (function () {
+    function MoriaGame(nRows, nCols) {
+        this.nRows = nRows;
+        this.nCols = nCols;
+        var mazeGenerator = new MazeGenerator();
+        this.maze = mazeGenerator.newMaze(this.nRows, this.nCols);
+        this.width = this.maze.width;
+        this.height = this.maze.height;
+        this.hero = new Hero(0, 0);
+        this.maze.cell(this.hero.y, this.hero.x).visited = true;
+    }
+    MoriaGame.prototype.draw = function () {
+        background(0);
+        this.maze.draw();
+        this.hero.draw();
+    };
+    MoriaGame.prototype.moveHero = function (x, y) {
+        var cell = this.maze.cell(this.hero.y, this.hero.x);
+        var cellBorders = cell.borders;
+        if (x === 1 && !cellBorders.right) {
+            this.hero.x++;
+            this.maze.cell(this.hero.y, this.hero.x).visited = true;
+        }
+        else if (x === -1 && !cellBorders.left) {
+            this.hero.x--;
+            this.maze.cell(this.hero.y, this.hero.x).visited = true;
+        }
+        else if (y === -1 && !cellBorders.top) {
+            this.hero.y--;
+            this.maze.cell(this.hero.y, this.hero.x).visited = true;
+        }
+        else if (y === 1 && !cellBorders.bottom) {
+            this.hero.y++;
+            this.maze.cell(this.hero.y, this.hero.x).visited = true;
+        }
+    };
+    return MoriaGame;
+}());
+var Hero = (function () {
+    function Hero(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+    Hero.prototype.draw = function () {
+        stroke(255);
+        fill(0, 255, 0);
+        var x = this.x * Cell.cellWidth + Cell.cellWidth / 2;
+        var y = this.y * Cell.cellWidth + Cell.cellWidth / 2;
+        var r = Cell.cellWidth / 2 - 1;
+        ellipse(x, y, r, r);
+    };
+    return Hero;
+}());
 var Maze = (function () {
     function Maze(nRows, nCols) {
         this.nRows = nRows;
@@ -31,7 +97,9 @@ var Maze = (function () {
             var rows = _a[_i];
             for (var _b = 0, rows_1 = rows; _b < rows_1.length; _b++) {
                 var cell = rows_1[_b];
-                cell.draw();
+                if (cell.visited) {
+                    cell.draw();
+                }
             }
         }
     };
@@ -157,11 +225,6 @@ var Cell = (function () {
         if (this.borders.left) {
             line(x, y + w, x, y);
         }
-        if (this.visited) {
-            noStroke();
-            fill(255, 0, 255, 100);
-            rect(x, y, w, w);
-        }
     };
     Cell.prototype.highlight = function () {
         noStroke();
@@ -171,6 +234,6 @@ var Cell = (function () {
         var y = this.row * Cell.cellWidth;
         ellipse(x + w / 2, y + w / 2, w / 2, w / 2);
     };
-    Cell.cellWidth = 30;
     return Cell;
 }());
+Cell.cellWidth = 30;

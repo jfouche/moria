@@ -1,17 +1,101 @@
 /// <reference path="../typings/p5.d.ts" />
 
-let maze: Maze;
+let game: MoriaGame;
 
 function setup() {
-    let mazeGenerator = new MazeGenerator();
-    maze = mazeGenerator.newMaze(20, 30);
-    createCanvas(maze.width, maze.height);
-    frameRate(30);
+    game = new MoriaGame(20, 30);
+    createCanvas(game.width, game.height);
+    frameRate(10);
 }
 
 function draw() {
-    background(124);
-    maze.draw();
+    background(0);
+    game.draw();
+}
+
+function keyPressed() {
+    if (keyCode === UP_ARROW) {
+        game.moveHero(0, -1);
+    } else if (keyCode === DOWN_ARROW) {
+        game.moveHero(0, 1);
+    } else if (keyCode === LEFT_ARROW) {
+        game.moveHero(-1, 0);
+    } else if (keyCode === RIGHT_ARROW) {
+        game.moveHero(1, 0);
+    }
+}
+
+/**
+ * MoriaGame
+ */
+class MoriaGame {
+    public readonly nRows: number;
+    public readonly nCols: number;
+    public readonly width: number;
+    public readonly height: number;
+
+    private maze: Maze;
+    private hero: Hero;
+
+    constructor(nRows: number, nCols: number) {
+        this.nRows = nRows;
+        this.nCols = nCols;
+
+        let mazeGenerator = new MazeGenerator();
+        this.maze = mazeGenerator.newMaze(this.nRows, this.nCols);
+
+        this.width = this.maze.width;
+        this.height = this.maze.height;
+
+        this.hero = new Hero(0, 0);
+        this.maze.cell(this.hero.y, this.hero.x).visited = true;
+    }
+
+    public draw() {
+        background(0);
+        this.maze.draw();
+        this.hero.draw();
+    }
+
+    public moveHero(x: number, y: number) {
+        let cell = this.maze.cell(this.hero.y, this.hero.x);
+        let cellBorders = cell.borders;
+        if (x === 1 && !cellBorders.right) {
+            this.hero.x++;
+            this.maze.cell(this.hero.y, this.hero.x).visited = true;
+        } else if (x === -1 && !cellBorders.left) {
+            this.hero.x--;
+            this.maze.cell(this.hero.y, this.hero.x).visited = true;
+        } else if (y === -1 && !cellBorders.top) {
+            this.hero.y--;
+            this.maze.cell(this.hero.y, this.hero.x).visited = true;
+        } else if (y === 1 && !cellBorders.bottom) {
+            this.hero.y++;
+            this.maze.cell(this.hero.y, this.hero.x).visited = true;
+        }
+    }
+}
+
+/**
+ * Hero
+ */
+class Hero {
+    public x: number;
+    public y: number;
+
+    constructor(x: number, y: number) {
+        this.x = x;
+        this.y = y;
+    }
+
+    public draw() {
+        stroke(255);
+        fill(0, 255, 0);
+        let x = this.x * Cell.cellWidth + Cell.cellWidth / 2;
+        let y = this.y * Cell.cellWidth + Cell.cellWidth / 2;
+        let r = Cell.cellWidth / 2 - 1;
+        ellipse(x, y, r, r);
+    }
 }
 
 /**
@@ -46,7 +130,9 @@ class Maze {
     public draw() {
         for (let rows of this.grid) {
             for (let cell of rows) {
-                cell.draw();
+                if (cell.visited) {
+                    cell.draw();
+                }
             }
         }
     }
@@ -187,11 +273,6 @@ class Cell {
         }
         if (this.borders.left) {
             line(x, y + w, x, y);
-        }
-        if (this.visited) {
-            noStroke();
-            fill(255, 0, 255, 100);
-            rect(x, y, w, w);
         }
     }
 
