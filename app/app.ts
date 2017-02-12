@@ -15,14 +15,18 @@ function draw() {
 
 function keyPressed() {
     if (keyCode === UP_ARROW) {
-        game.moveHero(0, -1);
+        game.moveHero(Direction.UP);
     } else if (keyCode === DOWN_ARROW) {
-        game.moveHero(0, 1);
+        game.moveHero(Direction.DOWN);
     } else if (keyCode === LEFT_ARROW) {
-        game.moveHero(-1, 0);
+        game.moveHero(Direction.LEFT);
     } else if (keyCode === RIGHT_ARROW) {
-        game.moveHero(1, 0);
+        game.moveHero(Direction.RIGHT);
     }
+}
+
+enum Direction {
+    UP, DOWN, LEFT, RIGHT
 }
 
 /**
@@ -49,6 +53,9 @@ class MoriaGame {
 
         this.hero = new Hero(0, 0);
         this.maze.cell(this.hero.y, this.hero.x).visited = true;
+
+        this.maze.setUpstair(this.hero.y, this.hero.x);
+        this.maze.setDownstair(this.nRows - 1, this.nCols - 1);
     }
 
     public draw() {
@@ -57,22 +64,24 @@ class MoriaGame {
         this.hero.draw();
     }
 
-    public moveHero(x: number, y: number) {
+    public moveHero(direction: Direction) {
         let cell = this.maze.cell(this.hero.y, this.hero.x);
-        let cellBorders = cell.borders;
-        if (x === 1 && !cellBorders.right) {
-            this.hero.x++;
-            this.maze.cell(this.hero.y, this.hero.x).visited = true;
-        } else if (x === -1 && !cellBorders.left) {
-            this.hero.x--;
-            this.maze.cell(this.hero.y, this.hero.x).visited = true;
-        } else if (y === -1 && !cellBorders.top) {
-            this.hero.y--;
-            this.maze.cell(this.hero.y, this.hero.x).visited = true;
-        } else if (y === 1 && !cellBorders.bottom) {
-            this.hero.y++;
-            this.maze.cell(this.hero.y, this.hero.x).visited = true;
+        let cellBorders = this.maze.cell(this.hero.y, this.hero.x).borders;
+        if (direction === Direction.RIGHT && !cellBorders.right) {
+            this.move(1, 0);
+        } else if (direction === Direction.LEFT && !cellBorders.left) {
+            this.move(-1, 0);
+        } else if (direction === Direction.UP && !cellBorders.top) {
+            this.move(0, -1);
+        } else if (direction === Direction.DOWN && !cellBorders.bottom) {
+            this.move(0, 1);
         }
+    }
+
+    private move(x: number, y: number) {
+        this.hero.x += x;
+        this.hero.y += y;
+        this.maze.cell(this.hero.y, this.hero.x).visited = true;
     }
 }
 
@@ -107,6 +116,8 @@ class Maze {
     public readonly width: number;
     public readonly height: number;
     private grid: Cell[][];
+    private upstair: Stair;
+    private downstair: Stair;
 
     constructor(nRows: number, nCols: number) {
         this.nRows = nRows;
@@ -127,6 +138,14 @@ class Maze {
         return this.grid[row][col];
     }
 
+    public setUpstair(row: number, col: number) {
+        this.upstair = new Stair(row, col, true);
+    }
+
+    public setDownstair(row: number, col: number) {
+        this.downstair = new Stair(row, col, false);
+    }
+
     public draw() {
         for (let rows of this.grid) {
             for (let cell of rows) {
@@ -134,6 +153,13 @@ class Maze {
                     cell.draw();
                 }
             }
+        }
+
+        if (this.cell(this.upstair.row, this.upstair.col).visited) {
+            this.upstair.draw();
+        }
+        if (this.cell(this.downstair.row, this.downstair.col).visited) {
+            this.downstair.draw();
         }
     }
 }
@@ -283,5 +309,34 @@ class Cell {
         let x = this.col * Cell.cellWidth;
         let y = this.row * Cell.cellWidth;
         ellipse(x + w / 2, y + w / 2, w / 2, w / 2);
+    }
+}
+
+/**
+ * Stair
+ */
+class Stair {
+    public readonly row: number;
+    public readonly col: number;
+    public readonly up: boolean;
+
+    constructor(row: number, col: number, up: boolean) {
+        this.row = row;
+        this.col = col;
+        this.up = up;
+    }
+
+    public draw() {
+        stroke(255);
+        if (this.up) {
+            fill(192, 192, 192);
+        }
+        else {
+            fill(70, 70, 70);
+        }
+        let w = Cell.cellWidth - 6;
+        let x = this.col * Cell.cellWidth + 3;
+        let y = this.row * Cell.cellWidth + 3;
+        rect(x, y, w, w);
     }
 }

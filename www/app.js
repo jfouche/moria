@@ -10,18 +10,25 @@ function draw() {
 }
 function keyPressed() {
     if (keyCode === UP_ARROW) {
-        game.moveHero(0, -1);
+        game.moveHero(Direction.UP);
     }
     else if (keyCode === DOWN_ARROW) {
-        game.moveHero(0, 1);
+        game.moveHero(Direction.DOWN);
     }
     else if (keyCode === LEFT_ARROW) {
-        game.moveHero(-1, 0);
+        game.moveHero(Direction.LEFT);
     }
     else if (keyCode === RIGHT_ARROW) {
-        game.moveHero(1, 0);
+        game.moveHero(Direction.RIGHT);
     }
 }
+var Direction;
+(function (Direction) {
+    Direction[Direction["UP"] = 0] = "UP";
+    Direction[Direction["DOWN"] = 1] = "DOWN";
+    Direction[Direction["LEFT"] = 2] = "LEFT";
+    Direction[Direction["RIGHT"] = 3] = "RIGHT";
+})(Direction || (Direction = {}));
 var MoriaGame = (function () {
     function MoriaGame(nRows, nCols) {
         this.nRows = nRows;
@@ -32,31 +39,34 @@ var MoriaGame = (function () {
         this.height = this.maze.height;
         this.hero = new Hero(0, 0);
         this.maze.cell(this.hero.y, this.hero.x).visited = true;
+        this.maze.setUpstair(this.hero.y, this.hero.x);
+        this.maze.setDownstair(this.nRows - 1, this.nCols - 1);
     }
     MoriaGame.prototype.draw = function () {
         background(0);
         this.maze.draw();
         this.hero.draw();
     };
-    MoriaGame.prototype.moveHero = function (x, y) {
+    MoriaGame.prototype.moveHero = function (direction) {
         var cell = this.maze.cell(this.hero.y, this.hero.x);
-        var cellBorders = cell.borders;
-        if (x === 1 && !cellBorders.right) {
-            this.hero.x++;
-            this.maze.cell(this.hero.y, this.hero.x).visited = true;
+        var cellBorders = this.maze.cell(this.hero.y, this.hero.x).borders;
+        if (direction === Direction.RIGHT && !cellBorders.right) {
+            this.move(1, 0);
         }
-        else if (x === -1 && !cellBorders.left) {
-            this.hero.x--;
-            this.maze.cell(this.hero.y, this.hero.x).visited = true;
+        else if (direction === Direction.LEFT && !cellBorders.left) {
+            this.move(-1, 0);
         }
-        else if (y === -1 && !cellBorders.top) {
-            this.hero.y--;
-            this.maze.cell(this.hero.y, this.hero.x).visited = true;
+        else if (direction === Direction.UP && !cellBorders.top) {
+            this.move(0, -1);
         }
-        else if (y === 1 && !cellBorders.bottom) {
-            this.hero.y++;
-            this.maze.cell(this.hero.y, this.hero.x).visited = true;
+        else if (direction === Direction.DOWN && !cellBorders.bottom) {
+            this.move(0, 1);
         }
+    };
+    MoriaGame.prototype.move = function (x, y) {
+        this.hero.x += x;
+        this.hero.y += y;
+        this.maze.cell(this.hero.y, this.hero.x).visited = true;
     };
     return MoriaGame;
 }());
@@ -92,6 +102,12 @@ var Maze = (function () {
     Maze.prototype.cell = function (row, col) {
         return this.grid[row][col];
     };
+    Maze.prototype.setUpstair = function (row, col) {
+        this.upstair = new Stair(row, col, true);
+    };
+    Maze.prototype.setDownstair = function (row, col) {
+        this.downstair = new Stair(row, col, false);
+    };
     Maze.prototype.draw = function () {
         for (var _i = 0, _a = this.grid; _i < _a.length; _i++) {
             var rows = _a[_i];
@@ -101,6 +117,12 @@ var Maze = (function () {
                     cell.draw();
                 }
             }
+        }
+        if (this.cell(this.upstair.row, this.upstair.col).visited) {
+            this.upstair.draw();
+        }
+        if (this.cell(this.downstair.row, this.downstair.col).visited) {
+            this.downstair.draw();
         }
     };
     return Maze;
@@ -237,3 +259,24 @@ var Cell = (function () {
     return Cell;
 }());
 Cell.cellWidth = 30;
+var Stair = (function () {
+    function Stair(row, col, up) {
+        this.row = row;
+        this.col = col;
+        this.up = up;
+    }
+    Stair.prototype.draw = function () {
+        stroke(255);
+        if (this.up) {
+            fill(192, 192, 192);
+        }
+        else {
+            fill(70, 70, 70);
+        }
+        var w = Cell.cellWidth - 6;
+        var x = this.col * Cell.cellWidth + 3;
+        var y = this.row * Cell.cellWidth + 3;
+        rect(x, y, w, w);
+    };
+    return Stair;
+}());
