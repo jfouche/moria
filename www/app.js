@@ -1,6 +1,6 @@
 var game;
 function setup() {
-    game = new MoriaGame(20, 30);
+    game = new MoriaGame(8, 10);
     createCanvas(game.width, game.height);
     frameRate(10);
 }
@@ -10,16 +10,16 @@ function draw() {
 }
 function keyPressed() {
     if (keyCode === UP_ARROW) {
-        game.moveHero(Direction.UP);
+        game.moveHero(0);
     }
     else if (keyCode === DOWN_ARROW) {
-        game.moveHero(Direction.DOWN);
+        game.moveHero(1);
     }
     else if (keyCode === LEFT_ARROW) {
-        game.moveHero(Direction.LEFT);
+        game.moveHero(2);
     }
     else if (keyCode === RIGHT_ARROW) {
-        game.moveHero(Direction.RIGHT);
+        game.moveHero(3);
     }
 }
 var Direction;
@@ -50,16 +50,16 @@ var MoriaGame = (function () {
     MoriaGame.prototype.moveHero = function (direction) {
         var cell = this.maze.cell(this.hero.y, this.hero.x);
         var cellBorders = this.maze.cell(this.hero.y, this.hero.x).borders;
-        if (direction === Direction.RIGHT && !cellBorders.right) {
+        if (direction === 3 && !cellBorders.right) {
             this.move(1, 0);
         }
-        else if (direction === Direction.LEFT && !cellBorders.left) {
+        else if (direction === 2 && !cellBorders.left) {
             this.move(-1, 0);
         }
-        else if (direction === Direction.UP && !cellBorders.top) {
+        else if (direction === 0 && !cellBorders.top) {
             this.move(0, -1);
         }
-        else if (direction === Direction.DOWN && !cellBorders.bottom) {
+        else if (direction === 1 && !cellBorders.bottom) {
             this.move(0, 1);
         }
     };
@@ -235,6 +235,15 @@ var Cell = (function () {
         var w = Cell.cellWidth;
         var x = this.col * Cell.cellWidth;
         var y = this.row * Cell.cellWidth;
+        var b = 4;
+        line(x, y, x, y + b);
+        line(x + w, y, x + w, y + b);
+        line(x + w, y, x + w - b, y);
+        line(x + w, y + w, x + w - b, y + w);
+        line(x + w, y + w, x + w, y + w - b);
+        line(x, y + w, x, y + w - b);
+        line(x, y + w, x + b, y + w);
+        line(x, y, x + b, y);
         if (this.borders.top) {
             line(x, y, x + w, y);
         }

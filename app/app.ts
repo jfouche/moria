@@ -3,7 +3,7 @@
 let game: MoriaGame;
 
 function setup() {
-    game = new MoriaGame(20, 30);
+    game = new MoriaGame(8, 10);
     createCanvas(game.width, game.height);
     frameRate(10);
 }
@@ -25,7 +25,7 @@ function keyPressed() {
     }
 }
 
-enum Direction {
+const enum Direction {
     UP, DOWN, LEFT, RIGHT
 }
 
@@ -288,6 +288,15 @@ class Cell {
         let w = Cell.cellWidth;
         let x = this.col * Cell.cellWidth;
         let y = this.row * Cell.cellWidth;
+        const b = 4;
+        line(x, y, x, y + b);
+        line(x + w, y, x + w, y + b);
+        line(x + w, y, x + w - b, y);
+        line(x + w, y + w, x + w - b, y + w);
+        line(x + w, y + w, x + w, y + w - b);
+        line(x, y + w, x, y + w - b);
+        line(x, y + w, x + b, y + w);
+        line(x, y, x + b, y);
         if (this.borders.top) {
             line(x, y, x + w, y);
         }
