@@ -54,7 +54,7 @@ var MazeGenerator = (function () {
             if (next) {
                 next.visited = true;
                 backtracking.push(currentCell);
-                this.removeWalls(currentCell, next);
+                this.removeWallsBetween(currentCell, next);
                 currentCell = next;
             }
             else if (backtracking.length > 0) {
@@ -71,6 +71,7 @@ var MazeGenerator = (function () {
                 maze.cell(r, c).visited = false;
             }
         }
+        this.removeRandomWalls(maze, 10);
         return maze;
     };
     MazeGenerator.prototype.getNextNeighbor = function (maze, cell) {
@@ -106,7 +107,7 @@ var MazeGenerator = (function () {
         }
         return next;
     };
-    MazeGenerator.prototype.removeWalls = function (a, b) {
+    MazeGenerator.prototype.removeWallsBetween = function (a, b) {
         if (a.col > b.col) {
             a.borders.left = false;
             b.borders.right = false;
@@ -122,6 +123,46 @@ var MazeGenerator = (function () {
         else if (a.row < b.row) {
             a.borders.bottom = false;
             b.borders.top = false;
+        }
+    };
+    MazeGenerator.prototype.removeRandomWalls = function (maze, n) {
+        for (var i = 0; i < n;) {
+            var r = floor(random(1, maze.nRows - 2));
+            var c = floor(random(1, maze.nCols - 2));
+            var cell = maze.cell(r, c);
+            var next = floor(random(0, 3));
+            switch (next) {
+                case 0:
+                    if (cell.borders.top) {
+                        this.removeWallsBetween(cell, maze.cell(r - 1, c));
+                        console.log("remove (%d, %d) : top", c, r);
+                        i++;
+                    }
+                    break;
+                case 1:
+                    if (cell.borders.right) {
+                        this.removeWallsBetween(cell, maze.cell(r, c + 1));
+                        console.log("remove (%d, %d) : right", c, r);
+                        i++;
+                    }
+                    break;
+                case 2:
+                    if (cell.borders.bottom) {
+                        this.removeWallsBetween(cell, maze.cell(r + 1, c));
+                        console.log("remove (%d, %d) : bottom", c, r);
+                        i++;
+                    }
+                    break;
+                case 3:
+                    if (cell.borders.left) {
+                        this.removeWallsBetween(cell, maze.cell(r, c - 1));
+                        console.log("remove (%d, %d) : left", c, r);
+                        i++;
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
     };
     return MazeGenerator;

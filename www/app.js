@@ -64,24 +64,41 @@ var MoriaGame = (function () {
         }
     };
     MoriaGame.prototype.move = function (x, y) {
-        this.hero.x += x;
-        this.hero.y += y;
+        this.hero.move(x, y);
         this.maze.cell(this.hero.y, this.hero.x).visited = true;
     };
     return MoriaGame;
 }());
 var Hero = (function () {
     function Hero(x, y) {
-        this.x = x;
-        this.y = y;
+        this._x = x;
+        this._y = y;
     }
+    Object.defineProperty(Hero.prototype, "x", {
+        get: function () {
+            return this._x;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Hero.prototype, "y", {
+        get: function () {
+            return this._y;
+        },
+        enumerable: true,
+        configurable: true
+    });
     Hero.prototype.draw = function () {
         stroke(255);
         fill(0, 255, 0);
-        var x = this.x * Cell.cellWidth + Cell.cellWidth / 2;
-        var y = this.y * Cell.cellWidth + Cell.cellWidth / 2;
+        var x = this._x * Cell.cellWidth + Cell.cellWidth / 2;
+        var y = this._y * Cell.cellWidth + Cell.cellWidth / 2;
         var r = Cell.cellWidth / 2 - 1;
         ellipse(x, y, r, r);
+    };
+    Hero.prototype.move = function (x, y) {
+        this._x += x;
+        this._y += y;
     };
     return Hero;
 }());

@@ -89,6 +89,8 @@ class MazeGenerator {
             }
         }
 
+        this.removeRandomWalls(maze, 10);
+
         return maze;
     }
 
@@ -140,6 +142,52 @@ class MazeGenerator {
         } else if (a.row < b.row) {
             a.borders.bottom = false;
             b.borders.top = false;
+        }
+    }
+
+    private removeRandomWalls(maze: Maze, n: number) {
+        for (let i = 0; i < n;) {
+            let r = floor(random(1, maze.nRows - 2));
+            let c = floor(random(1, maze.nCols - 2));
+
+            let cell = maze.cell(r, c);
+            let next = floor(random(0, 3));
+            switch (next) {
+                case 0:
+                    if (cell.borders.top) {
+                        this.removeWallsBetween(cell, maze.cell(r - 1, c));
+                        console.log("remove (%d, %d) : top", c, r);
+                        i++;
+                    }
+                    break;
+
+                case 1:
+                    if (cell.borders.right) {
+                        this.removeWallsBetween(cell, maze.cell(r, c + 1));
+                        console.log("remove (%d, %d) : right", c, r);
+                        i++;
+                    }
+                    break;
+
+                case 2:
+                    if (cell.borders.bottom) {
+                        this.removeWallsBetween(cell, maze.cell(r + 1, c));
+                        console.log("remove (%d, %d) : bottom", c, r);
+                        i++;
+                    }
+                    break;
+
+                case 3:
+                    if (cell.borders.left) {
+                        this.removeWallsBetween(cell, maze.cell(r, c - 1));
+                        console.log("remove (%d, %d) : left", c, r);
+                        i++;
+                    }
+                    break;
+
+                default:
+                    break;
+            }
         }
     }
 }

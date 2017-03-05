@@ -79,8 +79,7 @@ class MoriaGame {
     }
 
     private move(x: number, y: number) {
-        this.hero.x += x;
-        this.hero.y += y;
+        this.hero.move(x, y)
         this.maze.cell(this.hero.y, this.hero.x).visited = true;
     }
 }
@@ -89,20 +88,33 @@ class MoriaGame {
  * Hero
  */
 class Hero {
-    public x: number;
-    public y: number;
+    private _x: number;
+    private _y: number;
 
     constructor(x: number, y: number) {
-        this.x = x;
-        this.y = y;
+        this._x = x;
+        this._y = y;
+    }
+
+    public get x(): number {
+        return this._x;
+    }
+
+    public get y(): number {
+        return this._y;
     }
 
     public draw() {
         stroke(255);
         fill(0, 255, 0);
-        let x = this.x * Cell.cellWidth + Cell.cellWidth / 2;
-        let y = this.y * Cell.cellWidth + Cell.cellWidth / 2;
+        let x = this._x * Cell.cellWidth + Cell.cellWidth / 2;
+        let y = this._y * Cell.cellWidth + Cell.cellWidth / 2;
         let r = Cell.cellWidth / 2 - 1;
         ellipse(x, y, r, r);
+    }
+
+    public move(x: number, y: number) {
+        this._x += x;
+        this._y += y;
     }
 }
