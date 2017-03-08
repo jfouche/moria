@@ -29,6 +29,29 @@ var Direction;
     Direction[Direction["LEFT"] = 2] = "LEFT";
     Direction[Direction["RIGHT"] = 3] = "RIGHT";
 })(Direction || (Direction = {}));
+var Offset = (function () {
+    function Offset(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+    return Offset;
+}());
+;
+function directionOffset(dir) {
+    switch (dir) {
+        case 0:
+            return new Offset(0, -1);
+        case 1:
+            return new Offset(0, 1);
+        case 2:
+            return new Offset(-1, 0);
+        case 3:
+            return new Offset(1, 0);
+        default:
+            break;
+    }
+    return undefined;
+}
 var MoriaGame = (function () {
     function MoriaGame(nRows, nCols) {
         this.nRows = nRows;
@@ -41,6 +64,7 @@ var MoriaGame = (function () {
         this.maze.cell(this.hero.y, this.hero.x).visited = true;
         this.maze.setUpstair(this.hero.y, this.hero.x);
         this.maze.setDownstair(this.nRows - 1, this.nCols - 1);
+        this.checkVisibility();
     }
     MoriaGame.prototype.draw = function () {
         background(0);
@@ -48,24 +72,53 @@ var MoriaGame = (function () {
         this.hero.draw();
     };
     MoriaGame.prototype.moveHero = function (direction) {
-        var cell = this.maze.cell(this.hero.y, this.hero.x);
-        var cellBorders = this.maze.cell(this.hero.y, this.hero.x).borders;
-        if (direction === 3 && !cellBorders.right) {
-            this.move(1, 0);
-        }
-        else if (direction === 2 && !cellBorders.left) {
-            this.move(-1, 0);
-        }
-        else if (direction === 0 && !cellBorders.top) {
-            this.move(0, -1);
-        }
-        else if (direction === 1 && !cellBorders.bottom) {
-            this.move(0, 1);
+        if (this.canMove(direction)) {
+            this.hero.move(direction);
+            this.maze.cell(this.hero.y, this.hero.x).visited = true;
+            this.checkVisibility();
         }
     };
-    MoriaGame.prototype.move = function (x, y) {
-        this.hero.move(x, y);
-        this.maze.cell(this.hero.y, this.hero.x).visited = true;
+    MoriaGame.prototype.canMove = function (direction) {
+        var cellBorders = this.maze.cell(this.hero.y, this.hero.x).borders;
+        return (direction === 3 && !cellBorders.right)
+            || (direction === 2 && !cellBorders.left)
+            || (direction === 0 && !cellBorders.top)
+            || (direction === 1 && !cellBorders.bottom);
+    };
+    MoriaGame.prototype.checkVisibility = function () {
+        var _this = this;
+        var x;
+        var y;
+        var cell;
+        var reset = function () {
+            x = _this.hero.x;
+            y = _this.hero.y;
+            cell = _this.maze.cell(y, x);
+        };
+        var next = function () {
+            cell = _this.maze.cell(y, x);
+            cell.visited = true;
+        };
+        reset();
+        while (!cell.borders.top) {
+            y -= 1;
+            next();
+        }
+        reset();
+        while (!cell.borders.right) {
+            x += 1;
+            next();
+        }
+        reset();
+        while (!cell.borders.bottom) {
+            y += 1;
+            next();
+        }
+        reset();
+        while (!cell.borders.left) {
+            x -= 1;
+            next();
+        }
     };
     return MoriaGame;
 }());
@@ -96,9 +149,14 @@ var Hero = (function () {
         var r = Cell.cellWidth / 2 - 1;
         ellipse(x, y, r, r);
     };
-    Hero.prototype.move = function (x, y) {
+    Hero.prototype.moveTo = function (x, y) {
         this._x += x;
         this._y += y;
+    };
+    Hero.prototype.move = function (dir) {
+        var offset = directionOffset(dir);
+        this._x += offset.x;
+        this._y += offset.y;
     };
     return Hero;
 }());

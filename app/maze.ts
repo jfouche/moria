@@ -221,12 +221,17 @@ class Cell {
     }
 
     public draw() {
-        stroke(255);
-        noFill();
         let w = Cell.cellWidth;
         let x = this.col * Cell.cellWidth;
         let y = this.row * Cell.cellWidth;
         const b = 4;
+
+        noStroke();
+        fill(15, 15, 15);
+
+        rect(x, y, w, w)
+        stroke(255);
+        noFill();
         line(x, y, x, y + b);
         line(x + w, y, x + w, y + b);
         line(x + w, y, x + w - b, y);

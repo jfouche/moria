@@ -184,12 +184,15 @@ var Cell = (function () {
         this.borders = new CellBorders();
     }
     Cell.prototype.draw = function () {
-        stroke(255);
-        noFill();
         var w = Cell.cellWidth;
         var x = this.col * Cell.cellWidth;
         var y = this.row * Cell.cellWidth;
         var b = 4;
+        noStroke();
+        fill(15, 15, 15);
+        rect(x, y, w, w);
+        stroke(255);
+        noFill();
         line(x, y, x, y + b);
         line(x + w, y, x + w, y + b);
         line(x + w, y, x + w - b, y);

@@ -29,6 +29,31 @@ const enum Direction {
     UP, DOWN, LEFT, RIGHT
 }
 
+class Offset {
+    x: number;
+    y: number;
+    constructor(x: number, y: number) {
+        this.x = x;
+        this.y = y
+    }
+};
+
+function directionOffset(dir: Direction): Offset {
+    switch (dir) {
+        case Direction.UP:
+            return new Offset(0, -1);
+        case Direction.DOWN:
+            return new Offset(0, 1);
+        case Direction.LEFT:
+            return new Offset(-1, 0);
+        case Direction.RIGHT:
+            return new Offset(1, 0);
+        default:
+            break;
+    }
+    return undefined;
+}
+
 /**
  * MoriaGame
  */
@@ -56,6 +81,8 @@ class MoriaGame {
 
         this.maze.setUpstair(this.hero.y, this.hero.x);
         this.maze.setDownstair(this.nRows - 1, this.nCols - 1);
+
+        this.checkVisibility();
     }
 
     public draw() {
@@ -65,22 +92,54 @@ class MoriaGame {
     }
 
     public moveHero(direction: Direction) {
-        let cell = this.maze.cell(this.hero.y, this.hero.x);
-        let cellBorders = this.maze.cell(this.hero.y, this.hero.x).borders;
-        if (direction === Direction.RIGHT && !cellBorders.right) {
-            this.move(1, 0);
-        } else if (direction === Direction.LEFT && !cellBorders.left) {
-            this.move(-1, 0);
-        } else if (direction === Direction.UP && !cellBorders.top) {
-            this.move(0, -1);
-        } else if (direction === Direction.DOWN && !cellBorders.bottom) {
-            this.move(0, 1);
+        if (this.canMove(direction)) {
+            this.hero.move(direction);
+            this.maze.cell(this.hero.y, this.hero.x).visited = true;
+            this.checkVisibility();
         }
     }
 
-    private move(x: number, y: number) {
-        this.hero.move(x, y)
-        this.maze.cell(this.hero.y, this.hero.x).visited = true;
+    public canMove(direction: Direction): boolean {
+        let cellBorders = this.maze.cell(this.hero.y, this.hero.x).borders;
+        return (direction === Direction.RIGHT && !cellBorders.right)
+            || (direction === Direction.LEFT && !cellBorders.left)
+            || (direction === Direction.UP && !cellBorders.top)
+            || (direction === Direction.DOWN && !cellBorders.bottom);
+    }
+
+    private checkVisibility() {
+        let x: number;
+        let y: number;
+        let cell: Cell;
+        let reset = () => {
+            x = this.hero.x;
+            y = this.hero.y;
+            cell = this.maze.cell(y, x);
+        }
+        let next = () => {
+            cell = this.maze.cell(y, x);
+            cell.visited = true;
+        }
+        reset();
+        while (!cell.borders.top) {
+            y -= 1;
+            next();
+        }
+        reset();
+        while (!cell.borders.right) {
+            x += 1;
+            next();
+        }
+        reset();
+        while (!cell.borders.bottom) {
+            y += 1;
+            next();
+        }
+        reset();
+        while (!cell.borders.left) {
+            x -= 1;
+            next();
+        }
     }
 }
 
@@ -113,8 +172,14 @@ class Hero {
         ellipse(x, y, r, r);
     }
 
-    public move(x: number, y: number) {
+    public moveTo(x: number, y: number) {
         this._x += x;
         this._y += y;
+    }
+
+    public move(dir: Direction) {
+        let offset = directionOffset(dir);
+        this._x += offset.x;
+        this._y += offset.y;
     }
 }
