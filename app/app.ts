@@ -3,7 +3,7 @@
 let game: MoriaGame;
 
 function setup() {
-    game = new MoriaGame(8, 10);
+    game = new MoriaGame(8, 10, 5);
     createCanvas(game.width, game.height);
     frameRate(10);
 }
@@ -63,44 +63,60 @@ class MoriaGame {
     public readonly width: number;
     public readonly height: number;
 
-    private maze: Maze;
+    private mazes: Maze[];
     private hero: Hero;
+    private currentLevel: number;
 
-    constructor(nRows: number, nCols: number) {
+    constructor(nRows: number, nCols: number, nLevels: number) {
         this.nRows = nRows;
         this.nCols = nCols;
 
         let mazeGenerator = new MazeGenerator();
-        this.maze = mazeGenerator.newMaze(this.nRows, this.nCols);
+        this.mazes = [];
+        for (let i = 0; i < nLevels; i++) {
+            this.mazes.push(mazeGenerator.newMaze(this.nRows, this.nCols));
+        }
 
-        this.width = this.maze.width;
-        this.height = this.maze.height;
+        this.currentLevel = 0;
 
-        this.hero = new Hero(0, 0);
-        this.maze.cell(this.hero.y, this.hero.x).visited = true;
+        let maze = this.maze();
+        this.width = maze.width;
+        this.height = maze.height;
 
-        this.maze.setUpstair(this.hero.y, this.hero.x);
-        this.maze.setDownstair(this.nRows - 1, this.nCols - 1);
+        this.initLevel();
+    }
 
+    private initLevel() {
+        let maze = this.maze();
+        this.hero = new Hero(maze.upstair.col, maze.upstair.row);
+        maze.cell(this.hero.y, this.hero.x).visited = true;
         this.checkVisibility();
+    }
+
+    public maze(): Maze {
+        return this.mazes[this.currentLevel];
     }
 
     public draw() {
         background(0);
-        this.maze.draw();
+        this.maze().draw();
         this.hero.draw();
     }
 
     public moveHero(direction: Direction) {
         if (this.canMove(direction)) {
             this.hero.move(direction);
-            this.maze.cell(this.hero.y, this.hero.x).visited = true;
+            this.maze().cell(this.hero.y, this.hero.x).visited = true;
+            if (this.hero.x === this.maze().downstair.col && this.hero.y === this.maze().downstair.row) {
+                this.currentLevel++;
+                this.initLevel();
+            }
             this.checkVisibility();
         }
     }
 
     public canMove(direction: Direction): boolean {
-        let cellBorders = this.maze.cell(this.hero.y, this.hero.x).borders;
+        let cellBorders = this.maze().cell(this.hero.y, this.hero.x).borders;
         return (direction === Direction.RIGHT && !cellBorders.right)
             || (direction === Direction.LEFT && !cellBorders.left)
             || (direction === Direction.UP && !cellBorders.top)
@@ -111,13 +127,14 @@ class MoriaGame {
         let x: number;
         let y: number;
         let cell: Cell;
+        let maze = this.maze();
         let reset = () => {
             x = this.hero.x;
             y = this.hero.y;
-            cell = this.maze.cell(y, x);
+            cell = maze.cell(y, x);
         }
         let next = () => {
-            cell = this.maze.cell(y, x);
+            cell = maze.cell(y, x);
             cell.visited = true;
         }
         reset();

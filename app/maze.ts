@@ -7,8 +7,8 @@ class Maze {
     public readonly width: number;
     public readonly height: number;
     private grid: Cell[][];
-    private upstair: Stair;
-    private downstair: Stair;
+    public readonly upstair: Stair;
+    public readonly downstair: Stair;
 
     constructor(nRows: number, nCols: number) {
         this.nRows = nRows;
@@ -23,18 +23,12 @@ class Maze {
                 this.grid[r][c] = new Cell(r, c);
             }
         }
+        this.upstair = new Stair(0, 0, true);
+        this.downstair = new Stair(nRows - 1, nCols - 1, false);
     }
 
     public cell(row: number, col: number) {
         return this.grid[row][col];
-    }
-
-    public setUpstair(row: number, col: number) {
-        this.upstair = new Stair(row, col, true);
-    }
-
-    public setDownstair(row: number, col: number) {
-        this.downstair = new Stair(row, col, false);
     }
 
     public draw() {

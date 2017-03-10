@@ -1,6 +1,6 @@
 var game;
 function setup() {
-    game = new MoriaGame(8, 10);
+    game = new MoriaGame(8, 10, 5);
     createCanvas(game.width, game.height);
     frameRate(10);
 }
@@ -53,33 +53,47 @@ function directionOffset(dir) {
     return undefined;
 }
 var MoriaGame = (function () {
-    function MoriaGame(nRows, nCols) {
+    function MoriaGame(nRows, nCols, nLevels) {
         this.nRows = nRows;
         this.nCols = nCols;
         var mazeGenerator = new MazeGenerator();
-        this.maze = mazeGenerator.newMaze(this.nRows, this.nCols);
-        this.width = this.maze.width;
-        this.height = this.maze.height;
-        this.hero = new Hero(0, 0);
-        this.maze.cell(this.hero.y, this.hero.x).visited = true;
-        this.maze.setUpstair(this.hero.y, this.hero.x);
-        this.maze.setDownstair(this.nRows - 1, this.nCols - 1);
-        this.checkVisibility();
+        this.mazes = [];
+        for (var i = 0; i < nLevels; i++) {
+            this.mazes.push(mazeGenerator.newMaze(this.nRows, this.nCols));
+        }
+        this.currentLevel = 0;
+        var maze = this.maze();
+        this.width = maze.width;
+        this.height = maze.height;
+        this.initLevel();
     }
+    MoriaGame.prototype.initLevel = function () {
+        var maze = this.maze();
+        this.hero = new Hero(maze.upstair.col, maze.upstair.row);
+        maze.cell(this.hero.y, this.hero.x).visited = true;
+        this.checkVisibility();
+    };
+    MoriaGame.prototype.maze = function () {
+        return this.mazes[this.currentLevel];
+    };
     MoriaGame.prototype.draw = function () {
         background(0);
-        this.maze.draw();
+        this.maze().draw();
         this.hero.draw();
     };
     MoriaGame.prototype.moveHero = function (direction) {
         if (this.canMove(direction)) {
             this.hero.move(direction);
-            this.maze.cell(this.hero.y, this.hero.x).visited = true;
+            this.maze().cell(this.hero.y, this.hero.x).visited = true;
+            if (this.hero.x === this.maze().downstair.col && this.hero.y === this.maze().downstair.row) {
+                this.currentLevel++;
+                this.initLevel();
+            }
             this.checkVisibility();
         }
     };
     MoriaGame.prototype.canMove = function (direction) {
-        var cellBorders = this.maze.cell(this.hero.y, this.hero.x).borders;
+        var cellBorders = this.maze().cell(this.hero.y, this.hero.x).borders;
         return (direction === 3 && !cellBorders.right)
             || (direction === 2 && !cellBorders.left)
             || (direction === 0 && !cellBorders.top)
@@ -90,13 +104,14 @@ var MoriaGame = (function () {
         var x;
         var y;
         var cell;
+        var maze = this.maze();
         var reset = function () {
             x = _this.hero.x;
             y = _this.hero.y;
-            cell = _this.maze.cell(y, x);
+            cell = maze.cell(y, x);
         };
         var next = function () {
-            cell = _this.maze.cell(y, x);
+            cell = maze.cell(y, x);
             cell.visited = true;
         };
         reset();

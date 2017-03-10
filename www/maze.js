@@ -11,15 +11,11 @@ var Maze = (function () {
                 this.grid[r][c] = new Cell(r, c);
             }
         }
+        this.upstair = new Stair(0, 0, true);
+        this.downstair = new Stair(nRows - 1, nCols - 1, false);
     }
     Maze.prototype.cell = function (row, col) {
         return this.grid[row][col];
-    };
-    Maze.prototype.setUpstair = function (row, col) {
-        this.upstair = new Stair(row, col, true);
-    };
-    Maze.prototype.setDownstair = function (row, col) {
-        this.downstair = new Stair(row, col, false);
     };
     Maze.prototype.draw = function () {
         for (var _i = 0, _a = this.grid; _i < _a.length; _i++) {
