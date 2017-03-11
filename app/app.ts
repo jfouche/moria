@@ -4,13 +4,20 @@ let game: MoriaGame;
 
 function setup() {
     game = new MoriaGame(8, 10, 5);
-    createCanvas(game.width, game.height);
+    let canvas = createCanvas(game.width, game.height);
+    canvas.parent('game');
     frameRate(10);
 }
 
 function draw() {
     background(0);
     game.draw();
+    updateInfo();
+}
+
+function updateInfo() {
+    let levelElt = document.getElementById("nLevel");
+    levelElt.innerHTML = game.getLevel().toString();
 }
 
 function keyPressed() {
@@ -84,6 +91,10 @@ class MoriaGame {
         this.height = maze.height;
 
         this.initLevel();
+    }
+
+    public getLevel(): number {
+        return this.currentLevel;
     }
 
     private initLevel() {

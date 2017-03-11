@@ -1,12 +1,18 @@
 var game;
 function setup() {
     game = new MoriaGame(8, 10, 5);
-    createCanvas(game.width, game.height);
+    var canvas = createCanvas(game.width, game.height);
+    canvas.parent('game');
     frameRate(10);
 }
 function draw() {
     background(0);
     game.draw();
+    updateInfo();
+}
+function updateInfo() {
+    var levelElt = document.getElementById("nLevel");
+    levelElt.innerHTML = game.getLevel().toString();
 }
 function keyPressed() {
     if (keyCode === UP_ARROW) {
@@ -67,6 +73,9 @@ var MoriaGame = (function () {
         this.height = maze.height;
         this.initLevel();
     }
+    MoriaGame.prototype.getLevel = function () {
+        return this.currentLevel;
+    };
     MoriaGame.prototype.initLevel = function () {
         var maze = this.maze();
         this.hero = new Hero(maze.upstair.col, maze.upstair.row);
