@@ -1,6 +1,8 @@
 /// <reference path="../typings/p5.d.ts" />
+import { Maze, createMaze, Cell } from "./maze"
 
 let game: MoriaGame;
+
 
 function setup() {
     game = new MoriaGame(8, 10, 5);
@@ -64,7 +66,7 @@ function directionOffset(dir: Direction): Offset {
 /**
  * MoriaGame
  */
-class MoriaGame {
+export class MoriaGame {
     public readonly nRows: number;
     public readonly nCols: number;
     public readonly width: number;
@@ -78,17 +80,14 @@ class MoriaGame {
         this.nRows = nRows;
         this.nCols = nCols;
 
-        let mazeGenerator = new MazeGenerator();
         this.mazes = [];
         for (let i = 0; i < nLevels; i++) {
-            this.mazes.push(mazeGenerator.newMaze(this.nRows, this.nCols));
+            this.mazes.push(createMaze(this.nRows, this.nCols));
         }
 
         this.currentLevel = 0;
 
         let maze = this.maze();
-        this.width = maze.width;
-        this.height = maze.height;
 
         this.initLevel();
     }
@@ -100,7 +99,7 @@ class MoriaGame {
     private initLevel() {
         let maze = this.maze();
         this.hero = new Hero(maze.upstair.col, maze.upstair.row);
-        maze.cell(this.hero.y, this.hero.x).visited = true;
+        maze.cell(this.hero.y, this.hero.x).visit();
         this.checkVisibility();
     }
 
@@ -110,14 +109,14 @@ class MoriaGame {
 
     public draw() {
         background(0);
-        this.maze().draw();
-        this.hero.draw();
+        //this.maze().draw();
+        //this.hero.draw();
     }
 
     public moveHero(direction: Direction) {
         if (this.canMove(direction)) {
             this.hero.move(direction);
-            this.maze().cell(this.hero.y, this.hero.x).visited = true;
+            this.maze().cell(this.hero.y, this.hero.x).visit();
             if (this.hero.x === this.maze().downstair.col && this.hero.y === this.maze().downstair.row) {
                 this.currentLevel++;
                 this.initLevel();
@@ -128,10 +127,10 @@ class MoriaGame {
 
     public canMove(direction: Direction): boolean {
         let cellBorders = this.maze().cell(this.hero.y, this.hero.x).borders;
-        return (direction === Direction.RIGHT && !cellBorders.right)
-            || (direction === Direction.LEFT && !cellBorders.left)
-            || (direction === Direction.UP && !cellBorders.top)
-            || (direction === Direction.DOWN && !cellBorders.bottom);
+        return (direction === Direction.RIGHT && !cellBorders.E)
+            || (direction === Direction.LEFT && !cellBorders.W)
+            || (direction === Direction.UP && !cellBorders.N)
+            || (direction === Direction.DOWN && !cellBorders.S);
     }
 
     private checkVisibility() {
@@ -146,25 +145,25 @@ class MoriaGame {
         }
         let next = () => {
             cell = maze.cell(y, x);
-            cell.visited = true;
+            cell.visit();
         }
         reset();
-        while (!cell.borders.top) {
+        while (!cell.borders.N) {
             y -= 1;
             next();
         }
         reset();
-        while (!cell.borders.right) {
+        while (!cell.borders.E) {
             x += 1;
             next();
         }
         reset();
-        while (!cell.borders.bottom) {
+        while (!cell.borders.S) {
             y += 1;
             next();
         }
         reset();
-        while (!cell.borders.left) {
+        while (!cell.borders.W) {
             x -= 1;
             next();
         }
@@ -191,6 +190,7 @@ class Hero {
         return this._y;
     }
 
+    /*
     public draw() {
         stroke(255);
         fill(0, 255, 0);
@@ -198,7 +198,7 @@ class Hero {
         let y = this._y * Cell.cellWidth + Cell.cellWidth / 2;
         let r = Cell.cellWidth / 2 - 1;
         ellipse(x, y, r, r);
-    }
+    }*/
 
     public moveTo(x: number, y: number) {
         this._x += x;

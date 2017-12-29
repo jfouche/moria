@@ -6,7 +6,8 @@
         "target": "es5",
         "removeComments": true,
         "preserveConstEnums": true,
-        "outDir": "www"
+        "outDir": "www",
+        "lib" : ["es2015", "es2015.iterable", "dom"]
     },
     "include": [
         "app/**/*.ts"

@@ -9,10 +9,13 @@
     "author": "jf",
     "license": "WTFPL",
     "dependencies": {
-        "typescript": "^2.1.5"
+        "typescript": "^2.6.2"
     },
     "devDependencies": {
-        "tslint": "^3.15.1",
-        "eslint": "^3.4.0"
+        "ts-loader": "^0.8.2",
+        "@types/three": "^0.84.36",
+        "tslint": "^5.8.0",
+        "eslint": "^4.14.0",
+        "webpack": "^1.13.2"
     }
 }
