@@ -48,7 +48,7 @@ class CellView {
         const b = 4;
 
         noStroke();
-        fill(15, 15, 15);
+        fill(25, 25, 25);
 
         rect(x, y, w, w)
         stroke(255);
