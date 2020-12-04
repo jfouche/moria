@@ -11,28 +11,11 @@ var Maze = (function () {
                 this.grid[r][c] = new Cell(r, c);
             }
         }
-        this.upstair = new Stair(0, 0, true);
-        this.downstair = new Stair(nRows - 1, nCols - 1, false);
+        this.upstair = Stair.upstair(0, 0);
+        this.downstair = Stair.downstairstair(nRows - 1, nCols - 1);
     }
     Maze.prototype.cell = function (row, col) {
         return this.grid[row][col];
-    };
-    Maze.prototype.draw = function () {
-        for (var _i = 0, _a = this.grid; _i < _a.length; _i++) {
-            var rows = _a[_i];
-            for (var _b = 0, rows_1 = rows; _b < rows_1.length; _b++) {
-                var cell = rows_1[_b];
-                if (cell.visited) {
-                    cell.draw();
-                }
-            }
-        }
-        if (this.cell(this.upstair.row, this.upstair.col).visited) {
-            this.upstair.draw();
-        }
-        if (this.cell(this.downstair.row, this.downstair.col).visited) {
-            this.downstair.draw();
-        }
     };
     return Maze;
 }());
@@ -179,66 +162,20 @@ var Cell = (function () {
         this.col = col;
         this.borders = new CellBorders();
     }
-    Cell.prototype.draw = function () {
-        var w = Cell.cellWidth;
-        var x = this.col * Cell.cellWidth;
-        var y = this.row * Cell.cellWidth;
-        var b = 4;
-        noStroke();
-        fill(15, 15, 15);
-        rect(x, y, w, w);
-        stroke(255);
-        noFill();
-        line(x, y, x, y + b);
-        line(x + w, y, x + w, y + b);
-        line(x + w, y, x + w - b, y);
-        line(x + w, y + w, x + w - b, y + w);
-        line(x + w, y + w, x + w, y + w - b);
-        line(x, y + w, x, y + w - b);
-        line(x, y + w, x + b, y + w);
-        line(x, y, x + b, y);
-        if (this.borders.top) {
-            line(x, y, x + w, y);
-        }
-        if (this.borders.right) {
-            line(x + w, y, x + w, y + w);
-        }
-        if (this.borders.bottom) {
-            line(x + w, y + w, x, y + w);
-        }
-        if (this.borders.left) {
-            line(x, y + w, x, y);
-        }
-    };
-    Cell.prototype.highlight = function () {
-        noStroke();
-        fill(255, 255, 255, 255);
-        var w = Cell.cellWidth;
-        var x = this.col * Cell.cellWidth;
-        var y = this.row * Cell.cellWidth;
-        ellipse(x + w / 2, y + w / 2, w / 2, w / 2);
-    };
+    Cell.cellWidth = 30;
     return Cell;
 }());
-Cell.cellWidth = 30;
 var Stair = (function () {
     function Stair(row, col, up) {
         this.row = row;
         this.col = col;
         this.up = up;
     }
-    Stair.prototype.draw = function () {
-        stroke(255);
-        if (this.up) {
-            fill(192, 192, 192);
-        }
-        else {
-            fill(70, 70, 70);
-        }
-        var w = Cell.cellWidth - 6;
-        var x = this.col * Cell.cellWidth + 3;
-        var y = this.row * Cell.cellWidth + 3;
-        rect(x, y, w, w);
+    Stair.upstair = function (row, col) {
+        return new Stair(row, col, true);
+    };
+    Stair.downstairstair = function (row, col) {
+        return new Stair(row, col, false);
     };
     return Stair;
 }());
