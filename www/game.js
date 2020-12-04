@@ -9,6 +9,7 @@ var MoriaGame = (function () {
         }
         this.currentLevel = 0;
         var maze = this.maze();
+        this.hero = new Hero(maze.upstair.col, maze.upstair.row);
         this.width = maze.width;
         this.height = maze.height;
         this.initLevel();
@@ -18,7 +19,7 @@ var MoriaGame = (function () {
     };
     MoriaGame.prototype.initLevel = function () {
         var maze = this.maze();
-        this.hero = new Hero(maze.upstair.col, maze.upstair.row);
+        this.hero.moveTo(maze.upstair.col, maze.upstair.row);
         maze.cell(this.hero.y, this.hero.x).visited = true;
         this.checkVisibility();
     };
@@ -78,6 +79,9 @@ var MoriaGame = (function () {
             x -= 1;
             next();
         }
+    };
+    MoriaGame.prototype.getHero = function () {
+        return this.hero;
     };
     return MoriaGame;
 }());

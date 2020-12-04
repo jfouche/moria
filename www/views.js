@@ -33,7 +33,7 @@ var CellView = (function () {
         var y = this.cell.row * Cell.cellWidth;
         var b = 4;
         noStroke();
-        fill(15, 15, 15);
+        fill(25, 25, 25);
         rect(x, y, w, w);
         stroke(255);
         noFill();
@@ -96,8 +96,11 @@ var GameView = (function () {
         background(0);
         var mv = new MazeView(this.game.maze());
         mv.draw();
-        var hv = new HeroView(this.game.hero);
+        var hero = this.game.getHero();
+        var hv = new HeroView(hero);
         hv.draw();
+        document.getElementById("nLevel").innerHTML = this.game.getLevel().toString();
+        document.getElementById("life").innerHTML = hero.life.toString();
     };
     return GameView;
 }());
@@ -107,7 +110,12 @@ var HeroView = (function () {
     }
     HeroView.prototype.draw = function () {
         stroke(255);
-        fill(0, 255, 0);
+        if (this.hero.life > 0) {
+            fill(0, 255, 0);
+        }
+        else {
+            fill(255, 10, 10);
+        }
         var x = this.hero.x * Cell.cellWidth + Cell.cellWidth / 2;
         var y = this.hero.y * Cell.cellWidth + Cell.cellWidth / 2;
         var r = Cell.cellWidth / 2 - 1;

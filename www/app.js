@@ -16,6 +16,9 @@ function updateInfo() {
     levelElt.innerHTML = game.getLevel().toString();
 }
 function keyPressed() {
+    if (game.getHero().life <= 0) {
+        return;
+    }
     if (keyCode === UP_ARROW) {
         game.moveHero(0);
     }
@@ -28,34 +31,4 @@ function keyPressed() {
     else if (keyCode === RIGHT_ARROW) {
         game.moveHero(3);
     }
-}
-var Direction;
-(function (Direction) {
-    Direction[Direction["UP"] = 0] = "UP";
-    Direction[Direction["DOWN"] = 1] = "DOWN";
-    Direction[Direction["LEFT"] = 2] = "LEFT";
-    Direction[Direction["RIGHT"] = 3] = "RIGHT";
-})(Direction || (Direction = {}));
-var Offset = (function () {
-    function Offset(x, y) {
-        this.x = x;
-        this.y = y;
-    }
-    return Offset;
-}());
-;
-function directionOffset(dir) {
-    switch (dir) {
-        case 0:
-            return new Offset(0, -1);
-        case 1:
-            return new Offset(0, 1);
-        case 2:
-            return new Offset(-1, 0);
-        case 3:
-            return new Offset(1, 0);
-        default:
-            break;
-    }
-    return undefined;
 }
