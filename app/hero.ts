@@ -1,3 +1,7 @@
+const enum Direction {
+    UP, DOWN, LEFT, RIGHT
+}
+
 /**
  * Hero
  */
@@ -24,8 +28,15 @@ class Hero {
     }
 
     public move(dir: Direction) {
-        let offset = directionOffset(dir);
-        this._x += offset.x;
-        this._y += offset.y;
+        let dx = 0, dy = 0;
+        switch (dir) {
+            case Direction.UP: dy = -1; break;
+            case Direction.DOWN: dy = 1; break;
+            case Direction.LEFT: dx = -1; break;
+            case Direction.RIGHT: dx = 1; break;
+            default: break;
+        }
+        this._x += dx;
+        this._y += dy;
     }
 }

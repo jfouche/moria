@@ -32,32 +32,3 @@ function keyPressed() {
         game.moveHero(Direction.RIGHT);
     }
 }
-
-const enum Direction {
-    UP, DOWN, LEFT, RIGHT
-}
-
-class Offset {
-    x: number;
-    y: number;
-    constructor(x: number, y: number) {
-        this.x = x;
-        this.y = y
-    }
-};
-
-function directionOffset(dir: Direction): Offset {
-    switch (dir) {
-        case Direction.UP:
-            return new Offset(0, -1);
-        case Direction.DOWN:
-            return new Offset(0, 1);
-        case Direction.LEFT:
-            return new Offset(-1, 0);
-        case Direction.RIGHT:
-            return new Offset(1, 0);
-        default:
-            break;
-    }
-    return undefined;
-}
