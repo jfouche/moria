@@ -7,8 +7,7 @@ class MoriaGame {
     public readonly width: number;
     public readonly height: number;
 
-    public hero: Hero;
-
+    private hero: Hero;
     private mazes: Maze[];
     private currentLevel: number;
 
@@ -25,6 +24,8 @@ class MoriaGame {
         this.currentLevel = 0;
 
         let maze = this.maze();
+        this.hero = new Hero(maze.upstair.col, maze.upstair.row);
+
         this.width = maze.width;
         this.height = maze.height;
 
@@ -37,7 +38,7 @@ class MoriaGame {
 
     private initLevel() {
         let maze = this.maze();
-        this.hero = new Hero(maze.upstair.col, maze.upstair.row);
+        this.hero.moveTo(maze.upstair.col, maze.upstair.row);
         maze.cell(this.hero.y, this.hero.x).visited = true;
         this.checkVisibility();
     }
@@ -100,5 +101,9 @@ class MoriaGame {
             x -= 1;
             next();
         }
+    }
+
+    public getHero() {
+        return this.hero;
     }
 }

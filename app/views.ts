@@ -124,8 +124,12 @@ class GameView {
         background(0);
         let mv = new MazeView(this.game.maze());
         mv.draw();
-        let hv = new HeroView(this.game.hero);
+        let hero = this.game.getHero();
+        let hv = new HeroView(hero);
         hv.draw();
+
+        document.getElementById("nLevel").innerHTML = this.game.getLevel().toString();
+        document.getElementById("life").innerHTML = hero.life.toString();
     }
 }
 
@@ -139,10 +143,14 @@ class HeroView {
         this.hero = hero;
     }
 
-
     public draw() {
         stroke(255);
-        fill(0, 255, 0);
+        if (this.hero.life > 0) {
+            fill(0, 255, 0);
+        }
+        else {
+            fill(255, 10, 10);
+        }
         let x = this.hero.x * Cell.cellWidth + Cell.cellWidth / 2;
         let y = this.hero.y * Cell.cellWidth + Cell.cellWidth / 2;
         let r = Cell.cellWidth / 2 - 1;

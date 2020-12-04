@@ -8,10 +8,12 @@ const enum Direction {
 class Hero {
     private _x: number;
     private _y: number;
+    private _life: number;
 
     constructor(x: number, y: number) {
         this._x = x;
         this._y = y;
+        this._life = 100;
     }
 
     public get x(): number {
@@ -22,9 +24,13 @@ class Hero {
         return this._y;
     }
 
+    public get life() {
+        return this._life;
+    }
+
     public moveTo(x: number, y: number) {
-        this._x += x;
-        this._y += y;
+        this._x = x;
+        this._y = y;
     }
 
     public move(dir: Direction) {
@@ -38,5 +44,6 @@ class Hero {
         }
         this._x += dx;
         this._y += dy;
+        this._life--;
     }
 }

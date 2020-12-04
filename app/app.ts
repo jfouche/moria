@@ -22,6 +22,9 @@ function updateInfo() {
 }
 
 function keyPressed() {
+    if (game.getHero().life <= 0) {
+        return;
+    }
     if (keyCode === UP_ARROW) {
         game.moveHero(Direction.UP);
     } else if (keyCode === DOWN_ARROW) {
