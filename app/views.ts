@@ -149,7 +149,7 @@ class HeroView {
             fill(0, 255, 0);
         }
         else {
-            fill(255, 10, 10);
+            fill(80, 0, 0);
         }
         let x = this.hero.x * Cell.cellWidth + Cell.cellWidth / 2;
         let y = this.hero.y * Cell.cellWidth + Cell.cellWidth / 2;
