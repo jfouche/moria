@@ -1,30 +1,34 @@
+import { Maze, Cell, Stair } from "./maze"
+import { MoriaGame } from "./game"
+import { Hero } from "./hero"
+
 /**
  * @class MazeView
  */
-class MazeView {
+export class MazeView {
     public readonly maze: Maze;
 
     constructor(maze: Maze) {
         this.maze = maze;
     }
-    public draw() {
+    public draw(p: p5) {
         for (let r = 0; r < this.maze.nRows; r++) {
             for (let c = 0; c < this.maze.nCols; c++) {
                 let cell = this.maze.cell(r, c);
                 if (cell.visited) {
                     let cv = new CellView(cell);
-                    cv.draw();
+                    cv.draw(p);
                 }
             }
         }
 
         if (this.maze.cell(this.maze.upstair.row, this.maze.upstair.col).visited) {
             let sv = new StairView(this.maze.upstair);
-            sv.draw();
+            sv.draw(p);
         }
         if (this.maze.cell(this.maze.downstair.row, this.maze.downstair.col).visited) {
             let sv = new StairView(this.maze.downstair);
-            sv.draw();
+            sv.draw(p);
         }
     }
 }
@@ -32,7 +36,7 @@ class MazeView {
 /**
  * @class CellView
  */
-class CellView {
+export class CellView {
     public static cellWidth: number = 30;
 
     public readonly cell: Cell;
@@ -41,92 +45,92 @@ class CellView {
         this.cell = cell;
     }
 
-    public draw() {
+    public draw(p: p5) {
         let w = Cell.cellWidth;
         let x = this.cell.col * Cell.cellWidth;
         let y = this.cell.row * Cell.cellWidth;
         const b = 4;
 
-        noStroke();
-        fill(25, 25, 25);
+        p.noStroke();
+        p.fill(25, 25, 25);
 
-        rect(x, y, w, w)
-        stroke(255);
-        noFill();
-        line(x, y, x, y + b);
-        line(x + w, y, x + w, y + b);
-        line(x + w, y, x + w - b, y);
-        line(x + w, y + w, x + w - b, y + w);
-        line(x + w, y + w, x + w, y + w - b);
-        line(x, y + w, x, y + w - b);
-        line(x, y + w, x + b, y + w);
-        line(x, y, x + b, y);
+        p.rect(x, y, w, w)
+        p.stroke(255);
+        p.noFill();
+        p.line(x, y, x, y + b);
+        p.line(x + w, y, x + w, y + b);
+        p.line(x + w, y, x + w - b, y);
+        p.line(x + w, y + w, x + w - b, y + w);
+        p.line(x + w, y + w, x + w, y + w - b);
+        p.line(x, y + w, x, y + w - b);
+        p.line(x, y + w, x + b, y + w);
+        p.line(x, y, x + b, y);
         if (this.cell.borders.top) {
-            line(x, y, x + w, y);
+            p.line(x, y, x + w, y);
         }
         if (this.cell.borders.right) {
-            line(x + w, y, x + w, y + w);
+            p.line(x + w, y, x + w, y + w);
         }
         if (this.cell.borders.bottom) {
-            line(x + w, y + w, x, y + w);
+            p.line(x + w, y + w, x, y + w);
         }
         if (this.cell.borders.left) {
-            line(x, y + w, x, y);
+            p.line(x, y + w, x, y);
         }
     }
 
-    public highlight() {
-        noStroke();
-        fill(255, 255, 255, 255);
+    public highlight(p: p5) {
+        p.noStroke();
+        p.fill(255, 255, 255, 255);
         let w = Cell.cellWidth;
         let x = this.cell.col * Cell.cellWidth;
         let y = this.cell.row * Cell.cellWidth;
-        ellipse(x + w / 2, y + w / 2, w / 2, w / 2);
+        p.ellipse(x + w / 2, y + w / 2, w / 2, w / 2);
     }
 }
 
 /**
  * StairView
  */
-class StairView {
+export class StairView {
     public readonly stair: Stair;
 
     constructor(stair: Stair) {
         this.stair = stair;
     }
 
-    public draw() {
-        stroke(255);
+    public draw(p: p5) {
+        p.stroke(255);
         if (this.stair.up) {
-            fill(192, 192, 192);
+            p.fill(192, 192, 192);
         }
         else {
-            fill(70, 70, 70);
+            p.fill(70, 70, 70);
         }
         let w = Cell.cellWidth - 6;
         let x = this.stair.col * Cell.cellWidth + 3;
         let y = this.stair.row * Cell.cellWidth + 3;
-        rect(x, y, w, w);
+        p.rect(x, y, w, w);
     }
 }
 
 /**
  * GameView
  */
-class GameView {
+export class GameView {
     public readonly game: MoriaGame;
 
     constructor(game: MoriaGame) {
         this.game = game;
     }
 
-    public draw() {
-        background(0);
+    public draw(p: p5) {
+        p.background(0);
         let mv = new MazeView(this.game.maze());
-        mv.draw();
+        mv.draw(p);
         let hero = this.game.getHero();
         let hv = new HeroView(hero);
-        hv.draw();
+        hv.draw(p);
 
         document.getElementById("nLevel").innerHTML = this.game.getLevel().toString();
         document.getElementById("life").innerHTML = hero.life.toString();
@@ -136,24 +140,24 @@ class GameView {
 /**
  * HeroView
  */
-class HeroView {
+export class HeroView {
     private hero: Hero;
 
     constructor(hero: Hero) {
         this.hero = hero;
     }
 
-    public draw() {
-        stroke(255);
+    public draw(p: p5) {
+        p.stroke(255);
         if (this.hero.life > 0) {
-            fill(0, 255, 0);
+            p.fill(0, 255, 0);
         }
         else {
-            fill(80, 0, 0);
+            p.fill(80, 0, 0);
         }
         let x = this.hero.x * Cell.cellWidth + Cell.cellWidth / 2;
         let y = this.hero.y * Cell.cellWidth + Cell.cellWidth / 2;
         let r = Cell.cellWidth / 2 - 1;
-        ellipse(x, y, r, r);
+        p.ellipse(x, y, r, r);
     }
 }

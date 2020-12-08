@@ -1,11 +1,11 @@
-const enum Direction {
+export const enum Direction {
     UP, DOWN, LEFT, RIGHT
 }
 
 /**
  * Hero
  */
-class Hero {
+export class Hero {
     private _x: number;
     private _y: number;
     private _life: number;

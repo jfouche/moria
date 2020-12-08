@@ -1,7 +1,10 @@
+import { Hero, Direction } from "./hero"
+import { Maze, MazeGenerator, Cell } from "./maze"
+
 /**
  * MoriaGame
  */
-class MoriaGame {
+export class MoriaGame {
     public readonly nRows: number;
     public readonly nCols: number;
     public readonly width: number;

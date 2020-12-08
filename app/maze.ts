@@ -1,7 +1,7 @@
 /**
  * @class Maze
  */
-class Maze {
+export class Maze {
     public readonly nRows: number;
     public readonly nCols: number;
     public readonly width: number;
@@ -36,7 +36,7 @@ class Maze {
 /**
  * @class MazeGenerator
  */
-class MazeGenerator {
+export class MazeGenerator {
 
     public newMaze(nRows: number, nCols: number): Maze {
         let maze = new Maze(nRows, nCols);
@@ -100,7 +100,7 @@ class MazeGenerator {
 
         let next: Cell = undefined;
         if (neighbors.length > 0) {
-            var r = floor(random(0, neighbors.length));
+            var r = random(0, neighbors.length);
             next = neighbors[r];
         }
         return next;
@@ -124,11 +124,11 @@ class MazeGenerator {
 
     private removeRandomWalls(maze: Maze, n: number) {
         for (let i = 0; i < n;) {
-            let r = floor(random(1, maze.nRows - 2));
-            let c = floor(random(1, maze.nCols - 2));
+            let r = random(1, maze.nRows - 2);
+            let c = random(1, maze.nCols - 2);
 
             let cell = maze.cell(r, c);
-            let next = floor(random(0, 3));
+            let next = random(0, 3);
             switch (next) {
                 case 0:
                     if (cell.borders.top) {
@@ -172,7 +172,7 @@ class MazeGenerator {
 /**
  * @class CellBorders
  */
-class CellBorders {
+export class CellBorders {
     top: boolean = true;
     right: boolean = true;
     bottom: boolean = true;
@@ -182,7 +182,7 @@ class CellBorders {
 /**
  * @class Cell
  */
-class Cell {
+export class Cell {
     public static cellWidth: number = 30;
 
     public readonly row: number;
@@ -201,7 +201,7 @@ class Cell {
 /**
  * Stair
  */
-class Stair {
+export class Stair {
     public readonly row: number;
     public readonly col: number;
     public readonly up: boolean;
@@ -219,4 +219,8 @@ class Stair {
     public static downstairstair(row: number, col: number) {
         return new Stair(row, col, false);
     }
+}
+
+function random(min: number, max: number) {
+    return Math.floor(min + Math.random() * (max - min + 1));
 }

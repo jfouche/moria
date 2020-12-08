@@ -1,12 +1,13 @@
 {
     "compileOnSave": true,
     "compilerOptions": {
-        "module": "commonjs",
+        "module": "es6",
         "noImplicitAny": true,
-        "target": "es5",
+        "target": "es6",
         "removeComments": true,
-        "preserveConstEnums": true,
-        "outDir": "www"
+        "outDir": "build",
+        "moduleResolution": "node",
+        "sourceMap": true,
     },
     "include": [
         "app/**/*.ts"
