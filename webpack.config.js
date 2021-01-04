@@ -3,6 +3,7 @@ const path = require('path');
 module.exports = {
     entry: './app/app.ts',
     devtool: 'inline-source-map',
+    mode: "development",
     module: {
         rules: [{
             test: /\.tsx?$/,

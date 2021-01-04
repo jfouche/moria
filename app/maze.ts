@@ -221,6 +221,14 @@ export class Stair {
     }
 }
 
-function random(min: number, max: number) {
-    return Math.floor(min + Math.random() * (max - min + 1));
+function random(min?: number, max?: number) {
+    let rand = Math.random();
+    if (typeof min === 'undefined') {
+        return rand;
+    } else if (typeof max === 'undefined') {
+        return rand * min;
+    } else if (min > max) {
+        [min, max] = [max, min]
+    }
+    return Math.floor(rand * (max - min) + min);
 }

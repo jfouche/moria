@@ -49,33 +49,29 @@ export class CellView {
         let w = Cell.cellWidth;
         let x = this.cell.col * Cell.cellWidth;
         let y = this.cell.row * Cell.cellWidth;
-        const b = 4;
+        const bg = '#222222';
+        const wallColor = '#EEEEEE';
+        const doorColor = '#444444';
 
-        p.noStroke();
-        p.fill(25, 25, 25);
-
+        // The room
+        p.stroke(wallColor);
+        p.fill(bg);
         p.rect(x, y, w, w)
-        p.stroke(255);
-        p.noFill();
-        p.line(x, y, x, y + b);
-        p.line(x + w, y, x + w, y + b);
-        p.line(x + w, y, x + w - b, y);
-        p.line(x + w, y + w, x + w - b, y + w);
-        p.line(x + w, y + w, x + w, y + w - b);
-        p.line(x, y + w, x, y + w - b);
-        p.line(x, y + w, x + b, y + w);
-        p.line(x, y, x + b, y);
-        if (this.cell.borders.top) {
-            p.line(x, y, x + w, y);
+
+        // Doors
+        const b = 5;
+        p.stroke(doorColor);
+        if (!this.cell.borders.top) {
+            p.line(x + b, y, x + w - b, y);
         }
-        if (this.cell.borders.right) {
-            p.line(x + w, y, x + w, y + w);
+        if (!this.cell.borders.right) {
+            p.line(x + w, y + b, x + w, y + w - b);
         }
-        if (this.cell.borders.bottom) {
-            p.line(x + w, y + w, x, y + w);
+        if (!this.cell.borders.bottom) {
+            p.line(x + b, y + w, x + w - b, y + w);
         }
-        if (this.cell.borders.left) {
-            p.line(x, y + w, x, y);
+        if (!this.cell.borders.left) {
+            p.line(x, y + b, x, y + w - b);
         }
     }
 

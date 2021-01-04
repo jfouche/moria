@@ -12,17 +12,16 @@ declare class p5 {
     background(color: number): void;
 
     noStroke(): void;
-    stroke(color: number): void;
+    stroke(color: number | string): void;
 
     noFill(): void;
-    fill(r: number, g: number, b: number, a?: number): void;
+    fill(r: number | string, g?: number, b?: number, a?: number): void;
 
     rect(x: number, y: number, w: number, h: number): void;
     line(x1: number, y1: number, x2: number, y2: number): void;
     ellipse(x: number, y: number, w: number, h: number): void;
 
-
-    random(min: number, max: number): number;
+    static random(min: number, max: number): number;
 
     keyCode: number;
     UP_ARROW: number;
