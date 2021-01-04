@@ -133,7 +133,7 @@ export class MazeGenerator {
                 case 0:
                     if (cell.borders.top) {
                         this.removeWallsBetween(cell, maze.cell(r - 1, c));
-                        console.log("remove (%d, %d) : top", c, r);
+                        console.log(`remove (${c}, ${r}) : top`);
                         i++;
                     }
                     break;
@@ -141,7 +141,7 @@ export class MazeGenerator {
                 case 1:
                     if (cell.borders.right) {
                         this.removeWallsBetween(cell, maze.cell(r, c + 1));
-                        console.log("remove (%d, %d) : right", c, r);
+                        console.log(`remove (${c}, ${r}) : right`);
                         i++;
                     }
                     break;
@@ -149,7 +149,7 @@ export class MazeGenerator {
                 case 2:
                     if (cell.borders.bottom) {
                         this.removeWallsBetween(cell, maze.cell(r + 1, c));
-                        console.log("remove (%d, %d) : bottom", c, r);
+                        console.log(`remove (${c}, ${r}) : bottom`);
                         i++;
                     }
                     break;
@@ -157,7 +157,7 @@ export class MazeGenerator {
                 case 3:
                     if (cell.borders.left) {
                         this.removeWallsBetween(cell, maze.cell(r, c - 1));
-                        console.log("remove (%d, %d) : left", c, r);
+                        console.log(`remove (${c}, ${r}) : left`);
                         i++;
                     }
                     break;
@@ -221,14 +221,14 @@ export class Stair {
     }
 }
 
-function random(min?: number, max?: number) {
-    let rand = Math.random();
-    if (typeof min === 'undefined') {
-        return rand;
-    } else if (typeof max === 'undefined') {
-        return rand * min;
-    } else if (min > max) {
+/**
+ * A shortcut to get a random number between `min` and `max`
+ * @param min 
+ * @param max 
+ */
+function random(min: number, max: number) {
+    if (min > max) {
         [min, max] = [max, min]
     }
-    return Math.floor(rand * (max - min) + min);
+    return Math.floor(Math.random() * (max - min) + min);
 }
