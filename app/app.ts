@@ -1,9 +1,8 @@
-/// <reference path="../typings/p5.d.ts" />
-
 import { MoriaGame } from "./game"
 import { GameView } from "./views"
 import { Direction } from "./hero"
 
+import p5 = require('p5')
 
 let game: MoriaGame;
 
@@ -12,7 +11,7 @@ function updateInfo() {
     levelElt.innerHTML = game.getLevel().toString();
 }
 
-let sketch = function (p: any) {
+let sketch = function (p: p5) {
     p.setup = function () {
         game = new MoriaGame(8, 10, 5);
         let canvas = p.createCanvas(game.width, game.height);
@@ -44,3 +43,6 @@ let sketch = function (p: any) {
 };
 
 let myp5 = new p5(sketch);
+if (myp5 === undefined) {
+    console.error("Can't start app");
+}

@@ -2,6 +2,8 @@ import { Maze, Cell, Stair } from "./maze"
 import { MoriaGame } from "./game"
 import { Hero } from "./hero"
 
+import p5 = require('p5')
+
 /**
  * @class MazeView
  */
