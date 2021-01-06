@@ -5,7 +5,7 @@ import { Direction } from "./hero"
 import p5 = require('p5')
 
 let game: MoriaGame;
-let gview = new GameView(game);
+let gview: GameView;
 
 function updateInfo() {
     let levelElt = document.getElementById("nLevel");
