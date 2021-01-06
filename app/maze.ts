@@ -59,7 +59,6 @@ export class MazeGenerator {
                 next = backtracking.pop();
                 currentCell = next;
             } else {
-                console.log("FINISH");
                 finished = true;
             }
         }
@@ -133,7 +132,6 @@ export class MazeGenerator {
                 case 0:
                     if (cell.borders.top) {
                         this.removeWallsBetween(cell, maze.cell(r - 1, c));
-                        console.log(`remove (${c}, ${r}) : top`);
                         i++;
                     }
                     break;
@@ -141,7 +139,6 @@ export class MazeGenerator {
                 case 1:
                     if (cell.borders.right) {
                         this.removeWallsBetween(cell, maze.cell(r, c + 1));
-                        console.log(`remove (${c}, ${r}) : right`);
                         i++;
                     }
                     break;
@@ -149,7 +146,6 @@ export class MazeGenerator {
                 case 2:
                     if (cell.borders.bottom) {
                         this.removeWallsBetween(cell, maze.cell(r + 1, c));
-                        console.log(`remove (${c}, ${r}) : bottom`);
                         i++;
                     }
                     break;
@@ -157,7 +153,6 @@ export class MazeGenerator {
                 case 3:
                     if (cell.borders.left) {
                         this.removeWallsBetween(cell, maze.cell(r, c - 1));
-                        console.log(`remove (${c}, ${r}) : left`);
                         i++;
                     }
                     break;
