@@ -1,6 +1,8 @@
 import { Room, Stair } from "../maze"
 
 import p5 = require('p5')
+import { LifeFlask } from "../item";
+import { LifeFlaskView } from "./item-view";
 
 /**
  * @class CellView
@@ -9,15 +11,19 @@ export class RoomView {
     public static width: number = 30;
 
     public readonly cell: Room;
+    public readonly x;
+    public readonly y;
 
     constructor(cell: Room) {
         this.cell = cell;
+        this.x = this.cell.col * RoomView.width;
+        this.y = this.cell.row * RoomView.width;
     }
 
     public draw(p: p5) {
-        let w = RoomView.width;
-        let x = this.cell.col * RoomView.width;
-        let y = this.cell.row * RoomView.width;
+        const w = RoomView.width;
+        const x = this.x;
+        const y = this.y;
         const bg = '#222222';
         const wallColor = '#EEEEEE';
         const doorColor = '#444444';
@@ -41,6 +47,14 @@ export class RoomView {
         }
         if (!this.cell.borders.left) {
             p.line(x, y + b, x, y + w - b);
+        }
+
+        // Item
+        if (this.cell.item) {
+            if (this.cell.item instanceof LifeFlask) {
+                const lfView = new LifeFlaskView(this.cell.item);
+                lfView.draw(p, this);
+            }
         }
     }
 

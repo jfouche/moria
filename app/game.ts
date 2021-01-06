@@ -1,5 +1,6 @@
 import { Hero } from "./hero"
-import { Cell, Maze, MazeGenerator, Room } from "./maze"
+import { Cell, Maze, Room } from "./maze"
+import { MazeGenerator } from "./maze-generator";
 
 export const enum Direction {
     UP, DOWN, LEFT, RIGHT
