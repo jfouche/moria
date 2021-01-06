@@ -1,0 +1,36 @@
+import { Maze } from "../maze"
+import { CellView } from "./cell-view";
+import { StairView } from "./stair-view";
+
+import p5 = require('p5')
+
+/**
+ * @class MazeView
+ */
+export class MazeView {
+    public readonly maze: Maze;
+
+    constructor(maze: Maze) {
+        this.maze = maze;
+    }
+    public draw(p: p5) {
+        for (let r = 0; r < this.maze.nRows; r++) {
+            for (let c = 0; c < this.maze.nCols; c++) {
+                let cell = this.maze.cell(r, c);
+                if (cell.visited) {
+                    let cv = new CellView(cell);
+                    cv.draw(p);
+                }
+            }
+        }
+
+        if (this.maze.cell(this.maze.upstair.row, this.maze.upstair.col).visited) {
+            let sv = new StairView(this.maze.upstair);
+            sv.draw(p);
+        }
+        if (this.maze.cell(this.maze.downstair.row, this.maze.downstair.col).visited) {
+            let sv = new StairView(this.maze.downstair);
+            sv.draw(p);
+        }
+    }
+}

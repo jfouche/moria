@@ -7,8 +7,6 @@ import { Maze, MazeGenerator, Cell } from "./maze"
 export class MoriaGame {
     public readonly nRows: number;
     public readonly nCols: number;
-    public readonly width: number;
-    public readonly height: number;
 
     private hero: Hero;
     private mazes: Maze[];
@@ -29,9 +27,6 @@ export class MoriaGame {
         let maze = this.maze();
         this.hero = new Hero(maze.upstair.col, maze.upstair.row);
 
-        this.width = maze.width;
-        this.height = maze.height;
-
         this.initLevel();
     }
 
@@ -42,7 +37,7 @@ export class MoriaGame {
     private initLevel() {
         let maze = this.maze();
         this.hero.moveTo(maze.upstair.col, maze.upstair.row);
-        maze.cell(this.hero.y, this.hero.x).visited = true;
+        maze.cell(this.hero.y, this.hero.x).visit();
         this.checkVisibility();
     }
 
@@ -53,7 +48,7 @@ export class MoriaGame {
     public moveHero(direction: Direction) {
         if (this.canMove(direction)) {
             this.hero.move(direction);
-            this.maze().cell(this.hero.y, this.hero.x).visited = true;
+            this.maze().cell(this.hero.y, this.hero.x).visit();
             if (this.hero.x === this.maze().downstair.col && this.hero.y === this.maze().downstair.row) {
                 this.currentLevel++;
                 this.initLevel();
@@ -82,7 +77,7 @@ export class MoriaGame {
         }
         let next = () => {
             cell = maze.cell(y, x);
-            cell.visited = true;
+            cell.visit();
         }
         reset();
         while (!cell.borders.top) {

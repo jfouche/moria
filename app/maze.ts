@@ -4,8 +4,6 @@
 export class Maze {
     public readonly nRows: number;
     public readonly nCols: number;
-    public readonly width: number;
-    public readonly height: number;
     private grid: Cell[][];
     public readonly upstair: Stair;
     public readonly downstair: Stair;
@@ -13,8 +11,6 @@ export class Maze {
     constructor(nRows: number, nCols: number) {
         this.nRows = nRows;
         this.nCols = nCols;
-        this.height = nRows * Cell.cellWidth + 1;
-        this.width = nCols * Cell.cellWidth + 1;
         this.grid = [];
 
         for (var r = 0; r < this.nRows; r++) {
@@ -30,6 +26,14 @@ export class Maze {
     public cell(row: number, col: number) {
         return this.grid[row][col];
     }
+
+    clear() {
+        this.grid.map((row) => {
+            row.map((cell) => {
+                cell.clear();
+            })
+        })
+    }
 }
 
 
@@ -42,12 +46,12 @@ export class MazeGenerator {
         let maze = new Maze(nRows, nCols);
         let backtracking: Cell[] = [];
         let currentCell = maze.cell(0, 0);
-        currentCell.visited = true;
+        currentCell.visit();
         let finished = false;
         while (!finished) {
             let next = this.getNextNeighbor(maze, currentCell);
             if (next) {
-                next.visited = true;
+                next.visit();
                 backtracking.push(currentCell);
                 this.removeWallsBetween(currentCell, next);
                 currentCell = next;
@@ -60,11 +64,7 @@ export class MazeGenerator {
             }
         }
 
-        for (var r = 0; r < nRows; r++) {
-            for (var c = 0; c < nCols; c++) {
-                maze.cell(r, c).visited = false;
-            }
-        }
+        maze.clear();
 
         this.removeRandomWalls(maze, 10);
 
@@ -183,8 +183,6 @@ export class CellBorders {
  * @class Cell
  */
 export class Cell {
-    public static cellWidth: number = 30;
-
     public readonly row: number;
     public readonly col: number;
 
@@ -195,6 +193,14 @@ export class Cell {
         this.row = row;
         this.col = col;
         this.borders = new CellBorders();
+    }
+
+    visit() {
+        this.visited = true;
+    }
+
+    clear() {
+        this.visited = false;
     }
 }
 

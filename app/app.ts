@@ -5,24 +5,25 @@ import { Direction } from "./hero"
 import p5 = require('p5')
 
 let game: MoriaGame;
+let gview = new GameView(game);
 
 function updateInfo() {
     let levelElt = document.getElementById("nLevel");
     levelElt.innerHTML = game.getLevel().toString();
 }
 
-let sketch = function (p: p5) {
+new p5((p: p5) => {
     p.setup = function () {
         game = new MoriaGame(8, 10, 5);
-        let canvas = p.createCanvas(game.width, game.height);
+        gview = new GameView(game);
+        let canvas = p.createCanvas(gview.width, gview.height);
         canvas.parent('game');
         p.frameRate(10);
     };
 
     p.draw = function () {
         p.background(0);
-        let view = new GameView(game);
-        view.draw(p);
+        gview.draw(p);
         updateInfo();
     };
 
@@ -40,9 +41,4 @@ let sketch = function (p: p5) {
             game.moveHero(Direction.RIGHT);
         }
     }
-};
-
-let myp5 = new p5(sketch);
-if (myp5 === undefined) {
-    console.error("Can't start app");
-}
+});
