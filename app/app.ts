@@ -1,16 +1,10 @@
-import { MoriaGame } from "./game"
+import { MoriaGame, Direction } from "./game"
 import { GameView } from "./views"
-import { Direction } from "./hero"
 
 import p5 = require('p5')
 
 let game: MoriaGame;
 let gview: GameView;
-
-function updateInfo() {
-    let levelElt = document.getElementById("nLevel");
-    levelElt.innerHTML = game.getLevel().toString();
-}
 
 new p5((p: p5) => {
     p.setup = function () {
@@ -24,7 +18,6 @@ new p5((p: p5) => {
     p.draw = function () {
         p.background(0);
         gview.draw(p);
-        updateInfo();
     };
 
     p.keyPressed = function () {
@@ -39,6 +32,8 @@ new p5((p: p5) => {
             game.moveHero(Direction.LEFT);
         } else if (p.keyCode === p.RIGHT_ARROW) {
             game.moveHero(Direction.RIGHT);
+        } else if (p.keyCode === p.ENTER) {
+            game.doAction();
         }
     }
 });

@@ -1,20 +1,12 @@
-export const enum Direction {
-    UP, DOWN, LEFT, RIGHT
-}
+import { Cell } from "./maze";
 
 /**
  * Hero
  */
 export class Hero {
-    private _x: number;
-    private _y: number;
-    private _life: number;
-
-    constructor(x: number, y: number) {
-        this._x = x;
-        this._y = y;
-        this._life = 100;
-    }
+    private _x: number = 0;
+    private _y: number = 0;
+    private _life: number = 100;
 
     public get x(): number {
         return this._x;
@@ -28,22 +20,17 @@ export class Hero {
         return this._life;
     }
 
-    public moveTo(x: number, y: number) {
-        this._x = x;
-        this._y = y;
+    public goTo(cell: Cell) {
+        this._x = cell.col;
+        this._y = cell.row;
     }
 
-    public move(dir: Direction) {
-        let dx = 0, dy = 0;
-        switch (dir) {
-            case Direction.UP: dy = -1; break;
-            case Direction.DOWN: dy = 1; break;
-            case Direction.LEFT: dx = -1; break;
-            case Direction.RIGHT: dx = 1; break;
-            default: break;
-        }
-        this._x += dx;
-        this._y += dy;
+    public moveTo(cell: Cell) {
+        this.goTo(cell);
         this._life--;
+    }
+
+    public isOn(cell: Cell) {
+        return this._x == cell.col && this._y == cell.row;
     }
 }

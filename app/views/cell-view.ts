@@ -1,23 +1,23 @@
-import { Cell } from "../maze"
+import { Room, Stair } from "../maze"
 
 import p5 = require('p5')
 
 /**
  * @class CellView
  */
-export class CellView {
+export class RoomView {
     public static width: number = 30;
 
-    public readonly cell: Cell;
+    public readonly cell: Room;
 
-    constructor(cell: Cell) {
+    constructor(cell: Room) {
         this.cell = cell;
     }
 
     public draw(p: p5) {
-        let w = CellView.width;
-        let x = this.cell.col * CellView.width;
-        let y = this.cell.row * CellView.width;
+        let w = RoomView.width;
+        let x = this.cell.col * RoomView.width;
+        let y = this.cell.row * RoomView.width;
         const bg = '#222222';
         const wallColor = '#EEEEEE';
         const doorColor = '#444444';
@@ -47,9 +47,34 @@ export class CellView {
     public highlight(p: p5) {
         p.noStroke();
         p.fill(255, 255, 255, 255);
-        let w = CellView.width;
-        let x = this.cell.col * CellView.width;
-        let y = this.cell.row * CellView.width;
+        let w = RoomView.width;
+        let x = this.cell.col * RoomView.width;
+        let y = this.cell.row * RoomView.width;
         p.ellipse(x + w / 2, y + w / 2, w / 2, w / 2);
+    }
+}
+
+/**
+ * StairView
+ */
+export class StairView {
+    public readonly stair: Stair;
+
+    constructor(stair: Stair) {
+        this.stair = stair;
+    }
+
+    public draw(p: p5) {
+        p.stroke(255);
+        if (this.stair.up) {
+            p.fill(192, 192, 192);
+        }
+        else {
+            p.fill(70, 70, 70);
+        }
+        let w = RoomView.width - 6;
+        let x = this.stair.col * RoomView.width + 3;
+        let y = this.stair.row * RoomView.width + 3;
+        p.rect(x, y, w, w);
     }
 }

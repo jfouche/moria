@@ -1,6 +1,5 @@
 import { Maze } from "../maze"
-import { CellView } from "./cell-view";
-import { StairView } from "./stair-view";
+import { RoomView, StairView } from "./cell-view";
 
 import p5 = require('p5')
 
@@ -18,7 +17,7 @@ export class MazeView {
             for (let c = 0; c < this.maze.nCols; c++) {
                 let cell = this.maze.cell(r, c);
                 if (cell.visited) {
-                    let cv = new CellView(cell);
+                    let cv = new RoomView(cell);
                     cv.draw(p);
                 }
             }

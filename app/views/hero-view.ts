@@ -1,4 +1,4 @@
-import { CellView } from "./cell-view";
+import { RoomView } from "./cell-view";
 import { Hero } from "../hero"
 
 import p5 = require('p5')
@@ -21,9 +21,9 @@ export class HeroView {
         else {
             p.fill(80, 0, 0);
         }
-        let x = this.hero.x * CellView.width + CellView.width / 2;
-        let y = this.hero.y * CellView.width + CellView.width / 2;
-        let r = CellView.width / 2 - 1;
+        let x = this.hero.x * RoomView.width + RoomView.width / 2;
+        let y = this.hero.y * RoomView.width + RoomView.width / 2;
+        let r = RoomView.width / 2 - 1;
         p.ellipse(x, y, r, r);
     }
 }

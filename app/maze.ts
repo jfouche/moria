@@ -4,7 +4,7 @@
 export class Maze {
     public readonly nRows: number;
     public readonly nCols: number;
-    private grid: Cell[][];
+    private grid: Room[][];
     public readonly upstair: Stair;
     public readonly downstair: Stair;
 
@@ -16,7 +16,7 @@ export class Maze {
         for (var r = 0; r < this.nRows; r++) {
             this.grid[r] = [];
             for (var c = 0; c < this.nCols; c++) {
-                this.grid[r][c] = new Cell(r, c);
+                this.grid[r][c] = new Room(r, c);
             }
         }
         this.upstair = Stair.upstair(0, 0);
@@ -34,6 +34,10 @@ export class Maze {
             })
         })
     }
+
+    visit(cell: Cell) {
+        this.cell(cell.row, cell.col).visit();
+    }
 }
 
 
@@ -44,7 +48,7 @@ export class MazeGenerator {
 
     public newMaze(nRows: number, nCols: number): Maze {
         let maze = new Maze(nRows, nCols);
-        let backtracking: Cell[] = [];
+        let backtracking: Room[] = [];
         let currentCell = maze.cell(0, 0);
         currentCell.visit();
         let finished = false;
@@ -70,8 +74,8 @@ export class MazeGenerator {
         return maze;
     }
 
-    private getNextNeighbor(maze: Maze, cell: Cell): Cell {
-        let neighbors: Cell[] = [];
+    private getNextNeighbor(maze: Maze, cell: Room): Room {
+        let neighbors: Room[] = [];
         if (cell.row > 0) {
             let left = maze.cell(cell.row - 1, cell.col);
             if (!left.visited) {
@@ -97,7 +101,7 @@ export class MazeGenerator {
             }
         }
 
-        let next: Cell = undefined;
+        let next: Room = undefined;
         if (neighbors.length > 0) {
             var r = random(0, neighbors.length);
             next = neighbors[r];
@@ -105,7 +109,7 @@ export class MazeGenerator {
         return next;
     }
 
-    private removeWallsBetween(a: Cell, b: Cell) {
+    private removeWallsBetween(a: Room, b: Room) {
         if (a.col > b.col) {
             a.borders.left = false;
             b.borders.right = false;
@@ -181,12 +185,21 @@ export class Cell {
     public readonly row: number;
     public readonly col: number;
 
+    constructor(row: number, col: number) {
+        this.row = row;
+        this.col = col;
+    }
+}
+
+/**
+ * @class Room
+ */
+export class Room extends Cell {
     public borders: CellBorders;
     public visited: boolean = false;
 
     constructor(row: number, col: number) {
-        this.row = row;
-        this.col = col;
+        super(row, col);
         this.borders = new CellBorders();
     }
 
@@ -202,14 +215,11 @@ export class Cell {
 /**
  * Stair
  */
-export class Stair {
-    public readonly row: number;
-    public readonly col: number;
+export class Stair extends Cell {
     public readonly up: boolean;
 
     private constructor(row: number, col: number, up: boolean) {
-        this.row = row;
-        this.col = col;
+        super(row, col);
         this.up = up;
     }
 
