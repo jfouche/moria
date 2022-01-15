@@ -2,6 +2,12 @@ use bevy::prelude::*;
 
 const PLAYER: &str = "player.png";
 
+// ressources
+struct Materials {
+    player: Handle<Image>
+}
+
+
 // LR, TB, TRBL, .
 // LT, RB, RT, RB
 // LTR, TRB, RBL, BLT
@@ -17,19 +23,23 @@ fn main() {
         })
         .add_plugins(DefaultPlugins)
         .add_startup_system(setup.system())
+        .add_startup_stage("game_setup_actors", SystemStage::single(player_spawn.system()))
         .run();
 }
 
 fn setup(mut commands: Commands, assets: Res<AssetServer>) {
+    // Camera
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
-    let sprite_handle = assets.load(PLAYER);
+    // Resources
+    commands.insert_resource(Materials {
+        player: assets.load(PLAYER).into()
+    });
+}
+
+fn player_spawn(mut commands: Commands, materials: Res<Materials>){
     commands.spawn_bundle(SpriteBundle {
-        texture: sprite_handle.clone(),
-        sprite: Sprite {
-            custom_size: Some(Vec2::new(64., 64.)),
-            ..Default::default()
-        },
+        texture: materials.player.clone(),
         ..Default::default()
     });
 }
