@@ -1,3 +1,3 @@
 pub mod maze;
-pub mod game;
-pub mod hero;
+//pub mod game;
+//pub mod hero;
