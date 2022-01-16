@@ -1,8 +1,11 @@
 use bevy::prelude::*;
+use ui::player_plugin::PlayerPlugin;
+
+mod ui;
 
 const PLAYER: &str = "player.png";
 
-const TIME_STEP: f32 = 1.0 / 20.;
+pub const TIME_STEP: f32 = 1.0 / 20.;
 
 // RESSOURCES
 struct Materials {
@@ -10,15 +13,14 @@ struct Materials {
 }
 
 // COMPONENTS
-#[derive(Component)]
-struct Player;
 
 #[derive(Component)]
-struct PlayerSpeed(f32);
+struct MazeComponent {
+}
 
-impl Default for PlayerSpeed {
+impl Default for MazeComponent {
     fn default() -> Self {
-        PlayerSpeed(500.)
+        MazeComponent {  }
     }
 }
 
@@ -37,11 +39,7 @@ fn main() {
         })
         .add_plugins(DefaultPlugins)
         .add_startup_system(setup.system())
-        .add_startup_stage(
-            "game_setup_actors",
-            SystemStage::single(player_spawn.system()),
-        )
-        .add_system(player_movement.system())
+        .add_plugin(PlayerPlugin)
         .run();
 }
 
@@ -53,32 +51,4 @@ fn setup(mut commands: Commands, assets: Res<AssetServer>) {
     commands.insert_resource(Materials {
         player: assets.load(PLAYER).into()
     });
-}
-
-fn player_spawn(mut commands: Commands, materials: Res<Materials>) {
-    commands
-        .spawn_bundle(SpriteBundle {
-            texture: materials.player.clone(),
-            ..Default::default()
-        })
-        .insert(Player)
-        .insert(PlayerSpeed::default());
-}
-
-fn player_movement(
-    keyboard_input: Res<Input<KeyCode>>,
-    mut query: Query<(&PlayerSpeed, &mut Transform, With<Player>)>,
-) {
-    if let Ok((speed, mut transform, _)) = query.get_single_mut() {
-        let dir = if keyboard_input.pressed(KeyCode::Left) {
-            -1.0
-        } 
-        else if keyboard_input.pressed(KeyCode::Right) {
-            1.0
-        }
-        else {
-            0.
-        };
-        transform.translation.x += dir * speed.0 * TIME_STEP;
-    }
 }
