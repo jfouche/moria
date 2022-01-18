@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{Materials, TIME_STEP};
+use crate::ui::{Materials, TIME_STEP};
 
 pub struct PlayerPlugin;
 
@@ -22,7 +22,7 @@ struct PlayerSpeedComponent(f32);
 
 impl Default for PlayerSpeedComponent {
     fn default() -> Self {
-        PlayerSpeedComponent(500.)
+        PlayerSpeedComponent(300.)
     }
 }
 
@@ -30,6 +30,10 @@ fn player_spawn(mut commands: Commands, materials: Res<Materials>) {
     commands
         .spawn_bundle(SpriteBundle {
             texture: materials.player.clone(),
+            transform: Transform {
+                translation: Vec3::new(0., - 28., 20.),
+                ..Default::default()
+            },
             ..Default::default()
         })
         .insert(PlayerComponent)
