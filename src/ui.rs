@@ -26,7 +26,7 @@ pub fn setup(
     let texture_handle = assets.load(MAZE);
     let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(64., 64.), 4, 4);
     commands.insert_resource(Materials {
-        player: assets.load(PLAYER).into(),
+        player: assets.load(PLAYER),
         maze: texture_atlases.add(texture_atlas),
     });
 }

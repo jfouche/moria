@@ -1,7 +1,7 @@
 use bevy::prelude::*;
-use moria::maze::{CellBorders, Maze, Position, Room};
+use moria::maze::{CellBorders, Maze, Position};
 
-use crate::ui::{Materials, TIME_STEP};
+use crate::ui::{Materials};
 
 pub struct MazePlugin;
 
@@ -10,6 +10,10 @@ impl Plugin for MazePlugin {
         app.add_startup_stage("game_setup_maze", SystemStage::single(maze_spawn.system()))
         .add_system(maze_spawn.system());
     }
+}
+
+fn position_to_screen(pos: &Position, z: f32) -> Vec3 {
+    Vec3::new(64.0 * pos.x as f32 - 200.0, 64.0 * pos.y as f32 -100.0, z)
 }
 
 /// Get the index in the maze file
@@ -34,37 +38,35 @@ fn img_index(borders: &CellBorders) -> usize {
     index
 }
 
-#[derive(Component)]
+#[derive(Component, Default)]
 struct MazeComponent {}
-
-impl Default for MazeComponent {
-    fn default() -> Self {
-        MazeComponent {}
-    }
-}
 
 #[derive(Component)]
 struct RoomComponent {
 }
 
 fn maze_spawn(mut commands: Commands, materials: Res<Materials>, maze: Res<Maze>) {
+    // let mut idx = 0;
     for x in 0..maze.width() {
         for y in 00..maze.height() {
-            if let Some(room) = maze.get_room(&Position::new(x, y)) {
-                let x_pos = -200.0 + x as f32 * 64.; 
-                let y_pos = -100.0 + y as f32 * 64.; 
+            let pos = Position::new(x, y);
+            if let Some(room) = maze.get_room(&pos) {
+                // eprintln!("{:?} : {}", pos, img_index(room.borders()));
+                let screen_pos = position_to_screen(&pos, 10.);
                 commands
                     .spawn_bundle(SpriteSheetBundle {
                         texture_atlas: materials.maze.clone(),
+                        // sprite: TextureAtlasSprite::new(idx),
                         sprite: TextureAtlasSprite::new(img_index(room.borders())),
                         transform: Transform {
-                            translation: Vec3::new(x_pos, y_pos, 10.),
+                            translation: screen_pos,
                             ..Default::default()
                         },
                         ..Default::default()
                     })
                     .insert(RoomComponent { });
             }
+            // idx += 1;
         }
     }
 }

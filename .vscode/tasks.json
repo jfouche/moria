@@ -26,5 +26,14 @@
 			],
 			"group": "test",
 			"label": "rust: cargo test"
-		}	]
+		},
+		{
+			"type": "cargo",
+			"command": "clippy",
+			"problemMatcher": [
+				"$rustc"
+			],
+			"label": "rust: cargo clippy"
+		},
+	]
 }
