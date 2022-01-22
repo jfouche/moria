@@ -1,6 +1,9 @@
 use bevy::prelude::*;
+use moria::maze::Position;
 
 use crate::ui::{Materials, TIME_STEP};
+
+use super::{PositionToScreen, WinSize};
 
 pub struct PlayerPlugin;
 
@@ -15,7 +18,17 @@ impl Plugin for PlayerPlugin {
 }
 
 #[derive(Component)]
-struct PlayerComponent;
+struct PlayerComponent {
+    pos: Position,
+}
+
+impl Default for PlayerComponent {
+    fn default() -> Self {
+        PlayerComponent {
+            pos: Position::new(0, 0),
+        }
+    }
+}
 
 #[derive(Component)]
 struct PlayerSpeedComponent(f32);
@@ -26,17 +39,18 @@ impl Default for PlayerSpeedComponent {
     }
 }
 
-fn player_spawn(mut commands: Commands, materials: Res<Materials>) {
+fn player_spawn(mut commands: Commands, materials: Res<Materials>, win_size: Res<WinSize>) {
+    let p2s = PositionToScreen::new(&win_size);
     commands
         .spawn_bundle(SpriteBundle {
             texture: materials.player.clone(),
             transform: Transform {
-                translation: Vec3::new(0., - 28., 20.),
+                translation: p2s.to_screen(&Position::new(0, 0), 20.),
                 ..Default::default()
             },
             ..Default::default()
         })
-        .insert(PlayerComponent)
+        .insert(PlayerComponent::default())
         .insert(PlayerSpeedComponent::default());
 }
 
@@ -46,12 +60,17 @@ fn player_movement(
 ) {
     if let Ok((speed, mut transform, _)) = query.get_single_mut() {
         let dir = if keyboard_input.pressed(KeyCode::Left) {
-            -1.0
+            (-1.0, 0.)
         } else if keyboard_input.pressed(KeyCode::Right) {
-            1.0
+            (1.0, 0.)
+        } else if keyboard_input.pressed(KeyCode::Up) {
+            (0., 1.)
+        } else if keyboard_input.pressed(KeyCode::Down) {
+            (0., -1.)
         } else {
-            0.
+            (0., 0.)
         };
-        transform.translation.x += dir * speed.0 * TIME_STEP;
+        transform.translation.x += dir.0 * speed.0 * TIME_STEP;
+        transform.translation.y += dir.1 * speed.0 * TIME_STEP;
     }
 }
