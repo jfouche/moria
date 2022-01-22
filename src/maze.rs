@@ -8,13 +8,16 @@ use rand::{
 pub struct Maze {
     width: u32,
     height: u32,
-    /// (0, h) ... (w, h)
-    ///   ...
-    /// (0, 0) ... (w, 0)
     rooms: Vec<Room>,
 }
 
 impl Maze {
+    /// ```text
+    /// ^ (0, h)     (w, h)
+    /// |  
+    /// | (0, 0)     (w, 0)
+    /// + ----------------->
+    /// ```
     fn new(width: u32, height: u32) -> Self {
         Maze {
             width,
@@ -31,19 +34,21 @@ impl Maze {
         self.height
     }
 
+    fn room_index(&self, pos: &Position) -> usize {
+        (pos.y * self.width + pos.x) as usize
+    }
+
     pub fn get_room(&self, pos: &Position) -> Option<&Room> {
-        let index = (pos.y * self.height + pos.x) as usize;
-        self.rooms.get(index)
+        self.rooms.get(self.room_index(pos))
     }
 
     fn get_room_mut(&mut self, pos: &Position) -> Option<&mut Room> {
-        let index = (pos.y * self.height + pos.x) as usize;
+        let index = self.room_index(pos);
         self.rooms.get_mut(index)
     }
 
     fn visit(&mut self, pos: &Position) {
-        let index = (pos.y * self.height + pos.x) as usize;
-        if let Some(room) = self.rooms.get_mut(index) {
+        if let Some(room) = self.get_room_mut(pos) {
             room.visit();
         }
     }
@@ -377,7 +382,8 @@ impl MazeBuilder {
         // Add items
 
         // Remove some more random walls
-        self.remove_random_walls(&mut maze, 0);
+        let n_walls_to_remove = ((self.width * self.height)  as f32 * 0.1)  as usize;
+        // self.remove_random_walls(&mut maze, n_walls_to_remove);
 
         maze
     }
@@ -418,7 +424,7 @@ impl MazeBuilder {
     }
 
     fn remove_walls_between(&self, maze: &mut Maze, p1: &Position, p2: &Position) {
-        assert_eq!(p1.distance(&p2), 1);
+        assert_eq!(p1.distance(p2), 1);
         eprintln!(" - remove_walls_between({}, {}", p1, p2);
         if p1.x > p2.x {
             if let Some(mut r1) = maze.get_room_mut(p1) {
@@ -604,6 +610,15 @@ mod test {
         assert_eq!(r2.borders().right, true);
         assert_eq!(r2.borders().bottom, true);
         assert_eq!(r2.borders().left, false);
+    }
+
+    #[test]
+    fn it_gives_room_index() {
+        let maze = Maze::new(6, 4);
+        assert_eq!(maze.room_index(&Position::new(0, 0)), 0);
+        assert_eq!(maze.room_index(&Position::new(5, 0)), 5);
+        assert_eq!(maze.room_index(&Position::new(0, 3)), 18);
+        assert_eq!(maze.room_index(&Position::new(5, 3)), 23);
     }
 
     #[test]
