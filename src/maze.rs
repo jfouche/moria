@@ -382,8 +382,8 @@ impl MazeBuilder {
         // Add items
 
         // Remove some more random walls
-        let n_walls_to_remove = ((self.width * self.height)  as f32 * 0.1)  as usize;
-        // self.remove_random_walls(&mut maze, n_walls_to_remove);
+        let n_walls_to_remove = ((self.width * self.height)  as f32 * 0.07) as usize;
+        self.remove_random_walls(&mut maze, n_walls_to_remove);
 
         maze
     }
@@ -425,7 +425,7 @@ impl MazeBuilder {
 
     fn remove_walls_between(&self, maze: &mut Maze, p1: &Position, p2: &Position) {
         assert_eq!(p1.distance(p2), 1);
-        eprintln!(" - remove_walls_between({}, {}", p1, p2);
+        // eprintln!(" - remove_walls_between({}, {}", p1, p2);
         if p1.x > p2.x {
             if let Some(mut r1) = maze.get_room_mut(p1) {
                 r1.borders.left = false;
@@ -498,7 +498,6 @@ impl MazeBuilder {
                 }
 
                 _ => { 
-                    panic!("Shouldn't be here");
                 }
             }
         }

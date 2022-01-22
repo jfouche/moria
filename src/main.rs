@@ -7,7 +7,7 @@ mod ui;
 fn main() {
 
     let maze = MazeBuilder::new(9, 5).create_maze();
-    eprint!("{}", maze.to_string());
+    eprintln!("{}", maze.to_string());
 
     App::new()
         .insert_resource(ClearColor(Color::rgb(0.1, 0.1, 0. )))
