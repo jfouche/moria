@@ -1,5 +1,5 @@
-use bevy::prelude::*;
-use moria::maze::{Position, Maze, Direction};
+use bevy::{prelude::*, core::FixedTimestep};
+use moria::maze::{Direction, Maze, Position};
 
 use crate::ui::{Materials, TIME_STEP};
 
@@ -13,21 +13,14 @@ impl Plugin for PlayerPlugin {
             "game_setup_actors",
             SystemStage::single(player_spawn.system()),
         )
-        .add_system(player_movement.system());
+        .add_system(player_movement.system())
+        .add_system(log_player.system().with_run_criteria(FixedTimestep::step(0.5)));
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Default)]
 struct PlayerComponent {
-    pos: Position,
-}
-
-impl Default for PlayerComponent {
-    fn default() -> Self {
-        PlayerComponent {
-            pos: Position::new(0, 0),
-        }
-    }
+    // pos: Position,
 }
 
 #[derive(Component)]
@@ -65,7 +58,6 @@ fn player_movement(
     if let Ok((speed, mut transform, _)) = query.get_single_mut() {
         let screen_pos = Vec3::new(transform.translation.x, transform.translation.y, 0.);
         let pos = pos_converter.to_position(&screen_pos);
-        info!("pos: {}", pos);
         let dir = if keyboard_input.pressed(KeyCode::Left) {
             maze.get_next_room(&pos, Direction::RIGHT);
             (-1.0, 0.)
@@ -80,5 +72,17 @@ fn player_movement(
         };
         transform.translation.x += dir.0 * speed.0 * TIME_STEP;
         transform.translation.y += dir.1 * speed.0 * TIME_STEP;
+    }
+}
+
+fn log_player(
+    win_size: Res<WinSize>,
+    mut query: Query<(&Transform, With<PlayerComponent>)>,
+) {
+    let pos_converter = PositionConverter::new(&win_size);
+    if let Ok((transform, _)) = query.get_single_mut() {
+        let screen_pos = Vec3::new(transform.translation.x, transform.translation.y, 0.);
+        let pos = pos_converter.to_position(&screen_pos);
+        info!("PLAYER pos: {} => {}", screen_pos, pos);
     }
 }

@@ -10,7 +10,7 @@ pub struct MazePlugin;
 impl Plugin for MazePlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_stage("game_setup_maze", SystemStage::single(maze_spawn.system()))
-        ;
+            ;
     }
 }
 

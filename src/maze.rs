@@ -6,7 +6,10 @@ use rand::{
 };
 
 pub enum Direction {
-    TOP, RIGHT, BOTTOM, LEFT
+    TOP,
+    RIGHT,
+    BOTTOM,
+    LEFT,
 }
 
 pub struct Maze {
@@ -91,10 +94,9 @@ impl Maze {
     }
 
     fn down_position(&self, pos: &Position) -> Option<Position> {
-        if pos.y > 0
-         {
+        if pos.y > 0 {
             Some(Position {
-                x: pos.x ,
+                x: pos.x,
                 y: pos.y - 1,
             })
         } else {
@@ -112,10 +114,10 @@ impl Maze {
         let borders = &self.get_room(pos)?.borders;
         match dir {
             Direction::TOP if !borders.top => self.get_room(&Position::new(pos.x, pos.y + 1)),
-            Direction::RIGHT if !borders.right => self.get_room(&Position::new(pos.x+1, pos.y)),
+            Direction::RIGHT if !borders.right => self.get_room(&Position::new(pos.x + 1, pos.y)),
             Direction::BOTTOM if !borders.bottom => self.get_room(&Position::new(pos.x, pos.y - 1)),
-            Direction::LEFT if !borders.left => self.get_room(&Position::new(pos.x-1, pos.y)),
-            _ => None
+            Direction::LEFT if !borders.left => self.get_room(&Position::new(pos.x - 1, pos.y)),
+            _ => None,
         }
     }
 }
@@ -147,63 +149,43 @@ fn borders_index(borders: &CellBorders) -> usize {
 const CELL_DISPLAY: &[&[&str]] = &[
     &[
         // 0 :
-        "   ", 
-        "   ", 
-        "   ",
+        "   ", "   ", "   ",
     ],
     &[
         // 1 : T
-        " █ ", 
-        " █ ", 
-        "   ",
+        " █ ", " █ ", "   ",
     ],
     &[
         // 2 : R
-        "   ", 
-        " ██", 
-        "   ",
+        "   ", " ██", "   ",
     ],
     &[
         // 3 : TR
-        " █ ", 
-        " ██", 
-        "   ",
+        " █ ", " ██", "   ",
     ],
     &[
         // 4 : B
-        "   ", 
-        " █ ", 
-        " █ ",
+        "   ", " █ ", " █ ",
     ],
     &[
         // 5 : TB
-        " █ ", 
-        " █ ", 
-        " █ ",
+        " █ ", " █ ", " █ ",
     ],
     &[
         // 6 : RB
-        "   ", 
-        " ██", 
-        " █ ",
+        "   ", " ██", " █ ",
     ],
     &[
         // 7 : TRB
-        " █ ", 
-        " ██", 
-        " █ ",
+        " █ ", " ██", " █ ",
     ],
     &[
         // 8 : L
-        "   ", 
-        "██ ", 
-        "   ",
+        "   ", "██ ", "   ",
     ],
     &[
         // 9 : TL
-        " █ ", 
-        "██ ", 
-        "   ",
+        " █ ", "██ ", "   ",
     ],
     &[
         // 10: RL
@@ -219,15 +201,11 @@ const CELL_DISPLAY: &[&[&str]] = &[
     ],
     &[
         // 12: BL
-        "   ", 
-        "██ ", 
-        " █ ",
+        "   ", "██ ", " █ ",
     ],
     &[
         // 13: TBL
-        " █ ", 
-        "██ ", 
-        " █ ",
+        " █ ", "██ ", " █ ",
     ],
     &[
         // 14: RBL
@@ -248,12 +226,12 @@ impl fmt::Display for Maze {
         for y in (0..self.height).rev() {
             for x in 0..self.width {
                 if let Some(room) = self.get_room(&Position::new(x, y)) {
-                    write!(f, " {}", borders_index(room.borders()))?
+                    write!(f, " {:0>}", borders_index(room.borders()))?
                 };
             }
             writeln!(f)?;
         }
- 
+
         write!(f, "    ")?;
         for _ in 0..self.width {
             write!(f, "┌─┐")?;
@@ -261,13 +239,12 @@ impl fmt::Display for Maze {
         writeln!(f)?;
         for y in (0..self.height).rev() {
             for i in 0..3 {
-                write!(f, "{} : ", y)?;
+                write!(f, "{:0>2} : ", y)?;
                 for x in 0..self.width {
                     if let Some(room) = self.get_room(&Position::new(x, y)) {
                         let s = CELL_DISPLAY[borders_index(room.borders())][i];
                         write!(f, "{}", s)?;
-                    } 
-                    else {
+                    } else {
                         write!(f, "???")?;
                     }
                 }
@@ -397,7 +374,7 @@ impl MazeBuilder {
         // Add items
 
         // Remove some more random walls
-        let n_walls_to_remove = ((self.width * self.height)  as f32 * 0.07) as usize;
+        let n_walls_to_remove = ((self.width * self.height) as f32 * 0.07) as usize;
         self.remove_random_walls(&mut maze, n_walls_to_remove);
 
         maze
@@ -491,7 +468,7 @@ impl MazeBuilder {
                     }
                 }
 
-                1 if room.borders.right  => {
+                1 if room.borders.right => {
                     if let Some(right) = maze.right_position(&pos) {
                         self.remove_walls_between(maze, &pos, &right);
                         modifications += 1;
@@ -499,11 +476,11 @@ impl MazeBuilder {
                 }
 
                 2 if room.borders.bottom => {
-                        if let Some(bottom) = maze.down_position(&pos) {
-                            self.remove_walls_between(maze, &pos, &bottom);
-                            modifications += 1;
-                        }
+                    if let Some(bottom) = maze.down_position(&pos) {
+                        self.remove_walls_between(maze, &pos, &bottom);
+                        modifications += 1;
                     }
+                }
 
                 3 if room.borders.left => {
                     if let Some(left) = maze.left_position(&pos) {
@@ -512,13 +489,11 @@ impl MazeBuilder {
                     }
                 }
 
-                _ => { 
-                }
+                _ => {}
             }
         }
     }
 }
-
 
 #[cfg(test)]
 mod test {
@@ -534,8 +509,8 @@ mod test {
             }
         }
     }
-    
-    #[test] 
+
+    #[test]
     fn it_gets_neighbour_position() {
         let maze = Maze::new(2, 2);
 
@@ -575,17 +550,17 @@ mod test {
 
         //  -- --
         // |  |  |
-        //  -- -- 
+        //  -- --
         // |p1|p2|
-        //  -- -- 
+        //  -- --
 
         maze_builder.remove_walls_between(&mut maze, &p1, &p2);
 
         //  -- --
         // |  |  |
-        //  -- -- 
+        //  -- --
         // |p1 p2|
-        //  -- -- 
+        //  -- --
 
         let r1 = maze.get_room(&p1).unwrap();
         assert_eq!(r1.borders().top, true);
@@ -602,17 +577,17 @@ mod test {
 
         //  -- --
         // |  |p1|
-        //  -- -- 
+        //  -- --
         // |   p2|
-        //  -- -- 
+        //  -- --
 
         maze_builder.remove_walls_between(&mut maze, &p1, &p2);
 
         //  -- --
         // |  |p1|
-        //  --    
+        //  --
         // |   p2|
-        //  -- -- 
+        //  -- --
 
         let r1 = maze.get_room(&p1).unwrap();
         assert_eq!(r1.borders().top, true);
@@ -638,21 +613,54 @@ mod test {
     #[test]
     fn it_gives_borders_index() {
         assert_eq!(borders_index(&CellBorders::default()), 0);
-        assert_eq!(borders_index(&CellBorders::new(true,  true,  true,  true )),  0);
-        assert_eq!(borders_index(&CellBorders::new(false, true,  true,  true )),  1);
-        assert_eq!(borders_index(&CellBorders::new(true,  false, true,  true )),  2);
-        assert_eq!(borders_index(&CellBorders::new(false, false, true,  true )),  3);
-        assert_eq!(borders_index(&CellBorders::new(true,  true,  false, true )),  4);
-        assert_eq!(borders_index(&CellBorders::new(false, true,  false, true )),  5);
-        assert_eq!(borders_index(&CellBorders::new(true,  false, false, true )),  6);
-        assert_eq!(borders_index(&CellBorders::new(false, false, false, true )),  7);
-        assert_eq!(borders_index(&CellBorders::new(true,  true,  true,  false)),  8);
-        assert_eq!(borders_index(&CellBorders::new(false, true,  true,  false)),  9);
-        assert_eq!(borders_index(&CellBorders::new(true,  false, true,  false)), 10);
-        assert_eq!(borders_index(&CellBorders::new(false, false, true,  false)), 11);
-        assert_eq!(borders_index(&CellBorders::new(true,  true,  false, false)), 12);
-        assert_eq!(borders_index(&CellBorders::new(false, true,  false, false)), 13);
-        assert_eq!(borders_index(&CellBorders::new(true,  false, false, false)), 14);
-        assert_eq!(borders_index(&CellBorders::new(false, false, false, false)), 15);
+        assert_eq!(borders_index(&CellBorders::new(true, true, true, true)), 0);
+        assert_eq!(borders_index(&CellBorders::new(false, true, true, true)), 1);
+        assert_eq!(borders_index(&CellBorders::new(true, false, true, true)), 2);
+        assert_eq!(
+            borders_index(&CellBorders::new(false, false, true, true)),
+            3
+        );
+        assert_eq!(borders_index(&CellBorders::new(true, true, false, true)), 4);
+        assert_eq!(
+            borders_index(&CellBorders::new(false, true, false, true)),
+            5
+        );
+        assert_eq!(
+            borders_index(&CellBorders::new(true, false, false, true)),
+            6
+        );
+        assert_eq!(
+            borders_index(&CellBorders::new(false, false, false, true)),
+            7
+        );
+        assert_eq!(borders_index(&CellBorders::new(true, true, true, false)), 8);
+        assert_eq!(
+            borders_index(&CellBorders::new(false, true, true, false)),
+            9
+        );
+        assert_eq!(
+            borders_index(&CellBorders::new(true, false, true, false)),
+            10
+        );
+        assert_eq!(
+            borders_index(&CellBorders::new(false, false, true, false)),
+            11
+        );
+        assert_eq!(
+            borders_index(&CellBorders::new(true, true, false, false)),
+            12
+        );
+        assert_eq!(
+            borders_index(&CellBorders::new(false, true, false, false)),
+            13
+        );
+        assert_eq!(
+            borders_index(&CellBorders::new(true, false, false, false)),
+            14
+        );
+        assert_eq!(
+            borders_index(&CellBorders::new(false, false, false, false)),
+            15
+        );
     }
 }
