@@ -21,19 +21,34 @@ struct WinSize {
 }
 // endregion: Resources
 
-struct PositionToScreen<'a> {
+struct PositionConverter<'a> {
     win_size: &'a WinSize
 }
 
-impl<'a> PositionToScreen<'a> {
+impl<'a> PositionConverter<'a> {
     fn new(win_size: &'a WinSize) -> Self {
-        PositionToScreen { win_size }
+        PositionConverter { win_size }
     }
 
+    /// Convert a Maze position to a screen position.
+    /// 
+    /// screen = 64 x pos - win_size / 2 + 30
     fn to_screen(&self, pos: &Position, z: f32) -> Vec3 {
         let x_offset = - self.win_size.w / 2. + 30.;
         let y_offset = - self.win_size.h / 2. + 30.;
         Vec3::new(64.0 * pos.x as f32 + x_offset, 64.0 * pos.y as f32 + y_offset, z)
+    }
+
+    ///  Convert a scrren position to a Maze position
+    ///
+    /// pos = (screen - 30 + win_size / 2) / 64
+    fn to_position(&self, screen_pos: &Vec3) -> Position {
+        let x_offset = (screen_pos.x - 30. + self.win_size.w / 2.) / 64.;
+        let y_offset = (screen_pos.y - 30. + self.win_size.h / 2.) / 64.;
+        Position { 
+            x: x_offset as u32, 
+            y: y_offset as u32 
+        }
     }
 }
 
@@ -59,4 +74,23 @@ pub fn setup(
 		w: window.width(),
 		h: window.height(),
 	});
+}
+
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test] 
+    fn it_converts_positions() {
+        let win_size = WinSize {
+            w: 30. + 64. * 5. + 30., 
+            h: 30. + 64. * 4. + 30.
+        };
+        let pos_converter = PositionConverter::new(&win_size);
+
+        // assert_eq!(pos_converter.to_position(Vec3::new(0., 0., 0.)), None);
+        assert_eq!(pos_converter.to_position(&Vec3::new(40., 40., 0.)), Position {x:0, y: 0});
+
+    }
 }

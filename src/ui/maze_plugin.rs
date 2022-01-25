@@ -3,14 +3,14 @@ use moria::maze::{CellBorders, Maze, Position};
 
 use crate::ui::{Materials};
 
-use super::{WinSize, PositionToScreen};
+use super::{WinSize, PositionConverter};
 
 pub struct MazePlugin;
 
 impl Plugin for MazePlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_stage("game_setup_maze", SystemStage::single(maze_spawn.system()))
-        .add_system(maze_spawn.system());
+        ;
     }
 }
 
@@ -44,18 +44,16 @@ struct RoomComponent {
 }
 
 fn maze_spawn(mut commands: Commands, materials: Res<Materials>, maze: Res<Maze>, win_size: Res<WinSize>) {
-    // let mut idx = 0;
-    let p2s = PositionToScreen::new(&win_size);
+    info!("maze_spawn(...)");
+    let pos_converter = PositionConverter::new(&win_size);
     for x in 0..maze.width() {
         for y in 00..maze.height() {
             let pos = Position::new(x, y);
             if let Some(room) = maze.get_room(&pos) {
-                // eprintln!("{:?} : {}", pos, img_index(room.borders()));
-                let screen_pos = p2s.to_screen(&pos, 10.);
+                let screen_pos = pos_converter.to_screen(&pos, 10.);
                 commands
                     .spawn_bundle(SpriteSheetBundle {
                         texture_atlas: materials.maze.clone(),
-                        // sprite: TextureAtlasSprite::new(idx),
                         sprite: TextureAtlasSprite::new(img_index(room.borders())),
                         transform: Transform {
                             translation: screen_pos,
@@ -65,7 +63,6 @@ fn maze_spawn(mut commands: Commands, materials: Res<Materials>, maze: Res<Maze>
                     })
                     .insert(RoomComponent { });
             }
-            // idx += 1;
         }
     }
 }

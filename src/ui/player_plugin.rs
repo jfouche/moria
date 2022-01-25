@@ -1,9 +1,9 @@
 use bevy::prelude::*;
-use moria::maze::Position;
+use moria::maze::{Position, Maze, Direction};
 
 use crate::ui::{Materials, TIME_STEP};
 
-use super::{PositionToScreen, WinSize};
+use super::{PositionConverter, WinSize};
 
 pub struct PlayerPlugin;
 
@@ -40,12 +40,13 @@ impl Default for PlayerSpeedComponent {
 }
 
 fn player_spawn(mut commands: Commands, materials: Res<Materials>, win_size: Res<WinSize>) {
-    let p2s = PositionToScreen::new(&win_size);
+    info!("player_spawn(...)");
+    let pos_converter = PositionConverter::new(&win_size);
     commands
         .spawn_bundle(SpriteBundle {
             texture: materials.player.clone(),
             transform: Transform {
-                translation: p2s.to_screen(&Position::new(0, 0), 20.),
+                translation: pos_converter.to_screen(&Position::new(0, 0), 20.),
                 ..Default::default()
             },
             ..Default::default()
@@ -56,10 +57,17 @@ fn player_spawn(mut commands: Commands, materials: Res<Materials>, win_size: Res
 
 fn player_movement(
     keyboard_input: Res<Input<KeyCode>>,
+    win_size: Res<WinSize>,
+    maze: Res<Maze>,
     mut query: Query<(&PlayerSpeedComponent, &mut Transform, With<PlayerComponent>)>,
 ) {
+    let pos_converter = PositionConverter::new(&win_size);
     if let Ok((speed, mut transform, _)) = query.get_single_mut() {
+        let screen_pos = Vec3::new(transform.translation.x, transform.translation.y, 0.);
+        let pos = pos_converter.to_position(&screen_pos);
+        info!("pos: {}", pos);
         let dir = if keyboard_input.pressed(KeyCode::Left) {
+            maze.get_next_room(&pos, Direction::RIGHT);
             (-1.0, 0.)
         } else if keyboard_input.pressed(KeyCode::Right) {
             (1.0, 0.)

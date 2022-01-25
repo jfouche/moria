@@ -5,6 +5,10 @@ use rand::{
     Rng,
 };
 
+pub enum Direction {
+    TOP, RIGHT, BOTTOM, LEFT
+}
+
 pub struct Maze {
     width: u32,
     height: u32,
@@ -101,6 +105,17 @@ impl Maze {
     fn clear(&mut self) {
         for room in &mut self.rooms {
             room.clear();
+        }
+    }
+
+    pub fn get_next_room(&self, pos: &Position, dir: Direction) -> Option<&Room> {
+        let borders = &self.get_room(pos)?.borders;
+        match dir {
+            Direction::TOP if !borders.top => self.get_room(&Position::new(pos.x, pos.y + 1)),
+            Direction::RIGHT if !borders.right => self.get_room(&Position::new(pos.x+1, pos.y)),
+            Direction::BOTTOM if !borders.bottom => self.get_room(&Position::new(pos.x, pos.y - 1)),
+            Direction::LEFT if !borders.left => self.get_room(&Position::new(pos.x-1, pos.y)),
+            _ => None
         }
     }
 }
