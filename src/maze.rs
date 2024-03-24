@@ -1,9 +1,30 @@
-use std::fmt;
-
+use bevy::prelude::*;
 use rand::{
     prelude::{SliceRandom, ThreadRng},
     Rng,
 };
+use std::fmt;
+
+/// .0 : x
+///
+/// .1 : y
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+struct Position(pub u32, pub u32);
+
+impl Position {
+    /// Get the square of the distance
+    fn sqr_distance(&self, other: &Position) -> u32 {
+        let dx = self.0 as i32 - other.0 as i32;
+        let dy = self.1 as i32 - other.1 as i32;
+        (dx * dx + dy * dy) as u32
+    }
+}
+
+impl fmt::Display for Position {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "({}, {})", self.0, self.1)
+    }
+}
 
 pub enum Direction {
     TOP,
@@ -12,6 +33,7 @@ pub enum Direction {
     LEFT,
 }
 
+#[derive(Resource)]
 pub struct Maze {
     width: u32,
     height: u32,
@@ -42,7 +64,7 @@ impl Maze {
     }
 
     fn room_index(&self, pos: &Position) -> usize {
-        (pos.y * self.width + pos.x) as usize
+        (pos.1 * self.width + pos.0) as usize
     }
 
     pub fn get_room(&self, pos: &Position) -> Option<&Room> {
@@ -61,44 +83,32 @@ impl Maze {
     }
 
     fn left_position(&self, pos: &Position) -> Option<Position> {
-        if pos.x > 0 {
-            Some(Position {
-                x: pos.x - 1,
-                y: pos.y,
-            })
+        if pos.0 > 0 {
+            Some(Position(pos.0 - 1, pos.1))
         } else {
             None
         }
     }
 
     fn right_position(&self, pos: &Position) -> Option<Position> {
-        if pos.x < self.width - 1 {
-            Some(Position {
-                x: pos.x + 1,
-                y: pos.y,
-            })
+        if pos.0 < self.width - 1 {
+            Some(Position(pos.0 + 1, pos.1))
         } else {
             None
         }
     }
 
     fn up_position(&self, pos: &Position) -> Option<Position> {
-        if pos.y < self.height - 1 {
-            Some(Position {
-                x: pos.x,
-                y: pos.y + 1,
-            })
+        if pos.1 < self.height - 1 {
+            Some(Position(pos.0, pos.1 + 1))
         } else {
             None
         }
     }
 
     fn down_position(&self, pos: &Position) -> Option<Position> {
-        if pos.y > 0 {
-            Some(Position {
-                x: pos.x,
-                y: pos.y - 1,
-            })
+        if pos.1 > 0 {
+            Some(Position(pos.0, pos.1 - 1))
         } else {
             None
         }
@@ -113,10 +123,10 @@ impl Maze {
     pub fn get_next_room(&self, pos: &Position, dir: Direction) -> Option<&Room> {
         let borders = &self.get_room(pos)?.borders;
         match dir {
-            Direction::TOP if !borders.top => self.get_room(&Position::new(pos.x, pos.y + 1)),
-            Direction::RIGHT if !borders.right => self.get_room(&Position::new(pos.x + 1, pos.y)),
-            Direction::BOTTOM if !borders.bottom => self.get_room(&Position::new(pos.x, pos.y - 1)),
-            Direction::LEFT if !borders.left => self.get_room(&Position::new(pos.x - 1, pos.y)),
+            Direction::TOP if !borders.top => self.get_room(&Position(pos.0, pos.1 + 1)),
+            Direction::RIGHT if !borders.right => self.get_room(&Position(pos.0 + 1, pos.1)),
+            Direction::BOTTOM if !borders.bottom => self.get_room(&Position(pos.0, pos.1 - 1)),
+            Direction::LEFT if !borders.left => self.get_room(&Position(pos.0 - 1, pos.1)),
             _ => None,
         }
     }
@@ -225,7 +235,7 @@ impl fmt::Display for Maze {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for y in (0..self.height).rev() {
             for x in 0..self.width {
-                if let Some(room) = self.get_room(&Position::new(x, y)) {
+                if let Some(room) = self.get_room(&Position(x, y)) {
                     write!(f, " {:0>}", borders_index(room.borders()))?
                 };
             }
@@ -241,7 +251,7 @@ impl fmt::Display for Maze {
             for i in 0..3 {
                 write!(f, "{:0>2} : ", y)?;
                 for x in 0..self.width {
-                    if let Some(room) = self.get_room(&Position::new(x, y)) {
+                    if let Some(room) = self.get_room(&Position(x, y)) {
                         let s = CELL_DISPLAY[borders_index(room.borders())][i];
                         write!(f, "{}", s)?;
                     } else {
@@ -275,31 +285,6 @@ impl Default for CellBorders {
             bottom: true,
             left: true,
         }
-    }
-}
-
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub struct Position {
-    pub x: u32,
-    pub y: u32,
-}
-
-impl Position {
-    pub fn new(x: u32, y: u32) -> Self {
-        Position { x, y }
-    }
-
-    /// Get the square af the distance
-    pub fn distance(&self, other: &Position) -> u32 {
-        let dx = self.x as i32 - other.x as i32;
-        let dy = self.y as i32 - other.y as i32;
-        (dx * dx + dy * dy) as u32
-    }
-}
-
-impl fmt::Display for Position {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({}, {})", self.x, self.y)
     }
 }
 
@@ -349,21 +334,21 @@ impl MazeBuilder {
     pub fn create_maze(&mut self) -> Maze {
         let mut backtracking = vec![];
         let mut maze = Maze::new(self.width, self.height);
-        let mut current_position = Position::new(0, 0);
+        let mut current_position = Position(0, 0);
         let mut finished = false;
         maze.visit(&current_position);
         while !finished {
-            // eprintln!(" - current_position {}, backtracking: {}", current_position, backtracking);
             if let Some(next_position) = self.get_next_neighboor(&maze, &current_position) {
-                // eprintln!("     - next_position = {:?}", next_position);
+                // Still some unvisited room next to current room
                 self.remove_walls_between(&mut maze, &current_position, &next_position);
-                // eprintln!("{}", maze);
                 maze.visit(&next_position);
                 backtracking.push(next_position);
                 current_position = next_position;
             } else if let Some(previous_position) = backtracking.pop() {
+                // No more unvisited room next to current room : go back one room
                 current_position = previous_position;
             } else {
+                // No more unvisited room
                 finished = true
             }
         }
@@ -380,6 +365,7 @@ impl MazeBuilder {
         maze
     }
 
+    /// Return a random position of an unvisited room next to the `pos`
     fn get_next_neighboor(&mut self, maze: &Maze, pos: &Position) -> Option<Position> {
         let mut neighbors = vec![];
 
@@ -416,37 +402,37 @@ impl MazeBuilder {
     }
 
     fn remove_walls_between(&self, maze: &mut Maze, p1: &Position, p2: &Position) {
-        assert_eq!(p1.distance(p2), 1);
+        assert_eq!(p1.sqr_distance(p2), 1);
         // eprintln!(" - remove_walls_between({}, {}", p1, p2);
-        if p1.x > p2.x {
-            if let Some(mut r1) = maze.get_room_mut(p1) {
+        if p1.0 > p2.0 {
+            if let Some(r1) = maze.get_room_mut(p1) {
                 r1.borders.left = false;
             }
-            if let Some(mut r2) = maze.get_room_mut(p2) {
+            if let Some(r2) = maze.get_room_mut(p2) {
                 r2.borders.right = false;
             }
         }
-        if p1.x < p2.x {
-            if let Some(mut r1) = maze.get_room_mut(p1) {
+        if p1.0 < p2.0 {
+            if let Some(r1) = maze.get_room_mut(p1) {
                 r1.borders.right = false;
             }
-            if let Some(mut r2) = maze.get_room_mut(p2) {
+            if let Some(r2) = maze.get_room_mut(p2) {
                 r2.borders.left = false;
             }
         }
-        if p1.y > p2.y {
-            if let Some(mut r1) = maze.get_room_mut(p1) {
+        if p1.1 > p2.1 {
+            if let Some(r1) = maze.get_room_mut(p1) {
                 r1.borders.bottom = false;
             }
-            if let Some(mut r2) = maze.get_room_mut(p2) {
+            if let Some(r2) = maze.get_room_mut(p2) {
                 r2.borders.top = false;
             }
         }
-        if p1.y < p2.y {
-            if let Some(mut r1) = maze.get_room_mut(p1) {
+        if p1.1 < p2.1 {
+            if let Some(r1) = maze.get_room_mut(p1) {
                 r1.borders.top = false;
             }
-            if let Some(mut r2) = maze.get_room_mut(p2) {
+            if let Some(r2) = maze.get_room_mut(p2) {
                 r2.borders.bottom = false;
             }
         }
@@ -455,10 +441,9 @@ impl MazeBuilder {
     fn remove_random_walls(&mut self, maze: &mut Maze, n: usize) {
         let mut modifications = 0;
         while modifications < n {
-            let pos = Position {
-                x: self.rng.gen_range(1..self.width - 1),
-                y: self.rng.gen_range(1..self.height - 1),
-            };
+            let x = self.rng.gen_range(1..self.width - 1);
+            let y = self.rng.gen_range(1..self.height - 1);
+            let pos = Position(x, y);
             let room = maze.get_room(&pos).unwrap();
             match self.rng.gen_range(0..4) {
                 0 if room.borders.top => {
@@ -495,6 +480,113 @@ impl MazeBuilder {
     }
 }
 
+// struct PositionConverter<'a> {
+//     win_size: &'a WinSize,
+// }
+
+// impl<'a> PositionConverter<'a> {
+//     fn new(win_size: &'a WinSize) -> Self {
+//         PositionConverter { win_size }
+//     }
+
+//     /// Convert a Maze position to a screen position.
+//     ///
+//     /// screen = 64 x pos - win_size / 2 + 30
+//     fn to_screen(&self, pos: &Position, z: f32) -> Vec3 {
+//         let x_offset = -self.win_size.w / 2. + 30.;
+//         let y_offset = -self.win_size.h / 2. + 30.;
+//         Vec3::new(
+//             64.0 * pos.x as f32 + x_offset,
+//             64.0 * pos.y as f32 + y_offset,
+//             z,
+//         )
+//     }
+
+//     ///  Convert a scrren position to a Maze position
+//     ///
+//     /// pos = (screen - 30 + win_size / 2) / 64
+//     fn to_position(&self, screen_pos: &Vec3) -> Position {
+//         let x_offset = (screen_pos.x - 30. + self.win_size.w / 2.) / 64.;
+//         let y_offset = (screen_pos.y - 30. + self.win_size.h / 2.) / 64.;
+//         Position(x_offset as u32, y_offset as u32)
+//     }
+// }
+
+pub struct MazePlugin;
+
+impl Plugin for MazePlugin {
+    fn build(&self, app: &mut App) {
+        // TODO Load maze in PreStartup
+        let maze = MazeBuilder::new(24, 13).create_maze();
+        app.insert_resource(maze).add_systems(Startup, maze_spawn);
+    }
+}
+
+/// Get the index in the maze file
+///  0:   ,  1: T,    2: R,    3: TR
+///  4:  B,  5: TB,   6: RB,   7: TRB
+///  8:  L,  9: TL,  10: RL,  11: TRL
+/// 12: BL, 13: TBL, 14: RBL, 15: TRBL
+fn img_index(borders: &CellBorders) -> usize {
+    let mut index = 0;
+    if !borders.top {
+        index += 1;
+    }
+    if !borders.right {
+        index += 2;
+    }
+    if !borders.bottom {
+        index += 4;
+    }
+    if !borders.left {
+        index += 8;
+    }
+    index
+}
+
+#[derive(Component, Default)]
+struct MazeComponent {}
+
+#[derive(Component)]
+struct RoomComponent {}
+
+fn maze_spawn(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    maze: Res<Maze>,
+) {
+    info!("maze_spawn(...)");
+    let maze_entity = commands
+        .spawn((
+            Name::new("MAZE"),
+            GlobalTransform::default(),
+            InheritedVisibility::default(),
+            Transform::IDENTITY,
+        ))
+        .with_children(|maze_cmd| {
+            // let pos_converter = PositionConverter::new(&win_size);
+            // TODO : use Iterator
+            for x in 0..maze.width() {
+                for y in 00..maze.height() {
+                    let pos = Position(x, y);
+                    if let Some(room) = maze.get_room(&pos) {
+                        let wx = pos.0 as f32;
+                        let wy = 1.0;
+                        let wz = pos.1 as f32;
+
+                        maze_cmd.spawn(PbrBundle {
+                            mesh: meshes.add(Cuboid::new(1.0, 1.0, 1.0)),
+                            material: materials.add(Color::RED),
+                            transform: Transform::from_xyz(wx, wy, wz),
+                            ..default()
+                        });
+                    }
+                }
+            }
+        });
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -514,27 +606,27 @@ mod test {
     fn it_gets_neighbour_position() {
         let maze = Maze::new(2, 2);
 
-        let pos = Position::new(0, 0);
+        let pos = Position(0, 0);
         let left = maze.left_position(&pos);
         assert!(left.is_none());
         let right = maze.right_position(&pos);
         assert!(right.is_some());
-        assert_eq!(right.unwrap(), Position::new(1, 0));
+        assert_eq!(right.unwrap(), Position(1, 0));
         let down = maze.down_position(&pos);
         assert!(down.is_none());
         let up = maze.up_position(&pos);
         assert!(up.is_some());
-        assert_eq!(up.unwrap(), Position::new(0, 1));
+        assert_eq!(up.unwrap(), Position(0, 1));
 
-        let pos = Position::new(1, 1);
+        let pos = Position(1, 1);
         let left = maze.left_position(&pos);
         assert!(left.is_some());
-        assert_eq!(left.unwrap(), Position::new(0, 1));
+        assert_eq!(left.unwrap(), Position(0, 1));
         let right = maze.right_position(&pos);
         assert!(right.is_none());
         let down = maze.down_position(&pos);
         assert!(down.is_some());
-        assert_eq!(down.unwrap(), Position::new(1, 0));
+        assert_eq!(down.unwrap(), Position(1, 0));
         let up = maze.up_position(&pos);
         assert!(up.is_none());
     }
@@ -545,8 +637,8 @@ mod test {
         let maze_builder = MazeBuilder::new(width, height);
         let mut maze = Maze::new(width, height);
 
-        let p1 = Position::new(0, 0);
-        let p2 = Position::new(1, 0);
+        let p1 = Position(0, 0);
+        let p2 = Position(1, 0);
 
         //  -- --
         // |  |  |
@@ -573,7 +665,7 @@ mod test {
         assert_eq!(r2.borders().bottom, true);
         assert_eq!(r2.borders().left, false);
 
-        let p1 = Position::new(1, 1);
+        let p1 = Position(1, 1);
 
         //  -- --
         // |  |p1|
@@ -604,10 +696,10 @@ mod test {
     #[test]
     fn it_gives_room_index() {
         let maze = Maze::new(6, 4);
-        assert_eq!(maze.room_index(&Position::new(0, 0)), 0);
-        assert_eq!(maze.room_index(&Position::new(5, 0)), 5);
-        assert_eq!(maze.room_index(&Position::new(0, 3)), 18);
-        assert_eq!(maze.room_index(&Position::new(5, 3)), 23);
+        assert_eq!(maze.room_index(&Position(0, 0)), 0);
+        assert_eq!(maze.room_index(&Position(5, 0)), 5);
+        assert_eq!(maze.room_index(&Position(0, 3)), 18);
+        assert_eq!(maze.room_index(&Position(5, 3)), 23);
     }
 
     #[test]
@@ -663,4 +755,19 @@ mod test {
             15
         );
     }
+
+    // #[test]
+    // fn it_converts_positions() {
+    //     let win_size = WinSize {
+    //         w: 30. + 64. * 5. + 30.,
+    //         h: 30. + 64. * 4. + 30.,
+    //     };
+    //     let pos_converter = PositionConverter::new(&win_size);
+
+    //     // assert_eq!(pos_converter.to_position(Vec3::new(0., 0., 0.)), None);
+    //     assert_eq!(
+    //         pos_converter.to_position(&Vec3::new(40., 40., 0.)),
+    //         Position(0, 0)
+    //     );
+    // }
 }

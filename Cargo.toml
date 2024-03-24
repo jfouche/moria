@@ -17,5 +17,7 @@ codegen-units = 1
 
 
 [dependencies]
-rand = "0.8.0"
-bevy = "0.6"
+rand = "0.8"
+bevy = "0.13"
+bevy-inspector-egui="0.23"
+bevy_panorbit_camera="0.16"
