@@ -5,8 +5,6 @@ use bevy::{
     window::{CursorGrabMode, PrimaryWindow},
 };
 
-const SPEED: f32 = 10.0;
-
 #[derive(Component)]
 pub struct Player;
 

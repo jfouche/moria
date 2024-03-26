@@ -5,6 +5,7 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 
 mod maze;
+mod minimap;
 mod player;
 
 fn main() {
@@ -20,6 +21,7 @@ fn main() {
             ..default()
         }))
         .insert_resource(ClearColor(Color::rgb(0.1, 0.1, 0.)))
+        .add_plugins(minimap::MinimapPlugin)
         .add_plugins(maze::MazePlugin)
         .add_plugins(player::PlayerPlugin)
         .add_systems(PreStartup, setup)
@@ -45,7 +47,7 @@ pub fn setup(
     // Camera
     commands.spawn((
         Camera3dBundle {
-            transform: Transform::from_xyz(0.0, 5.0, -5.0).looking_at(Vec3::ZERO, Vec3::Y),
+            transform: Transform::from_xyz(0.0, 0.0, 0.0).looking_at(Vec3::ZERO, Vec3::Y),
             ..default()
         },
         PanOrbitCamera::default(),
