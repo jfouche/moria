@@ -4,6 +4,7 @@ use bevy::{prelude::*, time::common_conditions::on_timer};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 
+mod hud;
 mod maze;
 mod minimap;
 mod player;
@@ -21,9 +22,12 @@ fn main() {
             ..default()
         }))
         .insert_resource(ClearColor(Color::rgb(0.1, 0.1, 0.)))
-        .add_plugins(minimap::MinimapPlugin)
-        .add_plugins(maze::MazePlugin)
-        .add_plugins(player::PlayerPlugin)
+        .add_plugins((
+            minimap::MinimapPlugin,
+            maze::MazePlugin,
+            player::PlayerPlugin,
+            hud::HudPlugin,
+        ))
         .add_systems(PreStartup, setup)
         // DEBUG
         .add_plugins(PanOrbitCameraPlugin)

@@ -3,9 +3,6 @@ use bevy::prelude::*;
 #[derive(Component)]
 pub struct Minimap;
 
-#[derive(Resource)]
-pub struct ShowMinimap(bool);
-
 #[derive(States, Debug, Clone, PartialEq, Eq, Hash)]
 enum MinimapState {
     Hide,
@@ -17,7 +14,6 @@ pub struct MinimapPlugin;
 impl Plugin for MinimapPlugin {
     fn build(&self, app: &mut App) {
         app.insert_state(MinimapState::Hide)
-            .insert_resource(ShowMinimap(true))
             .add_systems(Update, toggle_minimap)
             .add_systems(OnEnter(MinimapState::Show), spawn_minimap)
             .add_systems(OnExit(MinimapState::Show), delete_minimap);
@@ -29,12 +25,10 @@ fn toggle_minimap(
     mut next_state: ResMut<NextState<MinimapState>>,
     keys: Res<ButtonInput<KeyCode>>,
 ) {
-    for key in keys.get_just_pressed() {
-        if *key == KeyCode::Tab {
-            match state.get() {
-                MinimapState::Hide => next_state.set(MinimapState::Show),
-                MinimapState::Show => next_state.set(MinimapState::Hide),
-            }
+    if keys.just_pressed(KeyCode::Tab) {
+        match state.get() {
+            MinimapState::Hide => next_state.set(MinimapState::Show),
+            MinimapState::Show => next_state.set(MinimapState::Hide),
         }
     }
 }
