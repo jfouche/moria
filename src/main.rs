@@ -12,18 +12,24 @@ fn main() {
     // eprintln!("{}", maze.to_string());
 
     App::new()
-        .add_plugins(DefaultPlugins.set(WindowPlugin {
-            primary_window: Some(Window {
-                title: "Moria".into(),
-                name: Some("maria.app".into()),
-                ..default()
-            }),
-            ..default()
-        }))
+        .add_plugins(
+            DefaultPlugins
+                .set(WindowPlugin {
+                    primary_window: Some(Window {
+                        title: "Moria".into(),
+                        name: Some("maria.app".into()),
+                        ..default()
+                    }),
+                    ..default()
+                })
+                .set(ImagePlugin::default_nearest()),
+        )
         .insert_resource(ClearColor(Color::rgb(0.1, 0.1, 0.)))
-        .add_plugins(minimap::MinimapPlugin)
-        .add_plugins(maze::MazePlugin)
-        .add_plugins(player::PlayerPlugin)
+        .add_plugins((
+            minimap::MinimapPlugin,
+            maze::MazePlugin,
+            player::PlayerPlugin,
+        ))
         .add_systems(PreStartup, setup)
         // DEBUG
         .add_plugins(PanOrbitCameraPlugin)

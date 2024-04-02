@@ -8,8 +8,8 @@ use std::fmt;
 /// .0 : x
 ///
 /// .1 : y
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-struct Position(pub u32, pub u32);
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Reflect)]
+pub struct Position(pub u32, pub u32);
 
 impl Position {
     /// Get the square of the distance
@@ -269,7 +269,7 @@ impl fmt::Display for Maze {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Reflect)]
 pub struct CellBorders {
     pub top: bool,
     pub right: bool,
@@ -288,7 +288,7 @@ impl Default for CellBorders {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Reflect)]
 pub struct Room {
     borders: CellBorders,
     visited: bool,
@@ -517,7 +517,9 @@ pub struct MazePlugin;
 impl Plugin for MazePlugin {
     fn build(&self, app: &mut App) {
         // TODO Load maze in PreStartup
-        let maze = MazeBuilder::new(24, 13).create_maze();
+        //        let maze = MazeBuilder::new(24, 13).create_maze();
+        let maze = MazeBuilder::new(5, 5).create_maze();
+
         app.insert_resource(maze).add_systems(Startup, maze_spawn);
     }
 }
