@@ -26,12 +26,12 @@ impl fmt::Display for Position {
     }
 }
 
-pub enum Direction {
-    TOP,
-    RIGHT,
-    BOTTOM,
-    LEFT,
-}
+// pub enum Direction {
+//     TOP,
+//     RIGHT,
+//     BOTTOM,
+//     LEFT,
+// }
 
 #[derive(Resource)]
 pub struct Maze {
@@ -120,16 +120,16 @@ impl Maze {
         }
     }
 
-    pub fn get_next_room(&self, pos: &Position, dir: Direction) -> Option<&Room> {
-        let borders = &self.get_room(pos)?.borders;
-        match dir {
-            Direction::TOP if !borders.top => self.get_room(&Position(pos.0, pos.1 + 1)),
-            Direction::RIGHT if !borders.right => self.get_room(&Position(pos.0 + 1, pos.1)),
-            Direction::BOTTOM if !borders.bottom => self.get_room(&Position(pos.0, pos.1 - 1)),
-            Direction::LEFT if !borders.left => self.get_room(&Position(pos.0 - 1, pos.1)),
-            _ => None,
-        }
-    }
+    // pub fn get_next_room(&self, pos: &Position, dir: Direction) -> Option<&Room> {
+    //     let borders = &self.get_room(pos)?.borders;
+    //     match dir {
+    //         Direction::TOP if !borders.top => self.get_room(&Position(pos.0, pos.1 + 1)),
+    //         Direction::RIGHT if !borders.right => self.get_room(&Position(pos.0 + 1, pos.1)),
+    //         Direction::BOTTOM if !borders.bottom => self.get_room(&Position(pos.0, pos.1 - 1)),
+    //         Direction::LEFT if !borders.left => self.get_room(&Position(pos.0 - 1, pos.1)),
+    //         _ => None,
+    //     }
+    // }
 }
 
 /// Get the index in the maze file
@@ -524,28 +524,6 @@ impl Plugin for MazePlugin {
     }
 }
 
-/// Get the index in the maze file
-///  0:   ,  1: T,    2: R,    3: TR
-///  4:  B,  5: TB,   6: RB,   7: TRB
-///  8:  L,  9: TL,  10: RL,  11: TRL
-/// 12: BL, 13: TBL, 14: RBL, 15: TRBL
-fn img_index(borders: &CellBorders) -> usize {
-    let mut index = 0;
-    if !borders.top {
-        index += 1;
-    }
-    if !borders.right {
-        index += 2;
-    }
-    if !borders.bottom {
-        index += 4;
-    }
-    if !borders.left {
-        index += 8;
-    }
-    index
-}
-
 #[derive(Component, Default)]
 struct MazeComponent {}
 
@@ -559,7 +537,7 @@ fn maze_spawn(
     maze: Res<Maze>,
 ) {
     info!("maze_spawn(...)");
-    let maze_entity = commands
+    commands
         .spawn((
             Name::new("MAZE"),
             GlobalTransform::default(),
@@ -572,7 +550,7 @@ fn maze_spawn(
             for x in 0..maze.width() {
                 for y in 00..maze.height() {
                     let pos = Position(x, y);
-                    if let Some(room) = maze.get_room(&pos) {
+                    if let Some(_room) = maze.get_room(&pos) {
                         let wx = pos.0 as f32;
                         let wy = 1.0;
                         let wz = pos.1 as f32;
@@ -589,6 +567,7 @@ fn maze_spawn(
         });
 }
 
+#[allow(clippy::all)]
 #[cfg(test)]
 mod test {
     use super::*;
