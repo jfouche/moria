@@ -6,7 +6,7 @@ use bevy::{
     window::{close_on_esc, Cursor, CursorGrabMode, WindowResolution},
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
+use bevy_panorbit_camera::PanOrbitCamera;
 use player::Player;
 
 use crate::maze::Position;

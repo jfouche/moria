@@ -3,6 +3,8 @@ use bevy::{
     prelude::*,
 };
 
+use crate::player::Player;
+
 #[derive(Component)]
 struct CompassText;
 
@@ -17,7 +19,7 @@ impl Plugin for HudPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(FrameTimeDiagnosticsPlugin)
             .add_systems(Startup, (spawn_fps, spawn_compass))
-            .add_systems(Update, update_fps);
+            .add_systems(Update, (update_fps, update_compass));
     }
 }
 
@@ -109,9 +111,20 @@ fn update_fps(diagnostics: Res<DiagnosticsStore>, mut query: Query<&mut Text, Wi
     for mut text in &mut query {
         if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
             if let Some(value) = fps.smoothed() {
-                // Update the value of the second section
-                text.sections[1].value = format!("{value:.2}");
+                text.sections[1].value = format!("{value:.1}");
             }
         }
+    }
+}
+fn update_compass(
+    mut transform: Query<&mut Transform, With<Player>>,
+    mut query: Query<&mut Text, With<CompassText>>,
+) {
+    for mut text in &mut query {
+        let transform = transform.get_single_mut().expect("Can't get player camera");
+        let mut forward = *transform.forward();
+        forward.y = 0.0;
+        let angle = forward.angle_between(Vec3::NEG_Z).to_degrees();
+        text.sections[1].value = format!("{angle:.0}");
     }
 }
