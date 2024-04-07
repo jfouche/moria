@@ -602,12 +602,7 @@ fn maze_spawn(
     });
 
     commands
-        .spawn((
-            Name::new("MAZE"),
-            GlobalTransform::default(),
-            InheritedVisibility::default(),
-            Transform::IDENTITY,
-        ))
+        .spawn((Name::new("MAZE"), SpatialBundle::default()))
         .with_children(|maze_cmd| {
             // TODO : use Iterator
             for x in 0..maze.width() {
