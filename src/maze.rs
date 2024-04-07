@@ -599,101 +599,50 @@ fn maze_spawn(
             Transform::IDENTITY,
         ))
         .with_children(|maze_cmd| {
-            // DEBUG START
-
-            let pos = Position(1, 1);
-
-            let wall = Wall::Top;
-            maze_cmd.spawn(PbrBundle {
-                mesh: meshes.add(wall.mesh()),
-                material: materials.add(Color::TURQUOISE),
-                transform: wall.transform(&pos),
-                ..default()
-            });
-
-            let wall = Wall::Bottom;
-            maze_cmd.spawn(PbrBundle {
-                mesh: meshes.add(wall.mesh()),
-                material: materials.add(Color::BEIGE),
-                transform: wall.transform(&pos),
-                ..default()
-            });
-
-            let wall = Wall::Left;
-            maze_cmd.spawn(PbrBundle {
-                mesh: meshes.add(wall.mesh()),
-                material: materials.add(Color::BLUE),
-                transform: wall.transform(&pos),
-                ..default()
-            });
-
-            let wall = Wall::Right;
-            maze_cmd.spawn(PbrBundle {
-                mesh: meshes.add(wall.mesh()),
-                material: materials.add(Color::RED),
-                transform: wall.transform(&pos),
-                ..default()
-            });
-
-            // DEBUG END
-
             // TODO : use Iterator
             for x in 0..maze.width() {
                 for y in 00..maze.height() {
                     let pos = Position(x, y);
                     if let Some(room) = maze.get_room(&pos) {
-                        let world_pos = pos.world_pos();
+                        if room.borders.top {
+                            let wall = Wall::Top;
+                            maze_cmd.spawn(PbrBundle {
+                                mesh: meshes.add(wall.mesh()),
+                                material: materials.add(Color::TURQUOISE),
+                                transform: wall.transform(&pos),
+                                ..default()
+                            });
+                        }
 
-                        // if room.borders.top {
-                        //     maze_cmd.spawn(PbrBundle {
-                        //         mesh: meshes.add(Plane3d::new(Vec3::Z)),
-                        //         material: materials.add(Color::RED),
-                        //         transform: Transform::from_translation(
-                        //             world_pos + Vec3::new(0.0, 0.0, -1.0),
-                        //         ),
-                        //         ..default()
-                        //     });
-                        // }
+                        if room.borders.left {
+                            let wall = Wall::Left;
+                            maze_cmd.spawn(PbrBundle {
+                                mesh: meshes.add(wall.mesh()),
+                                material: materials.add(Color::BLUE),
+                                transform: wall.transform(&pos),
+                                ..default()
+                            });
+                        }
 
-                        // if room.borders.left {
-                        //     maze_cmd.spawn(PbrBundle {
-                        //         mesh: meshes.add(Plane3d::new(Vec3::X)),
-                        //         material: materials.add(Color::RED),
-                        //         transform: Transform::from_translation(
-                        //             world_pos + Vec3::new(0.0, 0.0, 0.0),
-                        //         ),
-                        //         ..default()
-                        //     });
-                        // }
+                        if room.borders.bottom {
+                            let wall = Wall::Bottom;
+                            maze_cmd.spawn(PbrBundle {
+                                mesh: meshes.add(wall.mesh()),
+                                material: materials.add(Color::BEIGE),
+                                transform: wall.transform(&pos),
+                                ..default()
+                            });
+                        }
 
-                        // if room.borders.bottom {
-                        //     maze_cmd.spawn(PbrBundle {
-                        //         mesh: meshes.add(Plane3d::new(Vec3::Z)),
-                        //         material: materials.add(Color::RED),
-                        //         transform: Transform::from_translation(
-                        //             world_pos + Vec3::new(0.0, 0.0, 0.0),
-                        //         ),
-                        //         ..default()
-                        //     });
-                        // }
-
-                        // if room.borders.right {
-                        //     maze_cmd.spawn(PbrBundle {
-                        //         mesh: meshes.add(Plane3d::new(Vec3::X)),
-                        //         material: materials.add(Color::RED),
-                        //         transform: Transform::from_translation(
-                        //             world_pos + Vec3::new(1.0, 0.0, 0.0),
-                        //         ),
-                        //         ..default()
-                        //     });
-                        // }
-
-                        //     maze_cmd.spawn(PbrBundle {
-                        //         mesh: meshes.add(Plane3d::new(1.0, 1.0, 1.0)),
-                        //         material: materials.add(Color::RED),
-                        //         transform: Transform::from_translation(world_pos),
-                        //         ..default()
-                        //     });
+                        if room.borders.right {
+                            let wall = Wall::Right;
+                            maze_cmd.spawn(PbrBundle {
+                                mesh: meshes.add(wall.mesh()),
+                                material: materials.add(Color::RED),
+                                transform: wall.transform(&pos),
+                                ..default()
+                            });
+                        }
                     }
                 }
             }
