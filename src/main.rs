@@ -11,6 +11,7 @@ use player::Player;
 
 use crate::maze::Position;
 
+mod hud;
 mod maze;
 mod minimap;
 mod player;
@@ -46,6 +47,7 @@ fn main() {
             minimap::MinimapPlugin,
             maze::MazePlugin,
             player::PlayerPlugin,
+            hud::HudPlugin,
         ))
         .add_systems(PreStartup, setup)
         // DEBUG

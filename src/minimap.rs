@@ -98,12 +98,10 @@ fn toggle_minimap(
     mut next_state: ResMut<NextState<MinimapState>>,
     keys: Res<ButtonInput<KeyCode>>,
 ) {
-    for key in keys.get_just_pressed() {
-        if *key == KeyCode::Tab {
-            match state.get() {
-                MinimapState::Hide => next_state.set(MinimapState::Show),
-                MinimapState::Show => next_state.set(MinimapState::Hide),
-            }
+    if keys.just_pressed(KeyCode::Tab) {
+        match state.get() {
+            MinimapState::Hide => next_state.set(MinimapState::Show),
+            MinimapState::Show => next_state.set(MinimapState::Hide),
         }
     }
 }
