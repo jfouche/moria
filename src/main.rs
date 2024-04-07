@@ -1,12 +1,22 @@
 use std::time::Duration;
 
-use bevy::{prelude::*, time::common_conditions::on_timer};
+use bevy::{
+    prelude::*,
+    time::common_conditions::on_timer,
+    window::{close_on_esc, Cursor, CursorGrabMode, WindowResolution},
+};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
+use player::Player;
+
+use crate::maze::Position;
 
 mod maze;
 mod minimap;
 mod player;
+
+#[cfg(test)]
+mod test;
 
 fn main() {
     // eprintln!("{}", maze.to_string());
@@ -18,6 +28,13 @@ fn main() {
                     primary_window: Some(Window {
                         title: "Moria".into(),
                         name: Some("maria.app".into()),
+                        position: WindowPosition::At(IVec2::new(0, 0)),
+                        resolution: WindowResolution::new(1000.0, 650.0),
+                        cursor: Cursor {
+                            grab_mode: CursorGrabMode::Confined,
+                            visible: false,
+                            ..default()
+                        },
                         ..default()
                     }),
                     ..default()
@@ -32,13 +49,15 @@ fn main() {
         ))
         .add_systems(PreStartup, setup)
         // DEBUG
-        .add_plugins(PanOrbitCameraPlugin)
+        .add_systems(Update, close_on_esc)
+        // .add_plugins(PanOrbitCameraPlugin)
         .add_systems(Update, toggle_camera_controls_system)
         .add_plugins(WorldInspectorPlugin::new())
         .add_systems(
             Update,
-            (debug_forward).run_if(on_timer(Duration::from_secs(1))),
+            (debug_player_view).run_if(on_timer(Duration::from_secs(1))),
         )
+        .add_systems(Update, show_axes)
         // RUN
         .run();
 }
@@ -96,14 +115,23 @@ fn toggle_camera_controls_system(
     }
 }
 
-fn debug_forward(
-    mut transform: Query<&mut Transform, With<Camera3d>>,
+fn debug_player_view(
+    mut transform: Query<&mut Transform, With<Player>>,
     // keys: Res<ButtonInput<KeyCode>>,
     // time: Res<Time>,
 ) {
     let transform = transform.get_single_mut().expect("Can't get player camera");
+    let translation = transform.translation;
+    let pos: Position = translation.into();
     let mut forward = *transform.forward();
     forward.y = 0.0;
     let angle = forward.angle_between(Vec3::Z).to_degrees();
-    info!("forward: {forward:?}, angle: {angle}");
+    let forward = forward.xz();
+    info!("Player translation: {translation}, pos: {pos}, forward: {forward:?}, angle: {angle}");
+}
+
+fn show_axes(mut gizmos: Gizmos) {
+    gizmos.ray(Vec3::ZERO, Vec3::new(1.0, 0.0, 0.0), Color::RED);
+    gizmos.ray(Vec3::ZERO, Vec3::new(0.0, 1.0, 0.0), Color::GREEN);
+    gizmos.ray(Vec3::ZERO, Vec3::new(0.0, 0.0, 1.0), Color::BLUE);
 }

@@ -47,7 +47,7 @@ fn player_init(
 ) {
     let (entity, mut transform) = transform.get_single_mut().expect("Can't player camera");
     commands.entity(entity).insert(Player);
-    *transform = Transform::from_xyz(0.0, 2.0, 0.0).looking_at(Vec3::Z, Vec3::Y);
+    *transform = Transform::from_xyz(0.0, 0.5, 0.0).looking_at(Vec3::NEG_Z, Vec3::Y);
 }
 
 // https://github.com/sburris0/bevy_flycam/blob/master/src/lib.rs

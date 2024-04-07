@@ -5,6 +5,11 @@ use rand::{
 };
 use std::fmt;
 
+pub(crate) const WALL_HEIGHT: f32 = 1.0;
+
+/// Width on X and Z
+pub(crate) const ROOM_WIDTH: f32 = 2.0;
+
 /// .0 : x
 ///
 /// .1 : y
@@ -18,6 +23,14 @@ impl Position {
         let dy = self.1 as i32 - other.1 as i32;
         (dx * dx + dy * dy) as u32
     }
+
+    pub fn world_pos(&self) -> Vec3 {
+        Vec3 {
+            x: self.0 as f32 * ROOM_WIDTH,
+            y: 0.0,
+            z: self.1 as f32 * -ROOM_WIDTH,
+        }
+    }
 }
 
 impl fmt::Display for Position {
@@ -26,12 +39,14 @@ impl fmt::Display for Position {
     }
 }
 
-// pub enum Direction {
-//     TOP,
-//     RIGHT,
-//     BOTTOM,
-//     LEFT,
-// }
+impl From<Vec3> for Position {
+    fn from(world_pos: Vec3) -> Self {
+        Position(
+            (world_pos.x / ROOM_WIDTH) as u32,
+            (-world_pos.z / ROOM_WIDTH) as u32,
+        )
+    }
+}
 
 #[derive(Resource)]
 pub struct Maze {
@@ -47,7 +62,7 @@ impl Maze {
     /// | (0, 0)     (w, 0)
     /// + ----------------->
     /// ```
-    fn new(width: u32, height: u32) -> Self {
+    pub(crate) fn new(width: u32, height: u32) -> Self {
         Maze {
             width,
             height,
@@ -63,7 +78,7 @@ impl Maze {
         self.height
     }
 
-    fn room_index(&self, pos: &Position) -> usize {
+    pub(crate) fn room_index(&self, pos: &Position) -> usize {
         (pos.1 * self.width + pos.0) as usize
     }
 
@@ -82,7 +97,7 @@ impl Maze {
         }
     }
 
-    fn left_position(&self, pos: &Position) -> Option<Position> {
+    pub(crate) fn left_position(&self, pos: &Position) -> Option<Position> {
         if pos.0 > 0 {
             Some(Position(pos.0 - 1, pos.1))
         } else {
@@ -90,7 +105,7 @@ impl Maze {
         }
     }
 
-    fn right_position(&self, pos: &Position) -> Option<Position> {
+    pub(crate) fn right_position(&self, pos: &Position) -> Option<Position> {
         if pos.0 < self.width - 1 {
             Some(Position(pos.0 + 1, pos.1))
         } else {
@@ -98,7 +113,7 @@ impl Maze {
         }
     }
 
-    fn up_position(&self, pos: &Position) -> Option<Position> {
+    pub(crate) fn up_position(&self, pos: &Position) -> Option<Position> {
         if pos.1 < self.height - 1 {
             Some(Position(pos.0, pos.1 + 1))
         } else {
@@ -106,7 +121,7 @@ impl Maze {
         }
     }
 
-    fn down_position(&self, pos: &Position) -> Option<Position> {
+    pub(crate) fn down_position(&self, pos: &Position) -> Option<Position> {
         if pos.1 > 0 {
             Some(Position(pos.0, pos.1 - 1))
         } else {
@@ -139,7 +154,7 @@ impl Maze {
 ///  8:  L,  9: TL,  10: RL,  11: TRL
 /// 12: BL, 13: TBL, 14: RBL, 15: TRBL
 /// ```
-fn borders_index(borders: &CellBorders) -> usize {
+pub(crate) fn borders_index(borders: &CellBorders) -> usize {
     let mut index = 0;
     if !borders.top {
         index += 1;
@@ -401,7 +416,7 @@ impl MazeBuilder {
         neighbors.choose(&mut self.rng).copied()
     }
 
-    fn remove_walls_between(&self, maze: &mut Maze, p1: &Position, p2: &Position) {
+    pub(crate) fn remove_walls_between(&self, maze: &mut Maze, p1: &Position, p2: &Position) {
         assert_eq!(p1.sqr_distance(p2), 1);
         // eprintln!(" - remove_walls_between({}, {}", p1, p2);
         if p1.0 > p2.0 {
@@ -530,6 +545,45 @@ struct MazeComponent {}
 #[derive(Component)]
 struct RoomComponent {}
 
+#[derive(Copy, Clone, Debug)]
+enum Wall {
+    Top,
+    Bottom,
+    Left,
+    Right,
+}
+
+impl Wall {
+    fn mesh(&self) -> impl Into<Mesh> {
+        let normal = match self {
+            Wall::Top => Vec3::Z,
+            Wall::Bottom => Vec3::NEG_Z,
+            Wall::Left => Vec3::X,
+            Wall::Right => Vec3::NEG_X,
+        };
+        let (w, h) = match self {
+            Wall::Top | Wall::Bottom => (ROOM_WIDTH, WALL_HEIGHT),
+            Wall::Left | Wall::Right => (WALL_HEIGHT, ROOM_WIDTH),
+        };
+        Plane3d::new(normal).mesh().size(w, h)
+    }
+
+    fn transform(&self, pos: &Position) -> Transform {
+        let world_pos = pos.world_pos();
+        let hh = WALL_HEIGHT / 2.;
+        let hw = ROOM_WIDTH / 2.;
+
+        let translation = match self {
+            Wall::Top => world_pos + Vec3::new(0., hh, -hw),
+            Wall::Bottom => world_pos + Vec3::new(0., hh, hw),
+            Wall::Left => world_pos + Vec3::new(-hw, hh, 0.),
+            Wall::Right => world_pos + Vec3::new(hw, hh, 0.),
+        };
+        info!("Wall::{self:?}::transform({pos}) = {translation}");
+        Transform::from_translation(translation)
+    }
+}
+
 fn maze_spawn(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -545,210 +599,103 @@ fn maze_spawn(
             Transform::IDENTITY,
         ))
         .with_children(|maze_cmd| {
-            // let pos_converter = PositionConverter::new(&win_size);
+            // DEBUG START
+
+            let pos = Position(1, 1);
+
+            let wall = Wall::Top;
+            maze_cmd.spawn(PbrBundle {
+                mesh: meshes.add(wall.mesh()),
+                material: materials.add(Color::TURQUOISE),
+                transform: wall.transform(&pos),
+                ..default()
+            });
+
+            let wall = Wall::Bottom;
+            maze_cmd.spawn(PbrBundle {
+                mesh: meshes.add(wall.mesh()),
+                material: materials.add(Color::BEIGE),
+                transform: wall.transform(&pos),
+                ..default()
+            });
+
+            let wall = Wall::Left;
+            maze_cmd.spawn(PbrBundle {
+                mesh: meshes.add(wall.mesh()),
+                material: materials.add(Color::BLUE),
+                transform: wall.transform(&pos),
+                ..default()
+            });
+
+            let wall = Wall::Right;
+            maze_cmd.spawn(PbrBundle {
+                mesh: meshes.add(wall.mesh()),
+                material: materials.add(Color::RED),
+                transform: wall.transform(&pos),
+                ..default()
+            });
+
+            // DEBUG END
+
             // TODO : use Iterator
             for x in 0..maze.width() {
                 for y in 00..maze.height() {
                     let pos = Position(x, y);
-                    if let Some(_room) = maze.get_room(&pos) {
-                        let wx = pos.0 as f32;
-                        let wy = 1.0;
-                        let wz = pos.1 as f32;
+                    if let Some(room) = maze.get_room(&pos) {
+                        let world_pos = pos.world_pos();
 
-                        maze_cmd.spawn(PbrBundle {
-                            mesh: meshes.add(Cuboid::new(1.0, 1.0, 1.0)),
-                            material: materials.add(Color::RED),
-                            transform: Transform::from_xyz(wx, wy, wz),
-                            ..default()
-                        });
+                        // if room.borders.top {
+                        //     maze_cmd.spawn(PbrBundle {
+                        //         mesh: meshes.add(Plane3d::new(Vec3::Z)),
+                        //         material: materials.add(Color::RED),
+                        //         transform: Transform::from_translation(
+                        //             world_pos + Vec3::new(0.0, 0.0, -1.0),
+                        //         ),
+                        //         ..default()
+                        //     });
+                        // }
+
+                        // if room.borders.left {
+                        //     maze_cmd.spawn(PbrBundle {
+                        //         mesh: meshes.add(Plane3d::new(Vec3::X)),
+                        //         material: materials.add(Color::RED),
+                        //         transform: Transform::from_translation(
+                        //             world_pos + Vec3::new(0.0, 0.0, 0.0),
+                        //         ),
+                        //         ..default()
+                        //     });
+                        // }
+
+                        // if room.borders.bottom {
+                        //     maze_cmd.spawn(PbrBundle {
+                        //         mesh: meshes.add(Plane3d::new(Vec3::Z)),
+                        //         material: materials.add(Color::RED),
+                        //         transform: Transform::from_translation(
+                        //             world_pos + Vec3::new(0.0, 0.0, 0.0),
+                        //         ),
+                        //         ..default()
+                        //     });
+                        // }
+
+                        // if room.borders.right {
+                        //     maze_cmd.spawn(PbrBundle {
+                        //         mesh: meshes.add(Plane3d::new(Vec3::X)),
+                        //         material: materials.add(Color::RED),
+                        //         transform: Transform::from_translation(
+                        //             world_pos + Vec3::new(1.0, 0.0, 0.0),
+                        //         ),
+                        //         ..default()
+                        //     });
+                        // }
+
+                        //     maze_cmd.spawn(PbrBundle {
+                        //         mesh: meshes.add(Plane3d::new(1.0, 1.0, 1.0)),
+                        //         material: materials.add(Color::RED),
+                        //         transform: Transform::from_translation(world_pos),
+                        //         ..default()
+                        //     });
                     }
                 }
             }
         });
-}
-
-#[allow(clippy::all)]
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    impl CellBorders {
-        fn new(top: bool, right: bool, bottom: bool, left: bool) -> Self {
-            CellBorders {
-                top,
-                right,
-                bottom,
-                left,
-            }
-        }
-    }
-
-    #[test]
-    fn it_gets_neighbour_position() {
-        let maze = Maze::new(2, 2);
-
-        let pos = Position(0, 0);
-        let left = maze.left_position(&pos);
-        assert!(left.is_none());
-        let right = maze.right_position(&pos);
-        assert!(right.is_some());
-        assert_eq!(right.unwrap(), Position(1, 0));
-        let down = maze.down_position(&pos);
-        assert!(down.is_none());
-        let up = maze.up_position(&pos);
-        assert!(up.is_some());
-        assert_eq!(up.unwrap(), Position(0, 1));
-
-        let pos = Position(1, 1);
-        let left = maze.left_position(&pos);
-        assert!(left.is_some());
-        assert_eq!(left.unwrap(), Position(0, 1));
-        let right = maze.right_position(&pos);
-        assert!(right.is_none());
-        let down = maze.down_position(&pos);
-        assert!(down.is_some());
-        assert_eq!(down.unwrap(), Position(1, 0));
-        let up = maze.up_position(&pos);
-        assert!(up.is_none());
-    }
-
-    #[test]
-    fn it_removes_walls() {
-        let (width, height) = (2, 2);
-        let maze_builder = MazeBuilder::new(width, height);
-        let mut maze = Maze::new(width, height);
-
-        let p1 = Position(0, 0);
-        let p2 = Position(1, 0);
-
-        //  -- --
-        // |  |  |
-        //  -- --
-        // |p1|p2|
-        //  -- --
-
-        maze_builder.remove_walls_between(&mut maze, &p1, &p2);
-
-        //  -- --
-        // |  |  |
-        //  -- --
-        // |p1 p2|
-        //  -- --
-
-        let r1 = maze.get_room(&p1).unwrap();
-        assert_eq!(r1.borders().top, true);
-        assert_eq!(r1.borders().right, false);
-        assert_eq!(r1.borders().bottom, true);
-        assert_eq!(r1.borders().left, true);
-        let r2 = maze.get_room(&p2).unwrap();
-        assert_eq!(r2.borders().top, true);
-        assert_eq!(r2.borders().right, true);
-        assert_eq!(r2.borders().bottom, true);
-        assert_eq!(r2.borders().left, false);
-
-        let p1 = Position(1, 1);
-
-        //  -- --
-        // |  |p1|
-        //  -- --
-        // |   p2|
-        //  -- --
-
-        maze_builder.remove_walls_between(&mut maze, &p1, &p2);
-
-        //  -- --
-        // |  |p1|
-        //  --
-        // |   p2|
-        //  -- --
-
-        let r1 = maze.get_room(&p1).unwrap();
-        assert_eq!(r1.borders().top, true);
-        assert_eq!(r1.borders().right, true);
-        assert_eq!(r1.borders().bottom, false);
-        assert_eq!(r1.borders().left, true);
-        let r2 = maze.get_room(&p2).unwrap();
-        assert_eq!(r2.borders().top, false);
-        assert_eq!(r2.borders().right, true);
-        assert_eq!(r2.borders().bottom, true);
-        assert_eq!(r2.borders().left, false);
-    }
-
-    #[test]
-    fn it_gives_room_index() {
-        let maze = Maze::new(6, 4);
-        assert_eq!(maze.room_index(&Position(0, 0)), 0);
-        assert_eq!(maze.room_index(&Position(5, 0)), 5);
-        assert_eq!(maze.room_index(&Position(0, 3)), 18);
-        assert_eq!(maze.room_index(&Position(5, 3)), 23);
-    }
-
-    #[test]
-    fn it_gives_borders_index() {
-        assert_eq!(borders_index(&CellBorders::default()), 0);
-        assert_eq!(borders_index(&CellBorders::new(true, true, true, true)), 0);
-        assert_eq!(borders_index(&CellBorders::new(false, true, true, true)), 1);
-        assert_eq!(borders_index(&CellBorders::new(true, false, true, true)), 2);
-        assert_eq!(
-            borders_index(&CellBorders::new(false, false, true, true)),
-            3
-        );
-        assert_eq!(borders_index(&CellBorders::new(true, true, false, true)), 4);
-        assert_eq!(
-            borders_index(&CellBorders::new(false, true, false, true)),
-            5
-        );
-        assert_eq!(
-            borders_index(&CellBorders::new(true, false, false, true)),
-            6
-        );
-        assert_eq!(
-            borders_index(&CellBorders::new(false, false, false, true)),
-            7
-        );
-        assert_eq!(borders_index(&CellBorders::new(true, true, true, false)), 8);
-        assert_eq!(
-            borders_index(&CellBorders::new(false, true, true, false)),
-            9
-        );
-        assert_eq!(
-            borders_index(&CellBorders::new(true, false, true, false)),
-            10
-        );
-        assert_eq!(
-            borders_index(&CellBorders::new(false, false, true, false)),
-            11
-        );
-        assert_eq!(
-            borders_index(&CellBorders::new(true, true, false, false)),
-            12
-        );
-        assert_eq!(
-            borders_index(&CellBorders::new(false, true, false, false)),
-            13
-        );
-        assert_eq!(
-            borders_index(&CellBorders::new(true, false, false, false)),
-            14
-        );
-        assert_eq!(
-            borders_index(&CellBorders::new(false, false, false, false)),
-            15
-        );
-    }
-
-    // #[test]
-    // fn it_converts_positions() {
-    //     let win_size = WinSize {
-    //         w: 30. + 64. * 5. + 30.,
-    //         h: 30. + 64. * 4. + 30.,
-    //     };
-    //     let pos_converter = PositionConverter::new(&win_size);
-
-    //     // assert_eq!(pos_converter.to_position(Vec3::new(0., 0., 0.)), None);
-    //     assert_eq!(
-    //         pos_converter.to_position(&Vec3::new(40., 40., 0.)),
-    //         Position(0, 0)
-    //     );
-    // }
 }
