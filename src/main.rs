@@ -93,7 +93,11 @@ pub fn setup(
     // ground
     commands.spawn(PbrBundle {
         mesh: meshes.add(Cuboid::new(20.0, 1.0, 20.0)),
-        material: materials.add(Color::BLUE),
+        material: materials.add(StandardMaterial {
+            base_color: Color::MAROON,
+            perceptual_roughness: 0.9,
+            ..default()
+        }),
         transform: Transform::from_xyz(0.0, -0.5, 0.0),
         ..default()
     });

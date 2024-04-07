@@ -586,11 +586,21 @@ impl Wall {
 
 fn maze_spawn(
     mut commands: Commands,
+    asset_server: Res<AssetServer>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     maze: Res<Maze>,
 ) {
     info!("maze_spawn(...)");
+    let texture_handle = asset_server.load("textures/Asset 1.png");
+    let material_handle = materials.add(StandardMaterial {
+        base_color_texture: Some(texture_handle.clone()),
+        alpha_mode: AlphaMode::Blend,
+        unlit: true,
+        perceptual_roughness: 0.8,
+        ..default()
+    });
+
     commands
         .spawn((
             Name::new("MAZE"),
@@ -608,7 +618,7 @@ fn maze_spawn(
                             let wall = Wall::Top;
                             maze_cmd.spawn(PbrBundle {
                                 mesh: meshes.add(wall.mesh()),
-                                material: materials.add(Color::TURQUOISE),
+                                material: material_handle.clone(),
                                 transform: wall.transform(&pos),
                                 ..default()
                             });
@@ -618,7 +628,7 @@ fn maze_spawn(
                             let wall = Wall::Left;
                             maze_cmd.spawn(PbrBundle {
                                 mesh: meshes.add(wall.mesh()),
-                                material: materials.add(Color::BLUE),
+                                material: material_handle.clone(),
                                 transform: wall.transform(&pos),
                                 ..default()
                             });
@@ -628,7 +638,7 @@ fn maze_spawn(
                             let wall = Wall::Bottom;
                             maze_cmd.spawn(PbrBundle {
                                 mesh: meshes.add(wall.mesh()),
-                                material: materials.add(Color::BEIGE),
+                                material: material_handle.clone(),
                                 transform: wall.transform(&pos),
                                 ..default()
                             });
@@ -638,7 +648,7 @@ fn maze_spawn(
                             let wall = Wall::Right;
                             maze_cmd.spawn(PbrBundle {
                                 mesh: meshes.add(wall.mesh()),
-                                material: materials.add(Color::RED),
+                                material: material_handle.clone(),
                                 transform: wall.transform(&pos),
                                 ..default()
                             });
