@@ -8,6 +8,9 @@ use bevy::{
 #[derive(Component)]
 pub struct Player;
 
+#[derive(Component)]
+pub struct PlayerCamera;
+
 /// Keeps track of mouse motion events, pitch, and yaw
 #[derive(Resource, Default)]
 struct InputState {
@@ -44,24 +47,41 @@ impl Plugin for PlayerPlugin {
 fn player_init(
     mut commands: Commands,
     mut transform: Query<(Entity, &mut Transform), With<Camera3d>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let (entity, mut transform) = transform.get_single_mut().expect("Can't player camera");
-    commands.entity(entity).insert(Player);
+    let (camera_entity, mut transform) = transform
+        .get_single_mut()
+        .expect("Can't retrieve camera to init player");
+    let player_id = commands
+        .spawn((
+            Player,
+            PbrBundle {
+                mesh: meshes.add(Capsule3d::new(0.2, 0.3)),
+                material: materials.add(Color::BLACK),
+                ..default()
+            },
+        ))
+        .id();
+    commands
+        .entity(camera_entity)
+        .insert(PlayerCamera)
+        .push_children(&[player_id]);
     *transform = Transform::from_xyz(0.0, 0.5, 0.0).looking_at(Vec3::NEG_Z, Vec3::Y);
 }
 
 // https://github.com/sburris0/bevy_flycam/blob/master/src/lib.rs
 fn player_move(
-    mut transform: Query<&mut Transform, With<Player>>,
+    mut transform: Query<&mut Transform, With<PlayerCamera>>,
     settings: Res<MovementSettings>,
     keys: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
 ) {
     let mut transform = transform.get_single_mut().expect("Can't player camera");
-    let forward = *transform.forward();
-    let forward = Vec3::new(forward.x, 0.0, forward.z);
-    let right = *transform.right();
-    let right = Vec3::new(right.x, 0.0, right.z);
+    let mut forward = *transform.forward();
+    forward.y = 0.0;
+    let mut right = *transform.right();
+    right.y = 0.0;
     let mut velocity = Vec3::ZERO;
     for key in keys.get_pressed() {
         match *key {
@@ -81,31 +101,31 @@ fn player_look(
     primary_window: Query<&Window, With<PrimaryWindow>>,
     mut state: ResMut<InputState>,
     motion: Res<Events<MouseMotion>>,
-    mut query: Query<&mut Transform, With<Player>>,
+    mut query_player: Query<&mut Transform, With<PlayerCamera>>,
 ) {
-    if let Ok(window) = primary_window.get_single() {
-        for mut transform in query.iter_mut() {
-            for ev in state.reader_motion.read(&motion) {
-                let (mut yaw, mut pitch, _) = transform.rotation.to_euler(EulerRot::YXZ);
-                match window.cursor.grab_mode {
-                    CursorGrabMode::None => (),
-                    _ => {
-                        // Using smallest of height or width ensures equal vertical and horizontal sensitivity
-                        let window_scale = window.height().min(window.width());
-                        pitch -= (settings.sensitivity * ev.delta.y * window_scale).to_radians();
-                        yaw -= (settings.sensitivity * ev.delta.x * window_scale).to_radians();
-                    }
-                }
-
-                pitch = pitch.clamp(-1.54, 1.54);
-
-                // Order is important to prevent unintended roll
-                transform.rotation =
-                    Quat::from_axis_angle(Vec3::Y, yaw) * Quat::from_axis_angle(Vec3::X, pitch);
+    let window = primary_window
+        .get_single()
+        .expect("Can't retrieve primary window");
+    let mut transform = query_player
+        .get_single_mut()
+        .expect("Can't retrieve Player");
+    for ev in state.reader_motion.read(&motion) {
+        let (mut yaw, mut pitch, _) = transform.rotation.to_euler(EulerRot::YXZ);
+        match window.cursor.grab_mode {
+            CursorGrabMode::None => (),
+            _ => {
+                // Using smallest of height or width ensures equal vertical and horizontal sensitivity
+                let window_scale = window.height().min(window.width());
+                pitch -= (settings.sensitivity * ev.delta.y * window_scale).to_radians();
+                yaw -= (settings.sensitivity * ev.delta.x * window_scale).to_radians();
             }
         }
-    } else {
-        warn!("Primary window not found for `player_look`!");
+
+        pitch = pitch.clamp(-1.54, 1.54);
+
+        // Order is important to prevent unintended roll
+        transform.rotation =
+            Quat::from_axis_angle(Vec3::Y, yaw) * Quat::from_axis_angle(Vec3::X, pitch);
     }
 }
 

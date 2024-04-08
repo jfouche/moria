@@ -7,7 +7,7 @@ use bevy::{
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_panorbit_camera::PanOrbitCamera;
-use player::Player;
+use player::PlayerCamera;
 
 use crate::maze::Position;
 
@@ -69,16 +69,8 @@ pub fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    // let window = windows.get_single().unwrap();
-
     // Camera
-    commands.spawn((
-        Camera3dBundle {
-            transform: Transform::from_xyz(0.0, 0.0, 0.0).looking_at(Vec3::ZERO, Vec3::Y),
-            ..default()
-        },
-        PanOrbitCamera::default(),
-    ));
+    commands.spawn((Camera3dBundle::default(), PanOrbitCamera::default()));
 
     // light
     commands.spawn(PointLightBundle {
@@ -92,23 +84,15 @@ pub fn setup(
 
     // ground
     commands.spawn(PbrBundle {
-        mesh: meshes.add(Cuboid::new(20.0, 1.0, 20.0)),
+        mesh: meshes.add(Plane3d::new(Vec3::Y).mesh().size(50.0, 50.0)),
         material: materials.add(StandardMaterial {
             base_color: Color::MAROON,
             perceptual_roughness: 0.9,
             ..default()
         }),
-        transform: Transform::from_xyz(0.0, -0.5, 0.0),
         ..default()
     });
 }
-
-// fn log_events(wnds: Res<Windows>) {
-//     let wnd = wnds.get_primary().unwrap();
-//     if let Some(pos) = wnd.cursor_position() {
-//         info!("mouse pos : {}", pos);
-//     }
-// }
 
 fn toggle_camera_controls_system(
     key_input: Res<ButtonInput<KeyCode>>,
@@ -121,12 +105,8 @@ fn toggle_camera_controls_system(
     }
 }
 
-fn debug_player_view(
-    mut transform: Query<&mut Transform, With<Player>>,
-    // keys: Res<ButtonInput<KeyCode>>,
-    // time: Res<Time>,
-) {
-    let transform = transform.get_single_mut().expect("Can't get player camera");
+fn debug_player_view(transform: Query<&Transform, With<PlayerCamera>>) {
+    let transform = transform.get_single().expect("Can't get player camera");
     let translation = transform.translation;
     let pos: Position = translation.into();
     let mut forward = *transform.forward();

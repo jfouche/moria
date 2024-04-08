@@ -579,7 +579,6 @@ impl Wall {
             Wall::Left => world_pos + Vec3::new(-hw, hh, 0.),
             Wall::Right => world_pos + Vec3::new(hw, hh, 0.),
         };
-        info!("Wall::{self:?}::transform({pos}) = {translation}");
         Transform::from_translation(translation)
     }
 }
