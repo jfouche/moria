@@ -4,6 +4,10 @@ use bevy::{
     prelude::*,
     window::{CursorGrabMode, PrimaryWindow},
 };
+use bevy_rapier3d::{
+    dynamics::{LockedAxes, RigidBody, Velocity},
+    geometry::Collider,
+};
 
 #[derive(Component)]
 pub struct Player;
@@ -25,7 +29,7 @@ impl Default for MovementSettings {
     fn default() -> Self {
         Self {
             sensitivity: 0.00012,
-            speed: 10.,
+            speed: 5.,
         }
     }
 }
@@ -56,6 +60,12 @@ fn player_init(
             transform: Transform::from_xyz(0.0, 0.5, 0.0).looking_at(Vec3::NEG_Z, Vec3::Y),
             ..default()
         },
+        RigidBody::Dynamic,
+        Collider::round_cuboid(0.2, 0.2, 0.2, 0.05),
+        LockedAxes::ROTATION_LOCKED_X
+            | LockedAxes::ROTATION_LOCKED_Y
+            | LockedAxes::ROTATION_LOCKED_Z,
+        Velocity::zero(),
     ));
 }
 
@@ -74,10 +84,10 @@ fn player_move(
     let mut velocity = Vec3::ZERO;
     for key in keys.get_pressed() {
         match *key {
-            KeyCode::ArrowUp => velocity += forward,
-            KeyCode::ArrowDown => velocity -= forward,
-            KeyCode::ArrowLeft => velocity -= right,
-            KeyCode::ArrowRight => velocity += right,
+            KeyCode::ArrowUp | KeyCode::KeyW => velocity += forward,
+            KeyCode::ArrowDown | KeyCode::KeyS => velocity -= forward,
+            KeyCode::ArrowLeft | KeyCode::KeyA => velocity -= right,
+            KeyCode::ArrowRight | KeyCode::KeyD => velocity += right,
             _ => {}
         }
     }

@@ -7,6 +7,12 @@ use bevy::{
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_panorbit_camera::PanOrbitCamera;
+use bevy_rapier3d::{
+    dynamics::RigidBody,
+    geometry::Collider,
+    plugin::{NoUserData, RapierPhysicsPlugin},
+    render::RapierDebugRenderPlugin,
+};
 use player::Player;
 
 use crate::maze::Position;
@@ -16,9 +22,6 @@ mod hud;
 mod maze;
 mod minimap;
 mod player;
-
-#[cfg(test)]
-mod test;
 
 fn main() {
     // eprintln!("{}", maze.to_string());
@@ -30,7 +33,7 @@ fn main() {
                     primary_window: Some(Window {
                         title: "Moria".into(),
                         name: Some("maria.app".into()),
-                        position: WindowPosition::At(IVec2::new(0, 0)),
+                        position: WindowPosition::At(IVec2::new(100, 0)),
                         resolution: WindowResolution::new(1000.0, 650.0),
                         cursor: Cursor {
                             grab_mode: CursorGrabMode::Confined,
@@ -56,7 +59,11 @@ fn main() {
         .add_systems(Update, close_on_esc)
         // .add_plugins(PanOrbitCameraPlugin)
         .add_systems(Update, toggle_camera_controls_system)
-        .add_plugins(WorldInspectorPlugin::new())
+        .add_plugins((
+            WorldInspectorPlugin::new(),
+            RapierPhysicsPlugin::<NoUserData>::default(),
+            RapierDebugRenderPlugin::default(),
+        ))
         .add_systems(
             Update,
             (debug_player_view).run_if(on_timer(Duration::from_secs(1))),
@@ -85,15 +92,19 @@ pub fn setup(
     });
 
     // ground
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(Plane3d::new(Vec3::Y).mesh().size(50.0, 50.0)),
-        material: materials.add(StandardMaterial {
-            base_color: Color::MAROON,
-            perceptual_roughness: 0.9,
+    commands.spawn((
+        PbrBundle {
+            mesh: meshes.add(Plane3d::new(Vec3::Y).mesh().size(50.0, 50.0)),
+            material: materials.add(StandardMaterial {
+                base_color: Color::MAROON,
+                perceptual_roughness: 0.9,
+                ..default()
+            }),
             ..default()
-        }),
-        ..default()
-    });
+        },
+        RigidBody::Fixed,
+        Collider::halfspace(Vec3::Y).unwrap(),
+    ));
 }
 
 fn toggle_camera_controls_system(

@@ -1,14 +1,17 @@
 use bevy::prelude::*;
+use bevy_rapier3d::{dynamics::RigidBody, geometry::Collider};
 use rand::{
     prelude::{SliceRandom, ThreadRng},
     Rng,
 };
 use std::fmt;
 
-pub(crate) const WALL_HEIGHT: f32 = 1.0;
+const WALL_HEIGHT: f32 = 1.0;
+
+const WALL_COLLIDER_WIDTH: f32 = 0.1;
 
 /// Width on X and Z
-pub(crate) const ROOM_WIDTH: f32 = 2.0;
+const ROOM_WIDTH: f32 = 2.0;
 
 /// .0 : x
 ///
@@ -48,6 +51,12 @@ impl From<Vec3> for Position {
     }
 }
 
+/// ```text
+/// ^ (0, h)     (w, h)
+/// |  
+/// | (0, 0)     (w, 0)
+/// + ----------------->
+/// ```
 #[derive(Resource)]
 pub struct Maze {
     width: u32,
@@ -56,12 +65,6 @@ pub struct Maze {
 }
 
 impl Maze {
-    /// ```text
-    /// ^ (0, h)     (w, h)
-    /// |  
-    /// | (0, 0)     (w, 0)
-    /// + ----------------->
-    /// ```
     pub(crate) fn new(width: u32, height: u32) -> Self {
         Maze {
             width,
@@ -145,143 +148,6 @@ impl Maze {
     //         _ => None,
     //     }
     // }
-}
-
-/// Get the index in the maze file
-/// ```text
-///  0:   ,  1: T,    2: R,    3: TR
-///  4:  B,  5: TB,   6: RB,   7: TRB
-///  8:  L,  9: TL,  10: RL,  11: TRL
-/// 12: BL, 13: TBL, 14: RBL, 15: TRBL
-/// ```
-pub(crate) fn borders_index(borders: &CellBorders) -> usize {
-    let mut index = 0;
-    if !borders.top {
-        index += 1;
-    }
-    if !borders.right {
-        index += 2;
-    }
-    if !borders.bottom {
-        index += 4;
-    }
-    if !borders.left {
-        index += 8;
-    }
-    index
-}
-
-const CELL_DISPLAY: &[&[&str]] = &[
-    &[
-        // 0 :
-        "   ", "   ", "   ",
-    ],
-    &[
-        // 1 : T
-        " █ ", " █ ", "   ",
-    ],
-    &[
-        // 2 : R
-        "   ", " ██", "   ",
-    ],
-    &[
-        // 3 : TR
-        " █ ", " ██", "   ",
-    ],
-    &[
-        // 4 : B
-        "   ", " █ ", " █ ",
-    ],
-    &[
-        // 5 : TB
-        " █ ", " █ ", " █ ",
-    ],
-    &[
-        // 6 : RB
-        "   ", " ██", " █ ",
-    ],
-    &[
-        // 7 : TRB
-        " █ ", " ██", " █ ",
-    ],
-    &[
-        // 8 : L
-        "   ", "██ ", "   ",
-    ],
-    &[
-        // 9 : TL
-        " █ ", "██ ", "   ",
-    ],
-    &[
-        // 10: RL
-        "   ",
-        "███",
-        "   ",
-    ],
-    &[
-        // 11: TRL
-        " █ ",
-        "███",
-        "   ",
-    ],
-    &[
-        // 12: BL
-        "   ", "██ ", " █ ",
-    ],
-    &[
-        // 13: TBL
-        " █ ", "██ ", " █ ",
-    ],
-    &[
-        // 14: RBL
-        "   ",
-        "███",
-        " █ ",
-    ],
-    &[
-        // 15: TRBL
-        " █ ",
-        "███",
-        " █ ",
-    ],
-];
-
-impl fmt::Display for Maze {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for y in (0..self.height).rev() {
-            for x in 0..self.width {
-                if let Some(room) = self.get_room(&Position(x, y)) {
-                    write!(f, " {:0>}", borders_index(room.borders()))?
-                };
-            }
-            writeln!(f)?;
-        }
-
-        write!(f, "    ")?;
-        for _ in 0..self.width {
-            write!(f, "┌─┐")?;
-        }
-        writeln!(f)?;
-        for y in (0..self.height).rev() {
-            for i in 0..3 {
-                write!(f, "{:0>2} : ", y)?;
-                for x in 0..self.width {
-                    if let Some(room) = self.get_room(&Position(x, y)) {
-                        let s = CELL_DISPLAY[borders_index(room.borders())][i];
-                        write!(f, "{}", s)?;
-                    } else {
-                        write!(f, "???")?;
-                    }
-                }
-                writeln!(f)?;
-            }
-        }
-        write!(f, "    ")?;
-        for _ in 0..self.width {
-            write!(f, "└─┘")?;
-        }
-        Ok(())
-    }
 }
 
 #[derive(Clone, Reflect)]
@@ -495,38 +361,6 @@ impl MazeBuilder {
     }
 }
 
-// struct PositionConverter<'a> {
-//     win_size: &'a WinSize,
-// }
-
-// impl<'a> PositionConverter<'a> {
-//     fn new(win_size: &'a WinSize) -> Self {
-//         PositionConverter { win_size }
-//     }
-
-//     /// Convert a Maze position to a screen position.
-//     ///
-//     /// screen = 64 x pos - win_size / 2 + 30
-//     fn to_screen(&self, pos: &Position, z: f32) -> Vec3 {
-//         let x_offset = -self.win_size.w / 2. + 30.;
-//         let y_offset = -self.win_size.h / 2. + 30.;
-//         Vec3::new(
-//             64.0 * pos.x as f32 + x_offset,
-//             64.0 * pos.y as f32 + y_offset,
-//             z,
-//         )
-//     }
-
-//     ///  Convert a scrren position to a Maze position
-//     ///
-//     /// pos = (screen - 30 + win_size / 2) / 64
-//     fn to_position(&self, screen_pos: &Vec3) -> Position {
-//         let x_offset = (screen_pos.x - 30. + self.win_size.w / 2.) / 64.;
-//         let y_offset = (screen_pos.y - 30. + self.win_size.h / 2.) / 64.;
-//         Position(x_offset as u32, y_offset as u32)
-//     }
-// }
-
 pub struct MazePlugin;
 
 impl Plugin for MazePlugin {
@@ -581,6 +415,25 @@ impl Wall {
         };
         Transform::from_translation(translation)
     }
+
+    fn collider(&self) -> Collider {
+        const HRW: f32 = ROOM_WIDTH / 2.0;
+        let (hx, hz) = match self {
+            Wall::Top | Wall::Bottom => (HRW, WALL_COLLIDER_WIDTH),
+            Wall::Left | Wall::Right => (WALL_COLLIDER_WIDTH, HRW),
+        };
+        Collider::cuboid(hx, WALL_HEIGHT / 2., hz)
+    }
+
+    fn collider_transform(&self) -> Transform {
+        let (x, z) = match self {
+            Wall::Top => (0.0, -WALL_COLLIDER_WIDTH),
+            Wall::Bottom => (0.0, WALL_COLLIDER_WIDTH),
+            Wall::Left => (WALL_COLLIDER_WIDTH, 0.0),
+            Wall::Right => (-WALL_COLLIDER_WIDTH, 0.0),
+        };
+        Transform::from_xyz(x, 0.0, z)
+    }
 }
 
 fn maze_spawn(
@@ -610,45 +463,226 @@ fn maze_spawn(
                     if let Some(room) = maze.get_room(&pos) {
                         if room.borders.top {
                             let wall = Wall::Top;
-                            maze_cmd.spawn(PbrBundle {
-                                mesh: meshes.add(wall.mesh()),
-                                material: material_handle.clone(),
-                                transform: wall.transform(&pos),
-                                ..default()
-                            });
+                            let name = format!("Wall::{wall:?}-{pos}");
+                            maze_cmd
+                                .spawn((
+                                    Name::new(name),
+                                    PbrBundle {
+                                        mesh: meshes.add(wall.mesh()),
+                                        material: material_handle.clone(),
+                                        transform: wall.transform(&pos),
+                                        ..default()
+                                    },
+                                ))
+                                .with_children(|c| {
+                                    c.spawn((
+                                        RigidBody::Fixed,
+                                        wall.collider(),
+                                        SpatialBundle {
+                                            transform: wall.collider_transform(),
+                                            ..default()
+                                        },
+                                    ));
+                                });
                         }
 
                         if room.borders.left {
                             let wall = Wall::Left;
-                            maze_cmd.spawn(PbrBundle {
-                                mesh: meshes.add(wall.mesh()),
-                                material: material_handle.clone(),
-                                transform: wall.transform(&pos),
-                                ..default()
-                            });
+                            let name = format!("Wall::{wall:?}-{pos}");
+                            maze_cmd
+                                .spawn((
+                                    Name::new(name),
+                                    PbrBundle {
+                                        mesh: meshes.add(wall.mesh()),
+                                        material: material_handle.clone(),
+                                        transform: wall.transform(&pos),
+                                        ..default()
+                                    },
+                                ))
+                                .with_children(|c| {
+                                    c.spawn((
+                                        RigidBody::Fixed,
+                                        wall.collider(),
+                                        SpatialBundle {
+                                            transform: wall.collider_transform(),
+                                            ..default()
+                                        },
+                                    ));
+                                });
                         }
 
                         if room.borders.bottom {
                             let wall = Wall::Bottom;
-                            maze_cmd.spawn(PbrBundle {
-                                mesh: meshes.add(wall.mesh()),
-                                material: material_handle.clone(),
-                                transform: wall.transform(&pos),
-                                ..default()
-                            });
+                            let name = format!("Wall::{wall:?}-{pos}");
+                            maze_cmd
+                                .spawn((
+                                    Name::new(name),
+                                    PbrBundle {
+                                        mesh: meshes.add(wall.mesh()),
+                                        material: material_handle.clone(),
+                                        transform: wall.transform(&pos),
+                                        ..default()
+                                    },
+                                ))
+                                .with_children(|c| {
+                                    c.spawn((
+                                        RigidBody::Fixed,
+                                        wall.collider(),
+                                        SpatialBundle {
+                                            transform: wall.collider_transform(),
+                                            ..default()
+                                        },
+                                    ));
+                                });
                         }
 
                         if room.borders.right {
                             let wall = Wall::Right;
-                            maze_cmd.spawn(PbrBundle {
-                                mesh: meshes.add(wall.mesh()),
-                                material: material_handle.clone(),
-                                transform: wall.transform(&pos),
-                                ..default()
-                            });
+                            let name = format!("Wall::{wall:?}-{pos}");
+                            maze_cmd
+                                .spawn((
+                                    Name::new(name),
+                                    PbrBundle {
+                                        mesh: meshes.add(wall.mesh()),
+                                        material: material_handle.clone(),
+                                        transform: wall.transform(&pos),
+                                        ..default()
+                                    },
+                                ))
+                                .with_children(|c| {
+                                    c.spawn((
+                                        RigidBody::Fixed,
+                                        wall.collider(),
+                                        SpatialBundle {
+                                            transform: wall.collider_transform(),
+                                            ..default()
+                                        },
+                                    ));
+                                });
                         }
                     }
                 }
             }
         });
+}
+
+#[allow(clippy::all)]
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn it_gets_neighbour_position() {
+        let maze = Maze::new(2, 2);
+
+        let pos = Position(0, 0);
+        let left = maze.left_position(&pos);
+        assert!(left.is_none());
+        let right = maze.right_position(&pos);
+        assert!(right.is_some());
+        assert_eq!(right.unwrap(), Position(1, 0));
+        let down = maze.down_position(&pos);
+        assert!(down.is_none());
+        let up = maze.up_position(&pos);
+        assert!(up.is_some());
+        assert_eq!(up.unwrap(), Position(0, 1));
+
+        let pos = Position(1, 1);
+        let left = maze.left_position(&pos);
+        assert!(left.is_some());
+        assert_eq!(left.unwrap(), Position(0, 1));
+        let right = maze.right_position(&pos);
+        assert!(right.is_none());
+        let down = maze.down_position(&pos);
+        assert!(down.is_some());
+        assert_eq!(down.unwrap(), Position(1, 0));
+        let up = maze.up_position(&pos);
+        assert!(up.is_none());
+    }
+
+    #[test]
+    fn it_removes_walls() {
+        let (width, height) = (2, 2);
+        let maze_builder = MazeBuilder::new(width, height);
+        let mut maze = Maze::new(width, height);
+
+        let p1 = Position(0, 0);
+        let p2 = Position(1, 0);
+
+        //  -- --
+        // |  |  |
+        //  -- --
+        // |p1|p2|
+        //  -- --
+
+        maze_builder.remove_walls_between(&mut maze, &p1, &p2);
+
+        //  -- --
+        // |  |  |
+        //  -- --
+        // |p1 p2|
+        //  -- --
+
+        let r1 = maze.get_room(&p1).unwrap();
+        assert_eq!(r1.borders().top, true);
+        assert_eq!(r1.borders().right, false);
+        assert_eq!(r1.borders().bottom, true);
+        assert_eq!(r1.borders().left, true);
+        let r2 = maze.get_room(&p2).unwrap();
+        assert_eq!(r2.borders().top, true);
+        assert_eq!(r2.borders().right, true);
+        assert_eq!(r2.borders().bottom, true);
+        assert_eq!(r2.borders().left, false);
+
+        let p1 = Position(1, 1);
+
+        //  -- --
+        // |  |p1|
+        //  -- --
+        // |   p2|
+        //  -- --
+
+        maze_builder.remove_walls_between(&mut maze, &p1, &p2);
+
+        //  -- --
+        // |  |p1|
+        //  --
+        // |   p2|
+        //  -- --
+
+        let r1 = maze.get_room(&p1).unwrap();
+        assert_eq!(r1.borders().top, true);
+        assert_eq!(r1.borders().right, true);
+        assert_eq!(r1.borders().bottom, false);
+        assert_eq!(r1.borders().left, true);
+        let r2 = maze.get_room(&p2).unwrap();
+        assert_eq!(r2.borders().top, false);
+        assert_eq!(r2.borders().right, true);
+        assert_eq!(r2.borders().bottom, true);
+        assert_eq!(r2.borders().left, false);
+    }
+
+    #[test]
+    fn it_gives_room_index() {
+        let maze = Maze::new(6, 4);
+        assert_eq!(maze.room_index(&Position(0, 0)), 0);
+        assert_eq!(maze.room_index(&Position(5, 0)), 5);
+        assert_eq!(maze.room_index(&Position(0, 3)), 18);
+        assert_eq!(maze.room_index(&Position(5, 3)), 23);
+    }
+
+    #[test]
+    fn convert_position() {
+        let pos = Position(0, 0);
+        let world_pos = pos.world_pos();
+        assert_eq!(Vec3::ZERO, world_pos);
+
+        let pos = Position(0, 1);
+        let world_pos = pos.world_pos();
+        assert_eq!(Vec3::new(0., 0., -2.0), world_pos);
+
+        let pos = Position(1, 0);
+        let world_pos = pos.world_pos();
+        assert_eq!(Vec3::new(2.0, 0., 0.), world_pos);
+    }
 }
