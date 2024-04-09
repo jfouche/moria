@@ -7,10 +7,11 @@ use bevy::{
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_panorbit_camera::PanOrbitCamera;
-use player::PlayerCamera;
+use player::Player;
 
 use crate::maze::Position;
 
+mod camera;
 mod hud;
 mod maze;
 mod minimap;
@@ -48,6 +49,7 @@ fn main() {
             maze::MazePlugin,
             player::PlayerPlugin,
             hud::HudPlugin,
+            camera::CameraPlugin,
         ))
         .add_systems(PreStartup, setup)
         // DEBUG
@@ -105,8 +107,8 @@ fn toggle_camera_controls_system(
     }
 }
 
-fn debug_player_view(transform: Query<&Transform, With<PlayerCamera>>) {
-    let transform = transform.get_single().expect("Can't get player camera");
+fn debug_player_view(transform: Query<&Transform, With<Player>>) {
+    let transform = transform.get_single().expect("Can't get Player");
     let translation = transform.translation;
     let pos: Position = translation.into();
     let mut forward = *transform.forward();

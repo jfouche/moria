@@ -13,9 +13,6 @@ struct RoomComponent {
     pos: Position,
 }
 
-#[derive(Resource)]
-pub struct ShowMinimap(bool);
-
 #[derive(States, Debug, Clone, PartialEq, Eq, Hash)]
 enum MinimapState {
     Hide,
@@ -76,7 +73,6 @@ pub struct MinimapPlugin;
 impl Plugin for MinimapPlugin {
     fn build(&self, app: &mut App) {
         app.insert_state(MinimapState::Hide)
-            .insert_resource(ShowMinimap(true))
             .add_systems(Startup, load_minimap_atlas)
             .add_systems(Update, toggle_minimap)
             .add_systems(OnEnter(MinimapState::Show), spawn_minimap)

@@ -3,7 +3,7 @@ use bevy::{
     prelude::*,
 };
 
-use crate::player::PlayerCamera;
+use crate::player::Player;
 
 #[derive(Component)]
 struct CompassText;
@@ -117,11 +117,11 @@ fn update_fps(diagnostics: Res<DiagnosticsStore>, mut query: Query<&mut Text, Wi
     }
 }
 fn update_compass(
-    transform: Query<&Transform, With<PlayerCamera>>,
+    transform: Query<&Transform, With<Player>>,
     mut query: Query<&mut Text, With<CompassText>>,
 ) {
     for mut text in &mut query {
-        let transform = transform.get_single().expect("Can't get player camera");
+        let transform = transform.get_single().expect("Can't get Player");
         let mut forward = *transform.forward();
         forward.y = 0.0;
         let angle = forward.angle_between(Vec3::NEG_Z).to_degrees();

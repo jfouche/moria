@@ -8,9 +8,6 @@ use bevy::{
 #[derive(Component)]
 pub struct Player;
 
-#[derive(Component)]
-pub struct PlayerCamera;
-
 /// Keeps track of mouse motion events, pitch, and yaw
 #[derive(Resource, Default)]
 struct InputState {
@@ -46,38 +43,30 @@ impl Plugin for PlayerPlugin {
 
 fn player_init(
     mut commands: Commands,
-    mut transform: Query<(Entity, &mut Transform), With<Camera3d>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let (camera_entity, mut transform) = transform
-        .get_single_mut()
-        .expect("Can't retrieve camera to init player");
-    let player_id = commands
-        .spawn((
-            Player,
-            PbrBundle {
-                mesh: meshes.add(Capsule3d::new(0.2, 0.3)),
-                material: materials.add(Color::BLACK),
-                ..default()
-            },
-        ))
-        .id();
-    commands
-        .entity(camera_entity)
-        .insert(PlayerCamera)
-        .push_children(&[player_id]);
-    *transform = Transform::from_xyz(0.0, 0.5, 0.0).looking_at(Vec3::NEG_Z, Vec3::Y);
+    info!("player_init(...)");
+    commands.spawn((
+        Player,
+        Name::new("Player"),
+        PbrBundle {
+            mesh: meshes.add(Capsule3d::new(0.2, 0.3)),
+            material: materials.add(Color::BLACK),
+            transform: Transform::from_xyz(0.0, 0.5, 0.0).looking_at(Vec3::NEG_Z, Vec3::Y),
+            ..default()
+        },
+    ));
 }
 
 // https://github.com/sburris0/bevy_flycam/blob/master/src/lib.rs
 fn player_move(
-    mut transform: Query<&mut Transform, With<PlayerCamera>>,
+    mut transform: Query<&mut Transform, With<Player>>,
     settings: Res<MovementSettings>,
     keys: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
 ) {
-    let mut transform = transform.get_single_mut().expect("Can't player camera");
+    let mut transform = transform.get_single_mut().expect("Can't retrieve Player");
     let mut forward = *transform.forward();
     forward.y = 0.0;
     let mut right = *transform.right();
@@ -101,7 +90,7 @@ fn player_look(
     primary_window: Query<&Window, With<PrimaryWindow>>,
     mut state: ResMut<InputState>,
     motion: Res<Events<MouseMotion>>,
-    mut query_player: Query<&mut Transform, With<PlayerCamera>>,
+    mut query_player: Query<&mut Transform, With<Player>>,
 ) {
     let window = primary_window
         .get_single()
