@@ -29,7 +29,7 @@ impl Default for MovementSettings {
     fn default() -> Self {
         Self {
             sensitivity: 0.00012,
-            speed: 5.,
+            speed: 200.0,
         }
     }
 }
@@ -71,28 +71,28 @@ fn player_init(
 
 // https://github.com/sburris0/bevy_flycam/blob/master/src/lib.rs
 fn player_move(
-    mut transform: Query<&mut Transform, With<Player>>,
+    mut player: Query<(&Transform, &mut Velocity), With<Player>>,
     settings: Res<MovementSettings>,
     keys: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
 ) {
-    let mut transform = transform.get_single_mut().expect("Can't retrieve Player");
+    let (transform, mut velocity) = player.get_single_mut().expect("Can't retrieve Player");
     let mut forward = *transform.forward();
     forward.y = 0.0;
     let mut right = *transform.right();
     right.y = 0.0;
-    let mut velocity = Vec3::ZERO;
+    let mut delta = Vec3::ZERO;
     for key in keys.get_pressed() {
         match *key {
-            KeyCode::ArrowUp | KeyCode::KeyW => velocity += forward,
-            KeyCode::ArrowDown | KeyCode::KeyS => velocity -= forward,
-            KeyCode::ArrowLeft | KeyCode::KeyA => velocity -= right,
-            KeyCode::ArrowRight | KeyCode::KeyD => velocity += right,
+            KeyCode::ArrowUp | KeyCode::KeyW => delta += forward,
+            KeyCode::ArrowDown | KeyCode::KeyS => delta -= forward,
+            KeyCode::ArrowLeft | KeyCode::KeyA => delta -= right,
+            KeyCode::ArrowRight | KeyCode::KeyD => delta += right,
             _ => {}
         }
     }
-    velocity = velocity.normalize_or_zero();
-    transform.translation += velocity * time.delta_seconds() * settings.speed;
+    delta = delta.normalize_or_zero();
+    velocity.linvel = delta * time.delta_seconds() * settings.speed;
 }
 
 fn player_look(
