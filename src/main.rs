@@ -1,5 +1,11 @@
-use std::time::Duration;
+mod camera;
+mod config;
+mod hud;
+mod maze;
+mod minimap;
+mod player;
 
+use crate::maze::Position;
 use bevy::{
     prelude::*,
     time::common_conditions::on_timer,
@@ -11,21 +17,13 @@ use bevy_rapier3d::{
     dynamics::RigidBody,
     geometry::Collider,
     plugin::{NoUserData, RapierPhysicsPlugin},
-    render::RapierDebugRenderPlugin,
+    render::{DebugRenderContext, RapierDebugRenderPlugin},
 };
+use config::GameConfig;
 use player::Player;
-
-use crate::maze::Position;
-
-mod camera;
-mod hud;
-mod maze;
-mod minimap;
-mod player;
+use std::time::Duration;
 
 fn main() {
-    // eprintln!("{}", maze.to_string());
-
     App::new()
         .add_plugins(
             DefaultPlugins
@@ -48,6 +46,7 @@ fn main() {
         )
         .insert_resource(ClearColor(Color::rgb(0.1, 0.1, 0.)))
         .add_plugins((
+            config::ConfigPlugin,
             minimap::MinimapPlugin,
             maze::MazePlugin,
             player::PlayerPlugin,
@@ -55,6 +54,7 @@ fn main() {
             camera::CameraPlugin,
         ))
         .add_systems(PreStartup, setup)
+        .add_systems(Startup, apply_config)
         // DEBUG
         .add_systems(Update, close_on_esc)
         // .add_plugins(PanOrbitCameraPlugin)
@@ -62,7 +62,7 @@ fn main() {
         .add_plugins((
             WorldInspectorPlugin::new(),
             RapierPhysicsPlugin::<NoUserData>::default(),
-            RapierDebugRenderPlugin::default(),
+            RapierDebugRenderPlugin::default().disabled(),
         ))
         .add_systems(
             Update,
@@ -73,7 +73,7 @@ fn main() {
         .run();
 }
 
-pub fn setup(
+fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -105,6 +105,10 @@ pub fn setup(
         RigidBody::Fixed,
         Collider::halfspace(Vec3::Y).unwrap(),
     ));
+}
+
+fn apply_config(config: Res<GameConfig>, mut rapier: ResMut<DebugRenderContext>) {
+    rapier.enabled = config.debug;
 }
 
 fn toggle_camera_controls_system(

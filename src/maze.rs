@@ -8,7 +8,7 @@ use std::fmt;
 
 const WALL_HEIGHT: f32 = 1.0;
 
-const WALL_COLLIDER_WIDTH: f32 = 0.1;
+const WALL_COLLIDER_WIDTH: f32 = 0.03;
 
 /// Width on X and Z
 const ROOM_WIDTH: f32 = 2.0;
@@ -365,11 +365,7 @@ pub struct MazePlugin;
 
 impl Plugin for MazePlugin {
     fn build(&self, app: &mut App) {
-        // TODO Load maze in PreStartup
-        //        let maze = MazeBuilder::new(24, 13).create_maze();
-        let maze = MazeBuilder::new(5, 5).create_maze();
-
-        app.insert_resource(maze).add_systems(Startup, maze_spawn);
+        app.add_systems(Startup, (init_maze, maze_spawn.after(init_maze)));
     }
 }
 
@@ -434,6 +430,12 @@ impl Wall {
         };
         Transform::from_xyz(x, 0.0, z)
     }
+}
+
+fn init_maze(mut commands: Commands /*, config: Res<MoriaConfig> */) {
+    // let maze = MazeBuilder::new(config.maze.cols, config.maze.rows).create_maze();
+    let maze = MazeBuilder::new(5, 6).create_maze();
+    commands.insert_resource(maze);
 }
 
 fn maze_spawn(
