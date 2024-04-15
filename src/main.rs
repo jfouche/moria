@@ -6,10 +6,7 @@ mod in_game;
 mod menu;
 mod splash;
 
-use bevy::{
-    prelude::*,
-    window::{Cursor, CursorGrabMode, WindowResolution},
-};
+use bevy::{prelude::*, window::WindowResolution};
 use bevy_rapier3d::{dynamics::RigidBody, geometry::Collider};
 
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
