@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::player::Player;
+use crate::in_game::Player;
 
 #[derive(Component)]
 pub struct PlayerCamera;

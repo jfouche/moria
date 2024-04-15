@@ -3,7 +3,7 @@ use bevy::{
     prelude::*,
 };
 
-use crate::player::Player;
+use crate::in_game::player::Player;
 
 #[derive(Component)]
 struct CompassText;

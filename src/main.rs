@@ -2,16 +2,23 @@ mod camera;
 mod config;
 mod core;
 mod debug;
-mod hud;
-mod maze;
-mod minimap;
-mod player;
+mod in_game;
+mod menu;
+mod splash;
 
 use bevy::{
     prelude::*,
     window::{Cursor, CursorGrabMode, WindowResolution},
 };
 use bevy_rapier3d::{dynamics::RigidBody, geometry::Collider};
+
+#[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
+enum GameState {
+    #[default]
+    Splash,
+    Menu,
+    Game,
+}
 
 fn main() {
     App::new()
@@ -23,11 +30,6 @@ fn main() {
                         name: Some("maria.app".into()),
                         position: WindowPosition::At(IVec2::new(100, 0)),
                         resolution: WindowResolution::new(1000.0, 650.0),
-                        cursor: Cursor {
-                            grab_mode: CursorGrabMode::Confined,
-                            visible: false,
-                            ..default()
-                        },
                         ..default()
                     }),
                     ..default()
@@ -35,12 +37,12 @@ fn main() {
                 .set(ImagePlugin::default_nearest()),
         )
         .insert_resource(ClearColor(Color::rgb(0.1, 0.1, 0.)))
+        .init_state::<GameState>()
         .add_plugins((
+            splash::plugin,
             config::plugin,
-            minimap::plugin,
-            maze::plugin,
-            player::plugin,
-            hud::plugin,
+            menu::plugin,
+            in_game::InGamePlugins,
             camera::plugin,
         ))
         .add_plugins(debug::plugin)
@@ -80,4 +82,11 @@ fn setup(
         RigidBody::Fixed,
         Collider::halfspace(Vec3::Y).unwrap(),
     ));
+}
+
+/// Generic system that takes a component as a parameter, and will despawn all entities with that component
+pub fn despawn_screen<T: Component>(to_despawn: Query<Entity, With<T>>, mut commands: Commands) {
+    for entity in &to_despawn {
+        commands.entity(entity).despawn_recursive();
+    }
 }
