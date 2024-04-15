@@ -1,5 +1,6 @@
 mod camera;
 mod config;
+mod core;
 mod debug;
 mod hud;
 mod maze;
@@ -35,14 +36,14 @@ fn main() {
         )
         .insert_resource(ClearColor(Color::rgb(0.1, 0.1, 0.)))
         .add_plugins((
-            config::ConfigPlugin,
-            minimap::MinimapPlugin,
-            maze::MazePlugin,
-            player::PlayerPlugin,
-            hud::HudPlugin,
-            camera::CameraPlugin,
+            config::plugin,
+            minimap::plugin,
+            maze::plugin,
+            player::plugin,
+            hud::plugin,
+            camera::plugin,
         ))
-        .add_plugins(debug::debug_plugin)
+        .add_plugins(debug::plugin)
         .add_systems(PreStartup, setup)
         .run();
 }

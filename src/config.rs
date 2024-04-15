@@ -26,14 +26,10 @@ impl Default for MazeConfig {
     }
 }
 
-pub struct ConfigPlugin;
-
-impl Plugin for ConfigPlugin {
-    fn build(&self, app: &mut App) {
-        app.init_resource::<GameConfig>()
-            .init_resource::<MazeConfig>()
-            .add_systems(PreStartup, load_config);
-    }
+pub fn plugin(app: &mut App) {
+    app.init_resource::<GameConfig>()
+        .init_resource::<MazeConfig>()
+        .add_systems(PreStartup, load_config);
 }
 
 fn load_config(mut game: ResMut<GameConfig>, mut maze: ResMut<MazeConfig>) {

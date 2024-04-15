@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::maze::{Maze, Position, Room};
+use crate::core::{Maze, Position, Room};
 
 pub const MINIMAP_ATLAS_FILENAME: &str = "textures/minimap_atlas.png";
 
@@ -68,16 +68,12 @@ impl ImgIndex for Room {
     }
 }
 
-pub struct MinimapPlugin;
-
-impl Plugin for MinimapPlugin {
-    fn build(&self, app: &mut App) {
-        app.insert_state(MinimapState::Hide)
-            .add_systems(Startup, load_minimap_atlas)
-            .add_systems(Update, toggle_minimap)
-            .add_systems(OnEnter(MinimapState::Show), spawn_minimap)
-            .add_systems(OnExit(MinimapState::Show), delete_minimap);
-    }
+pub fn plugin(app: &mut App) {
+    app.insert_state(MinimapState::Hide)
+        .add_systems(Startup, load_minimap_atlas)
+        .add_systems(Update, toggle_minimap)
+        .add_systems(OnEnter(MinimapState::Show), spawn_minimap)
+        .add_systems(OnExit(MinimapState::Show), delete_minimap);
 }
 
 fn load_minimap_atlas(

@@ -5,13 +5,9 @@ use crate::player::Player;
 #[derive(Component)]
 pub struct PlayerCamera;
 
-pub struct CameraPlugin;
-
-impl Plugin for CameraPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(Startup, init_camera)
-            .add_systems(PostUpdate, follow_player);
-    }
+pub fn plugin(app: &mut App) {
+    app.add_systems(Startup, init_camera)
+        .add_systems(PostUpdate, follow_player);
 }
 
 fn init_camera(mut commands: Commands, mut transform: Query<Entity, With<Camera3d>>) {

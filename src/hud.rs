@@ -13,14 +13,10 @@ struct FpsText;
 
 const BGCOLOR: Color = Color::rgba(0.9, 0.9, 0.9, 0.3);
 
-pub struct HudPlugin;
-
-impl Plugin for HudPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_plugins(FrameTimeDiagnosticsPlugin)
-            .add_systems(Startup, (spawn_fps, spawn_compass))
-            .add_systems(Update, (update_fps, update_compass));
-    }
+pub fn plugin(app: &mut App) {
+    app.add_plugins(FrameTimeDiagnosticsPlugin)
+        .add_systems(Startup, (spawn_fps, spawn_compass))
+        .add_systems(Update, (update_fps, update_compass));
 }
 
 fn spawn_fps(mut commands: Commands, asset_server: Res<AssetServer>) {

@@ -1,4 +1,4 @@
-use crate::{config::GameConfig, maze::Position, player::Player};
+use crate::{config::GameConfig, core::Position, player::Player};
 use bevy::{prelude::*, time::common_conditions::on_timer, window::close_on_esc};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_panorbit_camera::PanOrbitCamera;
@@ -8,7 +8,7 @@ use bevy_rapier3d::{
 };
 use std::time::Duration;
 
-pub fn debug_plugin(app: &mut App) {
+pub fn plugin(app: &mut App) {
     app.add_systems(PreStartup, apply_config)
         .add_systems(Update, close_on_esc)
         .add_systems(Update, toggle_camera_controls_system)

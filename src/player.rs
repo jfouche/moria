@@ -34,15 +34,11 @@ impl Default for MovementSettings {
     }
 }
 
-pub struct PlayerPlugin;
-
-impl Plugin for PlayerPlugin {
-    fn build(&self, app: &mut App) {
-        app.init_resource::<InputState>()
-            .init_resource::<MovementSettings>()
-            .add_systems(Startup, player_init)
-            .add_systems(Update, (player_move, player_look, cursor_grab));
-    }
+pub fn plugin(app: &mut App) {
+    app.init_resource::<InputState>()
+        .init_resource::<MovementSettings>()
+        .add_systems(Startup, player_init)
+        .add_systems(Update, (player_move, player_look, cursor_grab));
 }
 
 fn player_init(
