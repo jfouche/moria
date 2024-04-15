@@ -1,13 +1,13 @@
 use bevy::prelude::*;
 
-use crate::in_game::Player;
+use crate::{in_game::Player, GameState};
 
 #[derive(Component)]
 pub struct PlayerCamera;
 
 pub fn plugin(app: &mut App) {
     app.add_systems(Startup, init_camera)
-        .add_systems(PostUpdate, follow_player);
+        .add_systems(PostUpdate, follow_player.run_if(in_state(GameState::Game)));
 }
 
 fn init_camera(mut commands: Commands, mut transform: Query<Entity, With<Camera3d>>) {

@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 
-use crate::core::{Maze, Position, Room};
+use crate::{
+    core::{Maze, Position, Room},
+    GameState,
+};
 
 pub const MINIMAP_ATLAS_FILENAME: &str = "textures/minimap_atlas.png";
 
@@ -71,7 +74,7 @@ impl ImgIndex for Room {
 pub fn plugin(app: &mut App) {
     app.insert_state(MinimapState::Hide)
         .add_systems(Startup, load_minimap_atlas)
-        .add_systems(Update, toggle_minimap)
+        .add_systems(Update, toggle_minimap.run_if(in_state(GameState::Game)))
         .add_systems(OnEnter(MinimapState::Show), spawn_minimap)
         .add_systems(OnExit(MinimapState::Show), delete_minimap);
 }

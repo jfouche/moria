@@ -3,7 +3,7 @@ use bevy::{
     prelude::*,
 };
 
-use crate::in_game::player::Player;
+use crate::{in_game::player::Player, GameState};
 
 #[derive(Component)]
 struct CompassText;
@@ -15,8 +15,11 @@ const BGCOLOR: Color = Color::rgba(0.9, 0.9, 0.9, 0.3);
 
 pub fn plugin(app: &mut App) {
     app.add_plugins(FrameTimeDiagnosticsPlugin)
-        .add_systems(Startup, (spawn_fps, spawn_compass))
-        .add_systems(Update, (update_fps, update_compass));
+        .add_systems(OnEnter(GameState::Game), (spawn_fps, spawn_compass))
+        .add_systems(
+            Update,
+            (update_fps, update_compass).run_if(in_state(GameState::Game)),
+        );
 }
 
 fn spawn_fps(mut commands: Commands, asset_server: Res<AssetServer>) {

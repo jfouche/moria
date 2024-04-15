@@ -1,4 +1,7 @@
-use crate::core::{Maze, MazeBuilder, Position};
+use crate::{
+    core::{Maze, MazeBuilder, Position},
+    GameState,
+};
 use bevy::prelude::*;
 use bevy_rapier3d::{dynamics::RigidBody, geometry::Collider};
 
@@ -10,7 +13,10 @@ const WALL_COLLIDER_WIDTH: f32 = 0.03;
 const ROOM_WIDTH: f32 = 2.0;
 
 pub fn plugin(app: &mut App) {
-    app.add_systems(Startup, (init_maze, maze_spawn.after(init_maze)));
+    app.add_systems(
+        OnEnter(GameState::Game),
+        (init_maze, maze_spawn.after(init_maze)),
+    );
 }
 
 #[derive(Component, Default)]
