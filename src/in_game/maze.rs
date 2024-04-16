@@ -113,7 +113,6 @@ fn spawn_maze(
     let material_handle = materials.add(StandardMaterial {
         base_color_texture: Some(texture_handle.clone()),
         alpha_mode: AlphaMode::Blend,
-        unlit: true,
         perceptual_roughness: 0.8,
         ..default()
     });
