@@ -1,14 +1,20 @@
 use bevy::prelude::*;
 
 use crate::{
-    core::{Maze, Position, Room},
+    core::{Maze, Position, Room, WorldPosition},
     despawn_all, GameState,
 };
 
+use super::Player;
+
 pub const MINIMAP_ATLAS_FILENAME: &str = "textures/minimap_atlas.png";
+pub const MINIMAP_PLAYER_FILENAME: &str = "minimap_player.png";
 
 #[derive(Component)]
 pub struct Minimap;
+
+#[derive(Component)]
+pub struct MMPlayer;
 
 #[derive(Component, Reflect)]
 struct RoomComponent {
@@ -74,7 +80,14 @@ impl ImgIndex for Room {
 pub fn plugin(app: &mut App) {
     app.insert_state(MinimapState::Hide)
         .add_systems(Startup, load_minimap_atlas)
-        .add_systems(Update, toggle_minimap.run_if(in_state(GameState::Game)))
+        .add_systems(
+            Update,
+            (
+                toggle_minimap,
+                show_player.run_if(in_state(MinimapState::Show)),
+            )
+                .run_if(in_state(GameState::Game)),
+        )
         .add_systems(OnEnter(MinimapState::Show), spawn_minimap)
         .add_systems(OnExit(MinimapState::Show), despawn_all::<Minimap>)
         .add_systems(OnExit(GameState::Game), despawn_all::<Minimap>);
@@ -108,6 +121,22 @@ fn spawn_minimap(
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlasLayout>>,
 ) {
+    commands.spawn((
+        Name::new("MINIMAP_PLAYER"),
+        MMPlayer,
+        ImageBundle {
+            image: UiImage::new(asset_server.load(MINIMAP_PLAYER_FILENAME)),
+            style: Style {
+                margin: UiRect::all(Val::Auto),
+                width: Val::Px(12.0),
+                height: Val::Px(12.0),
+                ..default()
+            },
+            visibility: Visibility::Hidden,
+            ..default()
+        },
+    ));
+
     commands
         .spawn((
             Minimap,
@@ -117,12 +146,6 @@ fn spawn_minimap(
                     display: Display::Grid,
                     position_type: PositionType::Absolute,
                     margin: UiRect::all(Val::Auto),
-                    // top: Val::Px(50.0),
-                    // bottom: Val::Px(50.),
-                    // left: Val::Px(20.0),
-                    // right: Val::Px(20.0),
-                    // flex_direction: FlexDirection::Column,
-                    // justify_content: JustifyContent::SpaceBetween,
                     ..default()
                 },
                 background_color: Color::rgba(0.9, 0.9, 0.9, 0.3).into(),
@@ -161,5 +184,28 @@ fn spawn_minimap(
                     }
                 }
             }
+        });
+}
+
+fn show_player(
+    mut commands: Commands,
+    player: Query<&Transform, With<Player>>,
+    rooms: Query<(Entity, &RoomComponent)>,
+    mut mm_player: Query<(Entity, &mut Visibility), With<MMPlayer>>,
+) {
+    let player_pos: WorldPosition = player
+        .get_single()
+        .expect("Can't get Player")
+        .translation
+        .into();
+    let (mm_player_entity, mut mm_player_visibility) =
+        mm_player.get_single_mut().expect("Can't get MMPlayer");
+    *mm_player_visibility = Visibility::Visible;
+
+    rooms
+        .iter()
+        .filter_map(|(e, r)| (r.pos == *player_pos).then_some(e))
+        .for_each(|room_entity| {
+            commands.entity(room_entity).add_child(mm_player_entity);
         });
 }

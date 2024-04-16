@@ -1,5 +1,9 @@
-use crate::{config::GameConfig, core::Position, in_game::Player, GameState};
-use bevy::{prelude::*, time::common_conditions::on_timer};
+use crate::{config::GameConfig, core::WorldPosition, in_game::Player, GameState};
+use bevy::{
+    prelude::*,
+    time::common_conditions::on_timer,
+    window::{CursorGrabMode, PrimaryWindow},
+};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_panorbit_camera::PanOrbitCamera;
 use bevy_rapier3d::{
@@ -17,6 +21,7 @@ pub fn plugin(app: &mut App) {
             RapierDebugRenderPlugin::default().disabled(),
             // PanOrbitCameraPlugin
         ))
+        .add_systems(Update, (toggle_grab).run_if(in_state(GameState::Game)))
         .add_systems(
             Update,
             (debug_player_view)
@@ -28,6 +33,30 @@ pub fn plugin(app: &mut App) {
 
 fn apply_config(config: Res<GameConfig>, mut rapier: ResMut<DebugRenderContext>) {
     rapier.enabled = config.debug;
+}
+
+fn toggle_grab(
+    mut primary_window: Query<&mut Window, With<PrimaryWindow>>,
+    keys: Res<ButtonInput<KeyCode>>,
+) {
+    let mut window = primary_window.get_single_mut().expect("Can't get window");
+    for key in keys.get_just_pressed() {
+        info!("toggle_grab({key:?})");
+        if *key == KeyCode::KeyG {
+            match window.cursor.grab_mode {
+                CursorGrabMode::None => {
+                    info!("toggle_grab() : None => Confined");
+                    window.cursor.grab_mode = CursorGrabMode::Confined;
+                    window.cursor.visible = false;
+                }
+                _ => {
+                    info!("toggle_grab() : Confined => None");
+                    window.cursor.grab_mode = CursorGrabMode::None;
+                    window.cursor.visible = true;
+                }
+            }
+        }
+    }
 }
 
 fn toggle_camera_controls_system(
@@ -44,12 +73,12 @@ fn toggle_camera_controls_system(
 fn debug_player_view(transform: Query<&Transform, With<Player>>) {
     let transform = transform.get_single().expect("Can't get Player");
     let translation = transform.translation;
-    let pos: Position = translation.into();
+    let pos: WorldPosition = translation.into();
     let mut forward = *transform.forward();
     forward.y = 0.0;
     let angle = forward.angle_between(Vec3::Z).to_degrees();
     let forward = forward.xz();
-    info!("Player translation: {translation}, pos: {pos}, forward: {forward:?}, angle: {angle}");
+    info!("Player translation: {translation}, pos: {pos:?}, forward: {forward:?}, angle: {angle}");
 }
 
 fn show_axes(mut gizmos: Gizmos, config: Res<GameConfig>) {

@@ -9,7 +9,10 @@ use bevy_rapier3d::{
     geometry::Collider,
 };
 
-use crate::{despawn_all, GameState};
+use crate::{
+    core::{IntoWorldPosition, Position},
+    despawn_all, GameState,
+};
 
 #[derive(Component)]
 pub struct Player;
@@ -42,7 +45,7 @@ pub fn plugin(app: &mut App) {
         .add_systems(OnEnter(GameState::Game), spawn_player)
         .add_systems(
             Update,
-            (player_move, player_look, cursor_grab).run_if(in_state(GameState::Game)),
+            (player_move, player_look).run_if(in_state(GameState::Game)),
         )
         .add_systems(OnExit(GameState::Game), despawn_all::<Player>);
 }
@@ -52,14 +55,15 @@ fn spawn_player(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    info!("player_init(...)");
+    let pos = Position(0, 0);
     commands.spawn((
         Player,
         Name::new("Player"),
         PbrBundle {
             mesh: meshes.add(Capsule3d::new(0.2, 0.3)),
             material: materials.add(Color::BLACK),
-            transform: Transform::from_xyz(0.0, 0.5, 0.0).looking_at(Vec3::NEG_Z, Vec3::Y),
+            transform: Transform::from_translation(pos.to_world().translation())
+                .looking_at(Vec3::NEG_Z, Vec3::Y),
             ..default()
         },
         RigidBody::Dynamic,
@@ -127,32 +131,5 @@ fn player_look(
         // Order is important to prevent unintended roll
         transform.rotation =
             Quat::from_axis_angle(Vec3::Y, yaw) * Quat::from_axis_angle(Vec3::X, pitch);
-    }
-}
-
-fn cursor_grab(
-    keys: Res<ButtonInput<KeyCode>>,
-    mut primary_window: Query<&mut Window, With<PrimaryWindow>>,
-) {
-    if let Ok(mut window) = primary_window.get_single_mut() {
-        if keys.just_pressed(KeyCode::KeyG) {
-            toggle_grab_cursor(&mut window);
-        }
-    } else {
-        warn!("Primary window not found for `cursor_grab`!");
-    }
-}
-
-/// Grabs/ungrabs mouse cursor
-fn toggle_grab_cursor(window: &mut Window) {
-    match window.cursor.grab_mode {
-        CursorGrabMode::None => {
-            window.cursor.grab_mode = CursorGrabMode::Confined;
-            window.cursor.visible = false;
-        }
-        _ => {
-            window.cursor.grab_mode = CursorGrabMode::None;
-            window.cursor.visible = true;
-        }
     }
 }

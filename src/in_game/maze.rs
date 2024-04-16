@@ -1,10 +1,12 @@
 use crate::{
     config::MazeConfig,
-    core::{Maze, MazeBuilder, Position},
+    core::{IntoWorldPosition, Maze, MazeBuilder, Position, WorldPosition},
     despawn_all, GameState,
 };
 use bevy::prelude::*;
 use bevy_rapier3d::{dynamics::RigidBody, geometry::Collider};
+
+use super::Player;
 
 const WALL_HEIGHT: f32 = 1.0;
 
@@ -18,11 +20,18 @@ pub fn plugin(app: &mut App) {
         OnEnter(GameState::Game),
         (init_maze, spawn_maze.after(init_maze)),
     )
-    .add_systems(OnExit(GameState::Game), despawn_all::<MazeComponent>);
+    .add_systems(Update, add_light.run_if(in_state(GameState::Game)))
+    .add_systems(
+        OnExit(GameState::Game),
+        (despawn_all::<MazeComponent>, despawn_all::<RoomLight>),
+    );
 }
 
-#[derive(Component, Default)]
+#[derive(Component)]
 struct MazeComponent;
+
+#[derive(Component)]
+struct RoomLight;
 
 #[derive(Copy, Clone, Debug)]
 enum Wall {
@@ -48,15 +57,15 @@ impl Wall {
     }
 
     fn transform(&self, pos: &Position) -> Transform {
-        let world_pos = pos.world_pos();
-        let hh = WALL_HEIGHT / 2.;
-        let hw = ROOM_WIDTH / 2.;
+        let translation = pos.to_world().translation();
+        const HH: f32 = WALL_HEIGHT / 2.;
+        const HW: f32 = ROOM_WIDTH / 2.;
 
         let translation = match self {
-            Wall::Top => world_pos + Vec3::new(0., hh, -hw),
-            Wall::Bottom => world_pos + Vec3::new(0., hh, hw),
-            Wall::Left => world_pos + Vec3::new(-hw, hh, 0.),
-            Wall::Right => world_pos + Vec3::new(hw, hh, 0.),
+            Wall::Top => translation + Vec3::new(0., HH, -HW),
+            Wall::Bottom => translation + Vec3::new(0., HH, HW),
+            Wall::Left => translation + Vec3::new(-HW, HH, 0.),
+            Wall::Right => translation + Vec3::new(HW, HH, 0.),
         };
         Transform::from_translation(translation)
     }
@@ -93,7 +102,6 @@ fn spawn_maze(
     mut materials: ResMut<Assets<StandardMaterial>>,
     maze: Res<Maze>,
 ) {
-    info!("maze_spawn(...)");
     let texture_handle = asset_server.load("textures/Asset 1.png");
     let material_handle = materials.add(StandardMaterial {
         base_color_texture: Some(texture_handle.clone()),
@@ -214,4 +222,34 @@ fn spawn_maze(
                 }
             }
         });
+}
+
+fn add_light(
+    mut commands: Commands,
+    player: Query<&Transform, With<Player>>,
+    mut maze: ResMut<Maze>,
+) {
+    let player_transform = player.get_single().expect("Can't get Player");
+    let player_pos: WorldPosition = player_transform.translation.into();
+    if let Some(room) = maze.get_room(&player_pos) {
+        if !room.visited() {
+            maze.visit(&player_pos);
+            commands.spawn((
+                Name::new("ROOM_LIGHT"),
+                RoomLight,
+                SpotLightBundle {
+                    spot_light: SpotLight {
+                        intensity: 200_000.0,
+                        outer_angle: 1.4,
+                        ..default()
+                    },
+                    transform: Transform::from_translation(
+                        player_pos.translation_with_y(WALL_HEIGHT),
+                    )
+                    .looking_at(player_pos.translation(), Vec3::Y),
+                    ..default()
+                },
+            ));
+        }
+    }
 }
