@@ -1,0 +1,6 @@
+[game]
+debug = false
+
+[maze]
+rows = 6
+cols = 7

@@ -9,6 +9,8 @@ use bevy_rapier3d::{
     geometry::Collider,
 };
 
+use crate::GameState;
+
 #[derive(Component)]
 pub struct Player;
 
@@ -34,15 +36,14 @@ impl Default for MovementSettings {
     }
 }
 
-pub struct PlayerPlugin;
-
-impl Plugin for PlayerPlugin {
-    fn build(&self, app: &mut App) {
-        app.init_resource::<InputState>()
-            .init_resource::<MovementSettings>()
-            .add_systems(Startup, player_init)
-            .add_systems(Update, (player_move, player_look, cursor_grab));
-    }
+pub fn plugin(app: &mut App) {
+    app.init_resource::<InputState>()
+        .init_resource::<MovementSettings>()
+        .add_systems(OnEnter(GameState::Game), player_init)
+        .add_systems(
+            Update,
+            (player_move, player_look, cursor_grab).run_if(in_state(GameState::Game)),
+        );
 }
 
 fn player_init(
