@@ -11,8 +11,7 @@ mod player;
 
 pub use player::Player;
 
-use crate::GameState;
-
+use crate::{despawn_all, GameState};
 pub struct InGamePlugins;
 
 impl PluginGroup for InGamePlugins {
@@ -26,10 +25,19 @@ impl PluginGroup for InGamePlugins {
     }
 }
 
+#[derive(Component)]
+struct MyMusic;
+
 fn in_game_plugin(app: &mut App) {
-    app.add_systems(OnEnter(GameState::Game), (grab_cursor, set_background))
-        .add_systems(OnExit(GameState::Game), ungrab_cursor)
-        .add_systems(Update, show_menu.run_if(in_state(GameState::Game)));
+    app.add_systems(
+        OnEnter(GameState::Game),
+        (grab_cursor, set_background, start_music),
+    )
+    .add_systems(
+        OnExit(GameState::Game),
+        (ungrab_cursor, despawn_all::<MyMusic>),
+    )
+    .add_systems(Update, show_menu.run_if(in_state(GameState::Game)));
 }
 
 const BACKGROUND_COLOR: Color = Color::BLACK;
@@ -56,4 +64,14 @@ fn show_menu(mut state: ResMut<NextState<GameState>>, keys: Res<ButtonInput<KeyC
             state.set(GameState::Menu);
         }
     }
+}
+
+fn start_music(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands.spawn((
+        AudioBundle {
+            source: asset_server.load("audio/Goblins_Den_Regular.ogg"),
+            settings: PlaybackSettings::LOOP,
+        },
+        MyMusic,
+    ));
 }
