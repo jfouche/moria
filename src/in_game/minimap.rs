@@ -18,7 +18,6 @@ pub struct MMPlayer;
 
 #[derive(Component, Reflect)]
 struct RoomComponent {
-    room: Room,
     pos: Position,
 }
 
@@ -84,7 +83,7 @@ pub fn plugin(app: &mut App) {
             Update,
             (
                 toggle_minimap,
-                show_player.run_if(in_state(MinimapState::Show)),
+                (show_player, update_visibility).run_if(in_state(MinimapState::Show)),
             )
                 .run_if(in_state(GameState::Game)),
         )
@@ -161,6 +160,11 @@ fn spawn_minimap(
                     let pos = Position(x, y);
                     if let Some(room) = maze.get_room(&pos) {
                         let (grid_column, grid_row) = maze.to_grid_pos(&pos);
+                        let visibiliy = if room.visited() {
+                            Visibility::Visible
+                        } else {
+                            Visibility::Hidden
+                        };
                         minimap_cmds
                             .spawn(AtlasImageBundle {
                                 style: Style {
@@ -175,12 +179,10 @@ fn spawn_minimap(
                                     index: room.img_index(),
                                 },
                                 image: UiImage::new(texture_handle.clone()),
+                                visibility: visibiliy,
                                 ..Default::default()
                             })
-                            .insert(RoomComponent {
-                                pos,
-                                room: room.clone(),
-                            });
+                            .insert(RoomComponent { pos });
                     }
                 }
             }
@@ -208,4 +210,14 @@ fn show_player(
         .for_each(|room_entity| {
             commands.entity(room_entity).add_child(mm_player_entity);
         });
+}
+
+fn update_visibility(mut rooms: Query<(&RoomComponent, &mut Visibility)>, maze: Res<Maze>) {
+    for (room_comp, mut visibility) in rooms.iter_mut() {
+        if let Some(room) = maze.get_room(&room_comp.pos) {
+            if room.visited() {
+                *visibility = Visibility::Visible;
+            }
+        }
+    }
 }
