@@ -1,12 +1,12 @@
 use bevy::prelude::*;
 
-use crate::{despawn_screen, GameState};
+use crate::{despawn_all, GameState};
 
 pub fn plugin(app: &mut App) {
     // As this plugin is managing the splash screen, it will focus on the state `GameState::Splash`
     app.add_systems(OnEnter(GameState::Splash), splash_setup)
         .add_systems(Update, key_pressed.run_if(in_state(GameState::Splash)))
-        .add_systems(OnExit(GameState::Splash), despawn_screen::<OnSplashScreen>);
+        .add_systems(OnExit(GameState::Splash), despawn_all::<OnSplashScreen>);
 }
 
 // Tag component used to tag entities added on the splash screen

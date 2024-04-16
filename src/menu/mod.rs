@@ -1,4 +1,4 @@
-use crate::{despawn_screen, GameState};
+use crate::{despawn_all, GameState};
 use bevy::{app::AppExit, prelude::*};
 
 const TEXT_COLOR: Color = Color::rgb(0.9, 0.9, 0.9);
@@ -27,12 +27,12 @@ pub fn plugin(app: &mut App) {
         .add_systems(OnEnter(GameState::Menu), menu_setup)
         // Systems to handle the main menu screen
         .add_systems(OnEnter(MenuState::Main), main_menu_setup)
-        .add_systems(OnExit(MenuState::Main), despawn_screen::<OnMainMenuScreen>)
+        .add_systems(OnExit(MenuState::Main), despawn_all::<OnMainMenuScreen>)
         // Systems to handle the settings menu screen
         .add_systems(OnEnter(MenuState::Settings), settings_menu_setup)
         .add_systems(
             OnExit(MenuState::Settings),
-            despawn_screen::<OnSettingsMenuScreen>,
+            despawn_all::<OnSettingsMenuScreen>,
         )
         // Systems to handle the display settings screen
         .add_systems(
@@ -45,7 +45,7 @@ pub fn plugin(app: &mut App) {
         )
         .add_systems(
             OnExit(MenuState::SettingsDisplay),
-            despawn_screen::<OnDisplaySettingsMenuScreen>,
+            despawn_all::<OnDisplaySettingsMenuScreen>,
         )
         // Systems to handle the sound settings screen
         .add_systems(OnEnter(MenuState::SettingsSound), sound_settings_menu_setup)
@@ -55,7 +55,7 @@ pub fn plugin(app: &mut App) {
         )
         .add_systems(
             OnExit(MenuState::SettingsSound),
-            despawn_screen::<OnSoundSettingsMenuScreen>,
+            despawn_all::<OnSoundSettingsMenuScreen>,
         )
         // Common systems to all screens that handles buttons behavior
         .add_systems(

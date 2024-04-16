@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     core::{Maze, Position, Room},
-    GameState,
+    despawn_all, GameState,
 };
 
 pub const MINIMAP_ATLAS_FILENAME: &str = "textures/minimap_atlas.png";
@@ -76,8 +76,8 @@ pub fn plugin(app: &mut App) {
         .add_systems(Startup, load_minimap_atlas)
         .add_systems(Update, toggle_minimap.run_if(in_state(GameState::Game)))
         .add_systems(OnEnter(MinimapState::Show), spawn_minimap)
-        .add_systems(OnExit(MinimapState::Show), despawn_minimap)
-        .add_systems(OnExit(GameState::Game), despawn_minimap);
+        .add_systems(OnExit(MinimapState::Show), despawn_all::<Minimap>)
+        .add_systems(OnExit(GameState::Game), despawn_all::<Minimap>);
 }
 
 fn load_minimap_atlas(
@@ -162,10 +162,4 @@ fn spawn_minimap(
                 }
             }
         });
-}
-
-fn despawn_minimap(mut commands: Commands, minimap: Query<Entity, With<Minimap>>) {
-    for entity in minimap.iter() {
-        commands.entity(entity).despawn_recursive();
-    }
 }

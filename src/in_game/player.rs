@@ -9,7 +9,7 @@ use bevy_rapier3d::{
     geometry::Collider,
 };
 
-use crate::GameState;
+use crate::{despawn_all, GameState};
 
 #[derive(Component)]
 pub struct Player;
@@ -44,7 +44,7 @@ pub fn plugin(app: &mut App) {
             Update,
             (player_move, player_look, cursor_grab).run_if(in_state(GameState::Game)),
         )
-        .add_systems(OnExit(GameState::Game), despawn_player);
+        .add_systems(OnExit(GameState::Game), despawn_all::<Player>);
 }
 
 fn spawn_player(
@@ -69,12 +69,6 @@ fn spawn_player(
             | LockedAxes::ROTATION_LOCKED_Z,
         Velocity::zero(),
     ));
-}
-
-fn despawn_player(mut commands: Commands, player: Query<Entity, With<Player>>) {
-    if let Ok(player) = player.get_single() {
-        commands.entity(player).despawn_recursive();
-    }
 }
 
 // https://github.com/sburris0/bevy_flycam/blob/master/src/lib.rs

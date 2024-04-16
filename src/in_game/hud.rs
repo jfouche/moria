@@ -3,7 +3,7 @@ use bevy::{
     prelude::*,
 };
 
-use crate::{in_game::player::Player, GameState};
+use crate::{despawn_all, in_game::player::Player, GameState};
 
 #[derive(Component)]
 struct Compass;
@@ -17,16 +17,29 @@ struct Fps;
 #[derive(Component)]
 struct FpsText;
 
+#[derive(Component)]
+struct Aim;
+
 const BGCOLOR: Color = Color::rgba(0.9, 0.9, 0.9, 0.3);
 
 pub fn plugin(app: &mut App) {
     app.add_plugins(FrameTimeDiagnosticsPlugin)
-        .add_systems(OnEnter(GameState::Game), (spawn_fps, spawn_compass))
+        .add_systems(
+            OnEnter(GameState::Game),
+            (spawn_fps, spawn_compass, spawn_aim),
+        )
         .add_systems(
             Update,
             (update_fps, update_compass).run_if(in_state(GameState::Game)),
         )
-        .add_systems(OnExit(GameState::Game), (despawn_fps, despawn_compass));
+        .add_systems(
+            OnExit(GameState::Game),
+            (
+                despawn_all::<Fps>,
+                despawn_all::<Compass>,
+                despawn_all::<Aim>,
+            ),
+        );
 }
 
 fn spawn_fps(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -115,15 +128,28 @@ fn spawn_compass(mut commands: Commands, asset_server: Res<AssetServer>) {
         });
 }
 
-fn despawn_compass(mut commands: Commands, compass: Query<Entity, With<Compass>>) {
-    if let Ok(compass) = compass.get_single() {
-        commands.entity(compass).despawn_recursive();
-    }
-}
-fn despawn_fps(mut commands: Commands, fps: Query<Entity, With<Fps>>) {
-    if let Ok(fps) = fps.get_single() {
-        commands.entity(fps).despawn_recursive();
-    }
+fn spawn_aim(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands
+        .spawn((
+            Name::new("AIM"),
+            Aim,
+            NodeBundle {
+                style: Style {
+                    align_items: AlignItems::Center,
+                    justify_content: JustifyContent::Center,
+                    width: Val::Percent(100.0),
+                    height: Val::Percent(100.0),
+                    ..default()
+                },
+                ..default()
+            },
+        ))
+        .with_children(|parent| {
+            parent.spawn(ImageBundle {
+                image: UiImage::new(asset_server.load("aim.png")),
+                ..default()
+            });
+        });
 }
 
 fn update_fps(diagnostics: Res<DiagnosticsStore>, mut query: Query<&mut Text, With<FpsText>>) {

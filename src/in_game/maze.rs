@@ -1,7 +1,7 @@
 use crate::{
     config::MazeConfig,
     core::{Maze, MazeBuilder, Position},
-    GameState,
+    despawn_all, GameState,
 };
 use bevy::prelude::*;
 use bevy_rapier3d::{dynamics::RigidBody, geometry::Collider};
@@ -18,7 +18,7 @@ pub fn plugin(app: &mut App) {
         OnEnter(GameState::Game),
         (init_maze, spawn_maze.after(init_maze)),
     )
-    .add_systems(OnExit(GameState::Game), despawn_maze);
+    .add_systems(OnExit(GameState::Game), despawn_all::<MazeComponent>);
 }
 
 #[derive(Component, Default)]
@@ -214,10 +214,4 @@ fn spawn_maze(
                 }
             }
         });
-}
-
-fn despawn_maze(mut commands: Commands, maze: Query<Entity, With<MazeComponent>>) {
-    if let Ok(maze) = maze.get_single() {
-        commands.entity(maze).despawn_recursive();
-    }
 }
