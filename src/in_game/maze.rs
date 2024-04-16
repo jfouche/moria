@@ -23,7 +23,11 @@ pub fn plugin(app: &mut App) {
     .add_systems(Update, add_light.run_if(in_state(GameState::Game)))
     .add_systems(
         OnExit(GameState::Game),
-        (despawn_all::<MazeComponent>, despawn_all::<RoomLight>),
+        (
+            despawn_all::<MazeComponent>,
+            despawn_all::<RoomLight>,
+            despawn_all::<Ceiling>,
+        ),
     );
 }
 
@@ -32,6 +36,9 @@ struct MazeComponent;
 
 #[derive(Component)]
 struct RoomLight;
+
+#[derive(Component)]
+struct Ceiling;
 
 #[derive(Copy, Clone, Debug)]
 enum Wall {
@@ -222,6 +229,22 @@ fn spawn_maze(
                 }
             }
         });
+
+    commands.spawn((
+        Name::new("CEILING"),
+        Ceiling,
+        PbrBundle {
+            // Use NEG_Y to show
+            mesh: meshes.add(Plane3d::new(Vec3::NEG_Y).mesh().size(50.0, 50.0)),
+            material: materials.add(StandardMaterial {
+                base_color: Color::DARK_GRAY,
+                perceptual_roughness: 0.9,
+                ..default()
+            }),
+            transform: Transform::from_xyz(0.0, WALL_HEIGHT, 0.0),
+            ..default()
+        },
+    ));
 }
 
 fn add_light(
