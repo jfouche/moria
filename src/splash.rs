@@ -46,8 +46,15 @@ fn splash_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         });
 }
 
-fn key_pressed(mut game_state: ResMut<NextState<GameState>>, keys: Res<ButtonInput<KeyCode>>) {
+fn key_pressed(
+    mut game_state: ResMut<NextState<GameState>>,
+    keys: Res<ButtonInput<KeyCode>>,
+    mouse: Res<ButtonInput<MouseButton>>,
+) {
     if keys.get_pressed().len() != 0 {
+        game_state.set(GameState::Menu);
+    }
+    if mouse.pressed(MouseButton::Left) {
         game_state.set(GameState::Menu);
     }
 }
