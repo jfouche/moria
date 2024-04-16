@@ -91,6 +91,7 @@ struct OnDisplaySettingsMenuScreen;
 #[derive(Component)]
 struct OnSoundSettingsMenuScreen;
 
+const BACKGROUND_COLOR: Color = Color::BLACK;
 const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
 const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
 const HOVERED_PRESSED_BUTTON: Color = Color::rgb(0.25, 0.65, 0.25);
@@ -148,7 +149,8 @@ fn setting_button<T: Resource + Component + PartialEq + Copy>(
     }
 }
 
-fn menu_setup(mut menu_state: ResMut<NextState<MenuState>>) {
+fn menu_setup(mut commands: Commands, mut menu_state: ResMut<NextState<MenuState>>) {
+    commands.insert_resource(ClearColor(BACKGROUND_COLOR));
     menu_state.set(MenuState::Main);
 }
 

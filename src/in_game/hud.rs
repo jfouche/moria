@@ -6,7 +6,13 @@ use bevy::{
 use crate::{in_game::player::Player, GameState};
 
 #[derive(Component)]
+struct Compass;
+
+#[derive(Component)]
 struct CompassText;
+
+#[derive(Component)]
+struct Fps;
 
 #[derive(Component)]
 struct FpsText;
@@ -19,13 +25,15 @@ pub fn plugin(app: &mut App) {
         .add_systems(
             Update,
             (update_fps, update_compass).run_if(in_state(GameState::Game)),
-        );
+        )
+        .add_systems(OnExit(GameState::Game), (despawn_fps, despawn_compass));
 }
 
 fn spawn_fps(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .spawn((
             Name::new("FPS"),
+            Fps,
             NodeBundle {
                 style: Style {
                     position_type: PositionType::Absolute,
@@ -67,6 +75,7 @@ fn spawn_compass(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .spawn((
             Name::new("Compass"),
+            Compass,
             NodeBundle {
                 style: Style {
                     position_type: PositionType::Absolute,
@@ -104,6 +113,17 @@ fn spawn_compass(mut commands: Commands, asset_server: Res<AssetServer>) {
                 ]),
             ));
         });
+}
+
+fn despawn_compass(mut commands: Commands, compass: Query<Entity, With<Compass>>) {
+    if let Ok(compass) = compass.get_single() {
+        commands.entity(compass).despawn_recursive();
+    }
+}
+fn despawn_fps(mut commands: Commands, fps: Query<Entity, With<Fps>>) {
+    if let Ok(fps) = fps.get_single() {
+        commands.entity(fps).despawn_recursive();
+    }
 }
 
 fn update_fps(diagnostics: Res<DiagnosticsStore>, mut query: Query<&mut Text, With<FpsText>>) {

@@ -39,14 +39,15 @@ impl Default for MovementSettings {
 pub fn plugin(app: &mut App) {
     app.init_resource::<InputState>()
         .init_resource::<MovementSettings>()
-        .add_systems(OnEnter(GameState::Game), player_init)
+        .add_systems(OnEnter(GameState::Game), spawn_player)
         .add_systems(
             Update,
             (player_move, player_look, cursor_grab).run_if(in_state(GameState::Game)),
-        );
+        )
+        .add_systems(OnExit(GameState::Game), despawn_player);
 }
 
-fn player_init(
+fn spawn_player(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -68,6 +69,12 @@ fn player_init(
             | LockedAxes::ROTATION_LOCKED_Z,
         Velocity::zero(),
     ));
+}
+
+fn despawn_player(mut commands: Commands, player: Query<Entity, With<Player>>) {
+    if let Ok(player) = player.get_single() {
+        commands.entity(player).despawn_recursive();
+    }
 }
 
 // https://github.com/sburris0/bevy_flycam/blob/master/src/lib.rs

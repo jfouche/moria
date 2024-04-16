@@ -33,7 +33,7 @@ fn main() {
                 })
                 .set(ImagePlugin::default_nearest()),
         )
-        .insert_resource(ClearColor(Color::rgb(0.1, 0.1, 0.)))
+        .insert_resource(ClearColor(Color::BLACK))
         .init_state::<GameState>()
         .add_plugins((
             splash::plugin,

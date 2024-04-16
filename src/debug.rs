@@ -1,4 +1,4 @@
-use crate::{config::GameConfig, core::Position, in_game::Player};
+use crate::{config::GameConfig, core::Position, in_game::Player, GameState};
 use bevy::{prelude::*, time::common_conditions::on_timer};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_panorbit_camera::PanOrbitCamera;
@@ -19,7 +19,9 @@ pub fn plugin(app: &mut App) {
         ))
         .add_systems(
             Update,
-            (debug_player_view).run_if(on_timer(Duration::from_secs(1))),
+            (debug_player_view)
+                .run_if(on_timer(Duration::from_secs(1)))
+                .run_if(in_state(GameState::Game)),
         )
         .add_systems(Update, show_axes);
 }

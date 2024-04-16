@@ -27,9 +27,15 @@ impl PluginGroup for InGamePlugins {
 }
 
 fn in_game_plugin(app: &mut App) {
-    app.add_systems(OnEnter(GameState::Game), grab_cursor)
+    app.add_systems(OnEnter(GameState::Game), (grab_cursor, set_background))
         .add_systems(OnExit(GameState::Game), ungrab_cursor)
         .add_systems(Update, show_menu.run_if(in_state(GameState::Game)));
+}
+
+const BACKGROUND_COLOR: Color = Color::BLACK;
+
+fn set_background(mut commands: Commands) {
+    commands.insert_resource(ClearColor(BACKGROUND_COLOR));
 }
 
 fn grab_cursor(mut primary_window: Query<&mut Window, With<PrimaryWindow>>) {

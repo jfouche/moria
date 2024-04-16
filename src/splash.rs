@@ -4,12 +4,8 @@ use crate::{despawn_screen, GameState};
 
 pub fn plugin(app: &mut App) {
     // As this plugin is managing the splash screen, it will focus on the state `GameState::Splash`
-    app
-        // When entering the state, spawn everything needed for this screen
-        .add_systems(OnEnter(GameState::Splash), splash_setup)
-        // While in this state, run the `countdown` system
-        .add_systems(Update, countdown.run_if(in_state(GameState::Splash)))
-        // When exiting the state, despawn everything that was spawned for this screen
+    app.add_systems(OnEnter(GameState::Splash), splash_setup)
+        .add_systems(Update, key_pressed.run_if(in_state(GameState::Splash)))
         .add_systems(OnExit(GameState::Splash), despawn_screen::<OnSplashScreen>);
 }
 
@@ -17,12 +13,11 @@ pub fn plugin(app: &mut App) {
 #[derive(Component)]
 struct OnSplashScreen;
 
-// Newtype to use a `Timer` for this screen as a resource
-#[derive(Resource, Deref, DerefMut)]
-struct SplashTimer(Timer);
+const BACKGROUND_COLOR: Color = Color::rgb(0.4, 0.4, 0.4);
 
 fn splash_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let icon = asset_server.load("player.png");
+    commands.insert_resource(ClearColor(BACKGROUND_COLOR));
+    let icon = asset_server.load("splash.png");
     // Display the logo
     commands
         .spawn((
@@ -49,17 +44,10 @@ fn splash_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 ..default()
             });
         });
-    // Insert the timer as a resource
-    commands.insert_resource(SplashTimer(Timer::from_seconds(1.0, TimerMode::Once)));
 }
 
-// Tick the timer, and change state when finished
-fn countdown(
-    mut game_state: ResMut<NextState<GameState>>,
-    time: Res<Time>,
-    mut timer: ResMut<SplashTimer>,
-) {
-    if timer.tick(time.delta()).finished() {
+fn key_pressed(mut game_state: ResMut<NextState<GameState>>, keys: Res<ButtonInput<KeyCode>>) {
+    if keys.get_pressed().len() != 0 {
         game_state.set(GameState::Menu);
     }
 }

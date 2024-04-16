@@ -1,4 +1,5 @@
 use crate::{
+    config::MazeConfig,
     core::{Maze, MazeBuilder, Position},
     GameState,
 };
@@ -15,15 +16,13 @@ const ROOM_WIDTH: f32 = 2.0;
 pub fn plugin(app: &mut App) {
     app.add_systems(
         OnEnter(GameState::Game),
-        (init_maze, maze_spawn.after(init_maze)),
-    );
+        (init_maze, spawn_maze.after(init_maze)),
+    )
+    .add_systems(OnExit(GameState::Game), despawn_maze);
 }
 
 #[derive(Component, Default)]
-struct MazeComponent {}
-
-#[derive(Component)]
-struct RoomComponent {}
+struct MazeComponent;
 
 #[derive(Copy, Clone, Debug)]
 enum Wall {
@@ -82,13 +81,12 @@ impl Wall {
     }
 }
 
-fn init_maze(mut commands: Commands /*, config: Res<MoriaConfig> */) {
-    // let maze = MazeBuilder::new(config.maze.cols, config.maze.rows).create_maze();
-    let maze = MazeBuilder::new(5, 6).create_maze();
+fn init_maze(mut commands: Commands, config: Res<MazeConfig>) {
+    let maze = MazeBuilder::new(config.cols, config.rows).create_maze();
     commands.insert_resource(maze);
 }
 
-fn maze_spawn(
+fn spawn_maze(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -106,7 +104,7 @@ fn maze_spawn(
     });
 
     commands
-        .spawn((Name::new("MAZE"), SpatialBundle::default()))
+        .spawn((Name::new("MAZE"), MazeComponent, SpatialBundle::default()))
         .with_children(|maze_cmd| {
             // TODO : use Iterator
             for x in 0..maze.width() {
@@ -216,4 +214,10 @@ fn maze_spawn(
                 }
             }
         });
+}
+
+fn despawn_maze(mut commands: Commands, maze: Query<Entity, With<MazeComponent>>) {
+    if let Ok(maze) = maze.get_single() {
+        commands.entity(maze).despawn_recursive();
+    }
 }
