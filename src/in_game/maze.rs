@@ -1,3 +1,4 @@
+use super::Player;
 use crate::{
     config::MazeConfig,
     core::{IntoWorldPosition, Maze, MazeBuilder, Position, WorldPosition},
@@ -5,15 +6,6 @@ use crate::{
 };
 use bevy::prelude::*;
 use bevy_rapier3d::{dynamics::RigidBody, geometry::Collider};
-
-use super::Player;
-
-const WALL_HEIGHT: f32 = 1.0;
-
-const WALL_COLLIDER_WIDTH: f32 = 0.03;
-
-/// Width on X and Z
-const ROOM_WIDTH: f32 = 2.0;
 
 pub fn plugin(app: &mut App) {
     app.add_systems(
@@ -49,6 +41,10 @@ enum Wall {
 }
 
 impl Wall {
+    const HEIGHT: f32 = 1.0;
+
+    const COLLIDER_WIDTH: f32 = 0.03;
+
     fn mesh(&self) -> impl Into<Mesh> {
         let normal = match self {
             Wall::Top => Vec3::Z,
@@ -57,16 +53,16 @@ impl Wall {
             Wall::Right => Vec3::NEG_X,
         };
         let (w, h) = match self {
-            Wall::Top | Wall::Bottom => (ROOM_WIDTH, WALL_HEIGHT),
-            Wall::Left | Wall::Right => (WALL_HEIGHT, ROOM_WIDTH),
+            Wall::Top | Wall::Bottom => (WorldPosition::ROOM_WIDTH, Wall::HEIGHT),
+            Wall::Left | Wall::Right => (Wall::HEIGHT, WorldPosition::ROOM_WIDTH),
         };
         Plane3d::new(normal).mesh().size(w, h)
     }
 
     fn transform(&self, pos: &Position) -> Transform {
         let translation = pos.to_world().translation();
-        const HH: f32 = WALL_HEIGHT / 2.;
-        const HW: f32 = ROOM_WIDTH / 2.;
+        const HH: f32 = Wall::HEIGHT / 2.;
+        const HW: f32 = WorldPosition::ROOM_WIDTH / 2.;
 
         let translation = match self {
             Wall::Top => translation + Vec3::new(0., HH, -HW),
@@ -78,20 +74,20 @@ impl Wall {
     }
 
     fn collider(&self) -> Collider {
-        const HRW: f32 = ROOM_WIDTH / 2.0;
+        const HRW: f32 = WorldPosition::ROOM_WIDTH / 2.0;
         let (hx, hz) = match self {
-            Wall::Top | Wall::Bottom => (HRW, WALL_COLLIDER_WIDTH),
-            Wall::Left | Wall::Right => (WALL_COLLIDER_WIDTH, HRW),
+            Wall::Top | Wall::Bottom => (HRW, Wall::COLLIDER_WIDTH),
+            Wall::Left | Wall::Right => (Wall::COLLIDER_WIDTH, HRW),
         };
-        Collider::cuboid(hx, WALL_HEIGHT / 2., hz)
+        Collider::cuboid(hx, Self::HEIGHT / 2., hz)
     }
 
     fn collider_transform(&self) -> Transform {
         let (x, z) = match self {
-            Wall::Top => (0.0, -WALL_COLLIDER_WIDTH),
-            Wall::Bottom => (0.0, WALL_COLLIDER_WIDTH),
-            Wall::Left => (WALL_COLLIDER_WIDTH, 0.0),
-            Wall::Right => (-WALL_COLLIDER_WIDTH, 0.0),
+            Wall::Top => (0.0, -Wall::COLLIDER_WIDTH),
+            Wall::Bottom => (0.0, Wall::COLLIDER_WIDTH),
+            Wall::Left => (Wall::COLLIDER_WIDTH, 0.0),
+            Wall::Right => (-Wall::COLLIDER_WIDTH, 0.0),
         };
         Transform::from_xyz(x, 0.0, z)
     }
@@ -240,7 +236,7 @@ fn spawn_maze(
                 perceptual_roughness: 0.9,
                 ..default()
             }),
-            transform: Transform::from_xyz(0.0, WALL_HEIGHT, 0.0),
+            transform: Transform::from_xyz(0.0, Wall::HEIGHT, 0.0),
             ..default()
         },
     ));
@@ -266,7 +262,7 @@ fn add_light(
                         ..default()
                     },
                     transform: Transform::from_translation(
-                        player_pos.translation_with_y(WALL_HEIGHT),
+                        player_pos.translation_with_y(Wall::HEIGHT),
                     )
                     .looking_at(player_pos.translation(), Vec3::Y),
                     ..default()
