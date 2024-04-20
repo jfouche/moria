@@ -8,6 +8,7 @@ mod hud;
 mod maze;
 mod minimap;
 mod player;
+mod weapon;
 
 pub use player::Player;
 
@@ -21,6 +22,7 @@ impl PluginGroup for InGamePlugins {
             .add(player::plugin)
             .add(minimap::plugin)
             .add(hud::plugin)
+            .add(weapon::plugin)
             .add(in_game_plugin)
     }
 }

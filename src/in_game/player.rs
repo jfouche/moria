@@ -1,3 +1,7 @@
+use crate::{
+    core::{IntoWorldPosition, Position},
+    despawn_all, GameState,
+};
 use bevy::{
     ecs::event::ManualEventReader,
     input::mouse::MouseMotion,
@@ -9,10 +13,7 @@ use bevy_rapier3d::{
     geometry::Collider,
 };
 
-use crate::{
-    core::{IntoWorldPosition, Position},
-    despawn_all, GameState,
-};
+use super::weapon::{FireEvent, Weapon};
 
 #[derive(Component)]
 pub struct Player;
@@ -39,13 +40,16 @@ impl Default for MovementSettings {
     }
 }
 
+const PLAYER_HEIGHT: f32 = 0.8;
+const PLAYER_WIDTH: f32 = 0.2;
+
 pub fn plugin(app: &mut App) {
     app.init_resource::<InputState>()
         .init_resource::<MovementSettings>()
         .add_systems(OnEnter(GameState::Game), spawn_player)
         .add_systems(
             Update,
-            (player_move, player_look).run_if(in_state(GameState::Game)),
+            (player_move, player_look, player_fires).run_if(in_state(GameState::Game)),
         )
         .add_systems(OnExit(GameState::Game), despawn_all::<Player>);
 }
@@ -59,15 +63,21 @@ fn spawn_player(
     commands.spawn((
         Player,
         Name::new("Player"),
+        Weapon::GUN,
         PbrBundle {
-            mesh: meshes.add(Capsule3d::new(0.2, 0.3)),
+            mesh: meshes.add(Capsule3d::new(PLAYER_WIDTH / 2.0, PLAYER_HEIGHT / 2.0)),
             material: materials.add(Color::BLACK),
             transform: Transform::from_translation(pos.to_world().translation())
                 .looking_at(Vec3::NEG_Z, Vec3::Y),
             ..default()
         },
         RigidBody::Dynamic,
-        Collider::round_cuboid(0.2, 0.2, 0.2, 0.05),
+        Collider::round_cuboid(
+            PLAYER_WIDTH / 2.0,
+            PLAYER_WIDTH / 2.0,
+            PLAYER_HEIGHT / 2.0,
+            0.05,
+        ),
         LockedAxes::ROTATION_LOCKED_X
             | LockedAxes::ROTATION_LOCKED_Y
             | LockedAxes::ROTATION_LOCKED_Z,
@@ -113,7 +123,7 @@ fn player_look(
         .expect("Can't retrieve primary window");
     let mut transform = query_player
         .get_single_mut()
-        .expect("Can't retrieve Player");
+        .expect("Player should be present");
     for ev in state.reader_motion.read(&motion) {
         let (mut yaw, mut pitch, _) = transform.rotation.to_euler(EulerRot::YXZ);
         match window.cursor.grab_mode {
@@ -131,5 +141,22 @@ fn player_look(
         // Order is important to prevent unintended roll
         transform.rotation =
             Quat::from_axis_angle(Vec3::Y, yaw) * Quat::from_axis_angle(Vec3::X, pitch);
+    }
+}
+
+fn player_fires(
+    // buttons: Res<ButtonInput<MouseButton>>,
+    keys: Res<ButtonInput<KeyCode>>,
+    player: Query<&Transform, (With<Player>, With<Weapon>)>,
+    mut ev_fire: EventWriter<FireEvent>,
+) {
+    let transform = player.get_single().expect("Player should be present");
+    // if buttons.just_pressed(MouseButton::Left) {
+    if keys.just_pressed(KeyCode::Space) {
+        let direction = transform.forward();
+        let origin = transform.translation
+            + Vec3::new(0.0, PLAYER_HEIGHT * 0.8, 0.0)
+            + *direction * PLAYER_WIDTH;
+        ev_fire.send(FireEvent { origin, direction });
     }
 }
