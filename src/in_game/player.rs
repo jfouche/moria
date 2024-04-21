@@ -18,6 +18,12 @@ use super::weapon::{FireEvent, Weapon};
 #[derive(Component)]
 pub struct Player;
 
+impl Player {
+    pub const HEIGHT: f32 = 0.6;
+
+    const WIDTH: f32 = 0.1;
+}
+
 /// Keeps track of mouse motion events, pitch, and yaw
 #[derive(Resource, Default)]
 struct InputState {
@@ -39,9 +45,6 @@ impl Default for MovementSettings {
         }
     }
 }
-
-const PLAYER_HEIGHT: f32 = 0.8;
-const PLAYER_WIDTH: f32 = 0.2;
 
 pub fn plugin(app: &mut App) {
     app.init_resource::<InputState>()
@@ -65,7 +68,7 @@ fn spawn_player(
         Name::new("Player"),
         Weapon::GUN,
         PbrBundle {
-            mesh: meshes.add(Capsule3d::new(PLAYER_WIDTH / 2.0, PLAYER_HEIGHT / 2.0)),
+            mesh: meshes.add(Capsule3d::new(Player::WIDTH / 2.0, Player::HEIGHT / 2.0)),
             material: materials.add(Color::BLACK),
             transform: Transform::from_translation(pos.to_world().translation())
                 .looking_at(Vec3::NEG_Z, Vec3::Y),
@@ -73,9 +76,9 @@ fn spawn_player(
         },
         RigidBody::Dynamic,
         Collider::round_cuboid(
-            PLAYER_WIDTH / 2.0,
-            PLAYER_WIDTH / 2.0,
-            PLAYER_HEIGHT / 2.0,
+            Player::WIDTH / 2.0,
+            Player::WIDTH / 2.0,
+            Player::HEIGHT / 2.0,
             0.05,
         ),
         LockedAxes::ROTATION_LOCKED_X
@@ -155,8 +158,8 @@ fn player_fires(
     if keys.just_pressed(KeyCode::Space) {
         let direction = transform.forward();
         let origin = transform.translation
-            + Vec3::new(0.0, PLAYER_HEIGHT * 0.8, 0.0)
-            + *direction * PLAYER_WIDTH;
+            + Vec3::new(0.0, Player::HEIGHT * 0.8, 0.0)
+            + *direction * Player::WIDTH;
         ev_fire.send(FireEvent { origin, direction });
     }
 }

@@ -41,9 +41,9 @@ enum Wall {
 }
 
 impl Wall {
-    const HEIGHT: f32 = 1.0;
+    const HEIGHT: f32 = 1.6;
 
-    const COLLIDER_WIDTH: f32 = 0.03;
+    const COLLIDER_WIDTH: f32 = 0.02;
 
     fn mesh(&self) -> impl Into<Mesh> {
         let normal = match self {

@@ -4,6 +4,7 @@ use bevy::{
     window::{CursorGrabMode, PrimaryWindow},
 };
 
+mod camera;
 mod hud;
 mod maze;
 mod minimap;
@@ -23,6 +24,7 @@ impl PluginGroup for InGamePlugins {
             .add(minimap::plugin)
             .add(hud::plugin)
             .add(weapon::plugin)
+            .add(camera::plugin)
             .add(in_game_plugin)
     }
 }

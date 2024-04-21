@@ -1,4 +1,3 @@
-mod camera;
 mod config;
 mod core;
 mod debug;
@@ -40,7 +39,6 @@ fn main() {
             config::plugin,
             menu::plugin,
             in_game::InGamePlugins,
-            camera::plugin,
         ))
         .add_plugins(debug::plugin)
         .add_systems(PreStartup, setup)

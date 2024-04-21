@@ -26,4 +26,5 @@ fn follow_player(
         .get_single_mut()
         .expect("Can't retrieve PlayerCamera");
     *cam_transform = *player_transform;
+    cam_transform.translation.y += Player::HEIGHT;
 }
