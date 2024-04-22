@@ -167,9 +167,18 @@ fn update_compass(
 ) {
     for mut text in &mut query {
         let transform = transform.get_single().expect("Can't get Player");
-        let mut forward = *transform.forward();
-        forward.y = 0.0;
-        let angle = forward.angle_between(Vec3::NEG_Z).to_degrees();
+        let forward = transform.forward();
+        let angle = forward.compass();
         text.sections[1].value = format!("{angle:.0}");
+    }
+}
+
+trait CompassAngle {
+    fn compass(&self) -> f32;
+}
+
+impl CompassAngle for Vec3 {
+    fn compass(&self) -> f32 {
+        180.0 - self.x.atan2(self.z).to_degrees()
     }
 }
