@@ -4,3 +4,8 @@ debug = false
 [maze]
 rows = 4
 cols = 8
+
+[camera]
+aperture_f_stops = 8.0
+shutter_speed_s  = 0.008
+sensitivity_iso  = 100.0
