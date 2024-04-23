@@ -8,6 +8,7 @@ struct MoriaConfig {
     game: GameConfig,
     maze: MazeConfig,
     camera: CameraConfig,
+    bullet: BulletConfig,
 }
 
 #[derive(Default, Debug, Deserialize, Resource)]
@@ -45,10 +46,22 @@ impl Default for CameraConfig {
     }
 }
 
+#[derive(Debug, Deserialize, Resource)]
+pub struct BulletConfig {
+    pub speed: f32,
+}
+
+impl Default for BulletConfig {
+    fn default() -> Self {
+        Self { speed: 5.0 }
+    }
+}
+
 pub fn plugin(app: &mut App) {
     app.init_resource::<GameConfig>()
         .init_resource::<MazeConfig>()
         .init_resource::<CameraConfig>()
+        .init_resource::<BulletConfig>()
         .add_systems(PreStartup, load_config);
 }
 
@@ -56,6 +69,7 @@ fn load_config(
     mut game: ResMut<GameConfig>,
     mut maze: ResMut<MazeConfig>,
     mut camera: ResMut<CameraConfig>,
+    mut bullet: ResMut<BulletConfig>,
 ) {
     if let Ok(content) = fs::read_to_string("moria.toml") {
         match toml::from_str::<MoriaConfig>(&content) {
@@ -63,6 +77,7 @@ fn load_config(
                 *game = config.game;
                 *maze = config.maze;
                 *camera = config.camera;
+                *bullet = config.bullet;
             }
             Err(e) => error!("Can't load config file : {e:?}"),
         };

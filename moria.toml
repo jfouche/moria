@@ -9,3 +9,6 @@ cols = 8
 aperture_f_stops = 8.0
 shutter_speed_s  = 0.008
 sensitivity_iso  = 100.0
+
+[bullet]
+speed = 25.0

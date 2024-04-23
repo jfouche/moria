@@ -1,4 +1,5 @@
 use crate::{
+    config::BulletConfig,
     core::{IntoWorldPosition, Position},
     despawn_all, GameState,
 };
@@ -150,16 +151,22 @@ fn player_look(
 fn player_fires(
     // buttons: Res<ButtonInput<MouseButton>>,
     keys: Res<ButtonInput<KeyCode>>,
-    player: Query<&Transform, (With<Player>, With<Weapon>)>,
+    player: Query<(&Transform, &Weapon), (With<Player>, With<Weapon>)>,
     mut ev_fire: EventWriter<FireEvent>,
+    config: Res<BulletConfig>,
 ) {
-    let transform = player.get_single().expect("Player should be present");
+    let (transform, weapon) = player.get_single().expect("Player should be present");
     // if buttons.just_pressed(MouseButton::Left) {
     if keys.just_pressed(KeyCode::Space) {
         let direction = transform.forward();
         let origin = transform.translation
             + Vec3::new(0.0, Player::HEIGHT * 0.8, 0.0)
             + *direction * Player::WIDTH;
-        ev_fire.send(FireEvent { origin, direction });
+        ev_fire.send(FireEvent {
+            origin,
+            direction,
+            damage: weapon.damage,
+            speed: config.speed,
+        });
     }
 }
