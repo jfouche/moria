@@ -71,7 +71,7 @@ fn spawn_player(
             mesh: meshes.add(Capsule3d::new(Player::WIDTH / 2.0, Player::HEIGHT / 2.0)),
             material: materials.add(Color::BLACK),
             transform: Transform::from_translation(pos.to_world().translation())
-                .looking_at(Vec3::NEG_Z, Vec3::Y),
+                .looking_to(Vec3::NEG_Z, Vec3::Y),
             ..default()
         },
         RigidBody::Dynamic,
