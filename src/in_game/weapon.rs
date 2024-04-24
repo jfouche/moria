@@ -2,11 +2,11 @@ use std::f32::consts::FRAC_PI_2;
 
 use bevy::prelude::*;
 use bevy_rapier3d::{
-    dynamics::{MassProperties, RigidBody, Velocity},
-    geometry::{Collider, ColliderMassProperties},
+    dynamics::{RigidBody, Velocity},
+    geometry::Collider,
 };
 
-use crate::{config::BulletConfig, GameState};
+use crate::GameState;
 
 #[derive(Event)]
 pub struct FireEvent {

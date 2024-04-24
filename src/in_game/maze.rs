@@ -155,29 +155,23 @@ fn spawn_maze(
     commands
         .spawn((Name::new("MAZE"), MazeComponent, SpatialBundle::default()))
         .with_children(|maze_cmd| {
-            // TODO : use Iterator
-            for x in 0..maze.width() {
-                for y in 0..maze.height() {
-                    let pos = Position(x, y);
-                    if let Some(room) = maze.get_room(&pos) {
-                        if room.borders().top {
-                            wall_spawner.spawn(maze_cmd, Wall::Top, &pos);
-                        }
-
-                        if room.borders().left {
-                            wall_spawner.spawn(maze_cmd, Wall::Left, &pos);
-                        }
-
-                        if room.borders().bottom {
-                            wall_spawner.spawn(maze_cmd, Wall::Bottom, &pos);
-                        }
-
-                        if room.borders().right {
-                            wall_spawner.spawn(maze_cmd, Wall::Right, &pos);
-                        }
-                    }
+            maze.iter().for_each(|(room, pos)| {
+                if room.borders().top {
+                    wall_spawner.spawn(maze_cmd, Wall::Top, &pos);
                 }
-            }
+
+                if room.borders().left {
+                    wall_spawner.spawn(maze_cmd, Wall::Left, &pos);
+                }
+
+                if room.borders().bottom {
+                    wall_spawner.spawn(maze_cmd, Wall::Bottom, &pos);
+                }
+
+                if room.borders().right {
+                    wall_spawner.spawn(maze_cmd, Wall::Right, &pos);
+                }
+            });
         });
 }
 

@@ -40,6 +40,12 @@ impl Maze {
         (pos.1 * self.width + pos.0) as usize
     }
 
+    fn get_position(&self, index: usize) -> Position {
+        let x = index as u32 % self.width;
+        let y = index as u32 / self.width;
+        Position(x, y)
+    }
+
     pub fn get_room(&self, pos: &Position) -> Option<&Room> {
         self.rooms.get(self.room_index(pos))
     }
@@ -153,6 +159,30 @@ impl Room {
 
     pub fn borders(&self) -> &CellBorders {
         &self.borders
+    }
+}
+
+pub struct MazeIter<'m> {
+    maze: &'m Maze,
+    index: usize,
+}
+
+impl<'m> Iterator for MazeIter<'m> {
+    type Item = (&'m Room, Position);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let pos = self.maze.get_position(self.index);
+        self.index += 1;
+        self.maze.get_room(&pos).map(|room| (room, pos))
+    }
+}
+
+impl<'m> Maze {
+    pub fn iter(&'m self) -> MazeIter<'m> {
+        MazeIter {
+            maze: self,
+            index: 0,
+        }
     }
 }
 
@@ -423,5 +453,13 @@ mod test {
         assert_eq!(maze.room_index(&Position(5, 0)), 5);
         assert_eq!(maze.room_index(&Position(0, 3)), 18);
         assert_eq!(maze.room_index(&Position(5, 3)), 23);
+    }
+
+    #[test]
+    fn it_gives_room_position() {
+        let maze = Maze::new(3, 4);
+        assert_eq!(maze.get_position(0), Position(0, 0));
+        assert_eq!(maze.get_position(2), Position(2, 0));
+        assert_eq!(maze.get_position(3), Position(0, 1));
     }
 }
