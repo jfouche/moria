@@ -45,28 +45,12 @@ fn main() {
         .run();
 }
 
-fn setup(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
+fn setup(mut commands: Commands) {
     // Camera
     commands.spawn(Camera3dBundle::default());
 
     // ground
-    commands.spawn((
-        PbrBundle {
-            mesh: meshes.add(Plane3d::new(Vec3::Y).mesh().size(50.0, 50.0)),
-            material: materials.add(StandardMaterial {
-                base_color: Color::MAROON,
-                perceptual_roughness: 0.9,
-                ..default()
-            }),
-            ..default()
-        },
-        RigidBody::Fixed,
-        Collider::halfspace(Vec3::Y).unwrap(),
-    ));
+    commands.spawn((RigidBody::Fixed, Collider::halfspace(Vec3::Y).unwrap()));
 }
 
 /// Generic system that takes a component as a parameter, and will despawn all entities with that component

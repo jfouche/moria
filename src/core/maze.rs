@@ -162,6 +162,7 @@ impl Room {
     }
 }
 
+/// Iterator that return a `(&'m Room, Position)`
 pub struct MazeIter<'m> {
     maze: &'m Maze,
     index: usize,

@@ -8,19 +8,17 @@ use bevy::prelude::*;
 use bevy_rapier3d::{dynamics::RigidBody, geometry::Collider};
 
 pub fn plugin(app: &mut App) {
-    app.add_systems(
-        OnEnter(GameState::Game),
-        (init_maze, (spawn_maze, spawn_ceiling).after(init_maze)),
-    )
-    .add_systems(Update, add_light.run_if(in_state(GameState::Game)))
-    .add_systems(
-        OnExit(GameState::Game),
-        (
-            despawn_all::<MazeComponent>,
-            despawn_all::<RoomLight>,
-            despawn_all::<Ceiling>,
-        ),
-    );
+    app.add_systems(Startup, load_assets)
+        .add_systems(OnEnter(GameState::Game), (spawn_maze,))
+        .add_systems(Update, add_light.run_if(in_state(GameState::Game)))
+        .add_systems(
+            OnExit(GameState::Game),
+            (
+                despawn_all::<MazeComponent>,
+                despawn_all::<RoomLight>,
+                despawn_all::<Ceiling>,
+            ),
+        );
 }
 
 #[derive(Component)]
@@ -93,108 +91,172 @@ impl Wall {
     }
 }
 
-struct WallSpawner<'w> {
-    meshes: ResMut<'w, Assets<Mesh>>,
-    material_handle: Handle<StandardMaterial>,
+#[derive(Resource)]
+struct MazeAssets {
+    floor_material: Handle<StandardMaterial>,
+    floor_mesh: Handle<Mesh>,
+    ceiling_material: Handle<StandardMaterial>,
+    ceiling_mesh: Handle<Mesh>,
+    wall_material: Handle<StandardMaterial>,
+    top_wall_mesh: Handle<Mesh>,
+    bottom_wall_mesh: Handle<Mesh>,
+    left_wall_mesh: Handle<Mesh>,
+    right_wall_mesh: Handle<Mesh>,
 }
 
-impl<'w> WallSpawner<'w> {
-    fn new(meshes: ResMut<'w, Assets<Mesh>>, material_handle: Handle<StandardMaterial>) -> Self {
-        Self {
-            meshes,
-            material_handle,
-        }
-    }
-
-    fn spawn(&mut self, commands: &mut ChildBuilder, wall: Wall, pos: &Position) {
-        let name = format!("Wall::{wall:?}-{pos}");
-        commands
-            .spawn((
-                Name::new(name),
-                PbrBundle {
-                    mesh: self.meshes.add(wall.mesh()),
-                    material: self.material_handle.clone(),
-                    transform: wall.transform(pos),
-                    ..default()
-                },
-            ))
-            .with_children(|c| {
-                c.spawn((
-                    RigidBody::Fixed,
-                    wall.collider(),
-                    SpatialBundle {
-                        transform: wall.collider_transform(),
-                        ..default()
-                    },
-                ));
-            });
-    }
-}
-
-fn init_maze(mut commands: Commands, config: Res<MazeConfig>) {
-    let maze = MazeBuilder::new(config.cols, config.rows).create_maze();
-    commands.insert_resource(maze);
-}
-
-fn spawn_maze(
+fn load_assets(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    maze: Res<Maze>,
-) {
-    let texture_handle = asset_server.load("textures/Asset 1.png");
-    let material_handle = materials.add(StandardMaterial {
-        base_color_texture: Some(texture_handle.clone()),
-        alpha_mode: AlphaMode::Blend,
-        perceptual_roughness: 0.8,
-        ..default()
-    });
-    let mut wall_spawner = WallSpawner::new(meshes, material_handle);
-
-    commands
-        .spawn((Name::new("MAZE"), MazeComponent, SpatialBundle::default()))
-        .with_children(|maze_cmd| {
-            maze.iter().for_each(|(room, pos)| {
-                if room.borders().top {
-                    wall_spawner.spawn(maze_cmd, Wall::Top, &pos);
-                }
-
-                if room.borders().left {
-                    wall_spawner.spawn(maze_cmd, Wall::Left, &pos);
-                }
-
-                if room.borders().bottom {
-                    wall_spawner.spawn(maze_cmd, Wall::Bottom, &pos);
-                }
-
-                if room.borders().right {
-                    wall_spawner.spawn(maze_cmd, Wall::Right, &pos);
-                }
-            });
-        });
-}
-
-fn spawn_ceiling(
-    mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    commands.spawn((
-        Name::new("CEILING"),
-        Ceiling,
-        PbrBundle {
-            // Use NEG_Y to show the ceiling face to the player
-            mesh: meshes.add(Plane3d::new(Vec3::NEG_Y).mesh().size(50.0, 50.0)),
-            material: materials.add(StandardMaterial {
-                base_color: Color::DARK_GRAY,
-                perceptual_roughness: 0.9,
+    // load floor textures and materials
+    let floor_texture_handle = asset_server.load("textures/Asset 6.png");
+    let floor_material_handle = materials.add(StandardMaterial {
+        base_color_texture: Some(floor_texture_handle.clone()),
+        ..default()
+    });
+
+    let floor_mesh_handle = meshes.add(
+        Plane3d::new(Vec3::Y)
+            .mesh()
+            .size(WorldPosition::ROOM_WIDTH, WorldPosition::ROOM_WIDTH),
+    );
+
+    // load ceiling textures and materials
+    let ceiling_texture_handle = asset_server.load("textures/Asset 17.png");
+    let ceiling_material_handle = materials.add(StandardMaterial {
+        base_color_texture: Some(ceiling_texture_handle.clone()),
+        ..default()
+    });
+
+    let ceiling_mesh_handle = meshes.add(
+        Plane3d::new(Vec3::NEG_Y)
+            .mesh()
+            .size(WorldPosition::ROOM_WIDTH, WorldPosition::ROOM_WIDTH),
+    );
+
+    // load wall textures and materials
+    let wall_texture_handle = asset_server.load("textures/Asset 1.png");
+    let wall_material_handle = materials.add(StandardMaterial {
+        base_color_texture: Some(wall_texture_handle.clone()),
+        ..default()
+    });
+
+    let maze_assets = MazeAssets {
+        floor_material: floor_material_handle,
+        floor_mesh: floor_mesh_handle,
+        ceiling_material: ceiling_material_handle,
+        ceiling_mesh: ceiling_mesh_handle,
+        wall_material: wall_material_handle,
+        top_wall_mesh: meshes.add(Wall::Top.mesh()),
+        bottom_wall_mesh: meshes.add(Wall::Bottom.mesh()),
+        left_wall_mesh: meshes.add(Wall::Left.mesh()),
+        right_wall_mesh: meshes.add(Wall::Right.mesh()),
+    };
+    commands.insert_resource(maze_assets);
+}
+
+fn spawn_wall(commands: &mut Commands, wall: Wall, pos: &Position, assets: &MazeAssets) -> Entity {
+    let mesh = match wall {
+        Wall::Top => assets.top_wall_mesh.clone(),
+        Wall::Bottom => assets.bottom_wall_mesh.clone(),
+        Wall::Left => assets.left_wall_mesh.clone(),
+        Wall::Right => assets.right_wall_mesh.clone(),
+    };
+    commands
+        .spawn((
+            Name::new(format!("Wall::{wall:?}-{pos}")),
+            PbrBundle {
+                mesh,
+                material: assets.wall_material.clone(),
+                transform: wall.transform(pos),
                 ..default()
-            }),
-            transform: Transform::from_xyz(0.0, Wall::HEIGHT, 0.0),
-            ..default()
-        },
-    ));
+            },
+        ))
+        .with_children(|c| {
+            c.spawn((
+                RigidBody::Fixed,
+                wall.collider(),
+                SpatialBundle {
+                    transform: wall.collider_transform(),
+                    ..default()
+                },
+            ));
+        })
+        .id()
+}
+
+fn spawn_maze(mut commands: Commands, assets: Res<MazeAssets>, config: Res<MazeConfig>) {
+    // create the maze
+    let maze = MazeBuilder::new(config.cols, config.rows).create_maze();
+
+    // Spawn Maze
+    let maze_id = commands
+        .spawn((Name::new("MAZE"), MazeComponent, SpatialBundle::default()))
+        .id();
+
+    // a vec to store children
+    let mut children = vec![];
+
+    maze.iter().for_each(|(room, pos)| {
+        // Spawn floor
+        let floor_id = commands
+            .spawn((
+                Name::new(format!("Floor {pos}")),
+                PbrBundle {
+                    mesh: assets.floor_mesh.clone(),
+                    material: assets.floor_material.clone(),
+                    transform: Transform::from_translation(pos.to_world().translation()),
+                    ..default()
+                },
+            ))
+            .id();
+        children.push(floor_id);
+
+        // Spawn ceiling
+        let ceiling_id = commands
+            .spawn((
+                Name::new(format!("Ceiling {pos}")),
+                PbrBundle {
+                    mesh: assets.ceiling_mesh.clone(),
+                    material: assets.ceiling_material.clone(),
+                    transform: Transform::from_translation(
+                        pos.to_world().translation_with_y(Wall::HEIGHT),
+                    ),
+                    ..default()
+                },
+            ))
+            .id();
+        children.push(ceiling_id);
+
+        // Spawn walls
+        if room.borders().top {
+            let wall_id = spawn_wall(&mut commands, Wall::Top, &pos, &assets);
+            children.push(wall_id);
+        }
+
+        if room.borders().left {
+            let wall_id = spawn_wall(&mut commands, Wall::Left, &pos, &assets);
+            children.push(wall_id);
+        }
+
+        if room.borders().bottom {
+            let wall_id = spawn_wall(&mut commands, Wall::Bottom, &pos, &assets);
+            children.push(wall_id);
+        }
+
+        if room.borders().right {
+            let wall_id = spawn_wall(&mut commands, Wall::Right, &pos, &assets);
+            children.push(wall_id);
+        }
+    });
+
+    // Organize children
+    commands.entity(maze_id).push_children(&children);
+
+    // insert maze as resource
+    commands.insert_resource(maze);
 }
 
 fn add_light(
