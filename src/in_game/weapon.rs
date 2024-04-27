@@ -1,19 +1,24 @@
-use std::f32::consts::FRAC_PI_2;
-
+use crate::GameState;
 use bevy::prelude::*;
 use bevy_rapier3d::{
     dynamics::{RigidBody, Velocity},
     geometry::{ActiveEvents, Collider},
 };
-
-use crate::GameState;
+use std::f32::consts::FRAC_PI_2;
 
 #[derive(Event)]
 pub struct FireEvent {
+    pub from: FireEmitter,
     pub origin: Vec3,
     pub direction: Direction3d,
     pub damage: u16,
     pub speed: f32,
+}
+
+#[derive(Component, Clone, Copy)]
+pub enum FireEmitter {
+    Player,
+    Enemy,
 }
 
 #[derive(Component)]
@@ -62,6 +67,7 @@ fn spawn_bullet(
                 damage: fire_ev.damage,
             },
             Name::new("BULLET"),
+            fire_ev.from,
             PbrBundle {
                 mesh: meshes.add(Cylinder::new(BULLET_RADIUS, BULLET_LENGTH)),
                 material: materials.add(Color::ORANGE),

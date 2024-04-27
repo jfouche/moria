@@ -4,7 +4,9 @@ use bevy::{
     window::{CursorGrabMode, PrimaryWindow},
 };
 
+mod bullet_collision;
 mod camera;
+mod character;
 mod enemy;
 mod hud;
 mod maze;
@@ -27,6 +29,7 @@ impl PluginGroup for InGamePlugins {
             .add(weapon::plugin)
             .add(camera::plugin)
             .add(enemy::plugin)
+            .add(bullet_collision::plugin)
             .add(in_game_plugin)
     }
 }

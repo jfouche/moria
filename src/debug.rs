@@ -26,7 +26,7 @@ pub fn plugin(app: &mut App) {
         .add_systems(
             Update,
             (
-                debug_player_view.run_if(on_timer(Duration::from_secs(1))),
+                // debug_player_view.run_if(on_timer(Duration::from_secs(1))),
                 display_collision_events,
             )
                 .run_if(in_state(GameState::Game)),

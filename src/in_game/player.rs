@@ -14,7 +14,10 @@ use bevy_rapier3d::{
     geometry::Collider,
 };
 
-use super::weapon::{FireEvent, Weapon};
+use super::{
+    character::Life,
+    weapon::{FireEmitter, FireEvent, Weapon},
+};
 
 #[derive(Component)]
 pub struct Player;
@@ -67,6 +70,7 @@ fn spawn_player(
     commands.spawn((
         Player,
         Name::new("Player"),
+        Life::new(100),
         Weapon::GUN,
         PbrBundle {
             mesh: meshes.add(Capsule3d::new(Player::WIDTH / 2.0, Player::HEIGHT / 2.0)),
@@ -163,6 +167,7 @@ fn player_fires(
             + Vec3::new(0.0, Player::HEIGHT * 0.8, 0.0)
             + *direction * Player::WIDTH;
         ev_fire.send(FireEvent {
+            from: FireEmitter::Player,
             origin,
             direction,
             damage: weapon.damage,
