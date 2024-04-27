@@ -3,7 +3,7 @@ use std::f32::consts::FRAC_PI_2;
 use bevy::prelude::*;
 use bevy_rapier3d::{
     dynamics::{RigidBody, Velocity},
-    geometry::Collider,
+    geometry::{ActiveEvents, Collider},
 };
 
 use crate::GameState;
@@ -71,6 +71,7 @@ fn spawn_bullet(
             RigidBody::Dynamic,
             Collider::cylinder(BULLET_LENGTH / 2.0, BULLET_RADIUS / 2.0),
             Velocity::linear(*fire_ev.direction * fire_ev.speed),
+            ActiveEvents::COLLISION_EVENTS,
             // ColliderMassProperties::Density(0.0005), // TODO: don't har code
         ));
     }

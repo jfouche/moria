@@ -7,6 +7,7 @@ use bevy::{
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_panorbit_camera::PanOrbitCamera;
 use bevy_rapier3d::{
+    pipeline::CollisionEvent,
     plugin::{NoUserData, RapierPhysicsPlugin},
     render::{DebugRenderContext, RapierDebugRenderPlugin},
 };
@@ -24,8 +25,10 @@ pub fn plugin(app: &mut App) {
         .add_systems(Update, (toggle_grab).run_if(in_state(GameState::Game)))
         .add_systems(
             Update,
-            (debug_player_view)
-                .run_if(on_timer(Duration::from_secs(1)))
+            (
+                debug_player_view.run_if(on_timer(Duration::from_secs(1))),
+                display_collision_events,
+            )
                 .run_if(in_state(GameState::Game)),
         )
         .add_systems(Update, show_axes);
@@ -86,5 +89,11 @@ fn show_axes(mut gizmos: Gizmos, config: Res<GameConfig>) {
         gizmos.ray(Vec3::ZERO, Vec3::new(1.0, 0.0, 0.0), Color::RED);
         gizmos.ray(Vec3::ZERO, Vec3::new(0.0, 1.0, 0.0), Color::GREEN);
         gizmos.ray(Vec3::ZERO, Vec3::new(0.0, 0.0, 1.0), Color::BLUE);
+    }
+}
+
+fn display_collision_events(mut collision_events: EventReader<CollisionEvent>) {
+    for collision_event in collision_events.read() {
+        println!("Received collision event: {:?}", collision_event);
     }
 }

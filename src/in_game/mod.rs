@@ -5,6 +5,7 @@ use bevy::{
 };
 
 mod camera;
+mod enemy;
 mod hud;
 mod maze;
 mod minimap;
@@ -25,6 +26,7 @@ impl PluginGroup for InGamePlugins {
             .add(hud::plugin)
             .add(weapon::plugin)
             .add(camera::plugin)
+            .add(enemy::plugin)
             .add(in_game_plugin)
     }
 }
