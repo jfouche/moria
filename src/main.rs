@@ -4,6 +4,7 @@ mod debug;
 mod in_game;
 mod menu;
 mod splash;
+mod ui;
 
 use bevy::{prelude::*, window::WindowResolution};
 use bevy_rapier3d::{dynamics::RigidBody, geometry::Collider};
@@ -39,6 +40,7 @@ fn main() {
             config::plugin,
             menu::plugin,
             in_game::InGamePlugins,
+            ui::UiPlugins,
         ))
         .add_plugins(debug::plugin)
         .add_systems(PreStartup, setup)

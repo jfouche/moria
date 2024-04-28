@@ -1,7 +1,6 @@
 use crate::{config::GameConfig, core::WorldPosition, in_game::Player, GameState};
 use bevy::{
     prelude::*,
-    time::common_conditions::on_timer,
     window::{CursorGrabMode, PrimaryWindow},
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
@@ -11,7 +10,6 @@ use bevy_rapier3d::{
     plugin::{NoUserData, RapierPhysicsPlugin},
     render::{DebugRenderContext, RapierDebugRenderPlugin},
 };
-use std::time::Duration;
 
 pub fn plugin(app: &mut App) {
     app.add_systems(PreStartup, apply_config)
@@ -73,6 +71,7 @@ fn toggle_camera_controls_system(
     }
 }
 
+#[allow(dead_code)]
 fn debug_player_view(transform: Query<&Transform, With<Player>>) {
     let transform = transform.get_single().expect("Can't get Player");
     let translation = transform.translation;

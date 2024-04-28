@@ -3,22 +3,30 @@ use bevy::{
     prelude::*,
 };
 
-use crate::{despawn_all, in_game::player::Player, GameState};
+use crate::{despawn_all, in_game::player::Player, ui::ProgressBar, GameState};
+
+use super::character::Life;
 
 #[derive(Component)]
-struct Compass;
+struct Hud;
 
 #[derive(Component)]
-struct CompassText;
+struct HudCompass;
 
 #[derive(Component)]
-struct Fps;
+struct HudCompassText;
 
 #[derive(Component)]
-struct FpsText;
+struct HudFps;
 
 #[derive(Component)]
-struct Aim;
+struct HudFpsText;
+
+#[derive(Component)]
+struct HudAim;
+
+#[derive(Component)]
+struct HudLife;
 
 const BGCOLOR: Color = Color::rgba(0.9, 0.9, 0.9, 0.3);
 
@@ -26,27 +34,42 @@ pub fn plugin(app: &mut App) {
     app.add_plugins(FrameTimeDiagnosticsPlugin)
         .add_systems(
             OnEnter(GameState::Game),
-            (spawn_fps, spawn_compass, spawn_aim),
+            (
+                spawn_hud,
+                (spawn_fps, spawn_compass, spawn_aim, spawn_life).after(spawn_hud),
+            ),
         )
         .add_systems(
             Update,
-            (update_fps, update_compass).run_if(in_state(GameState::Game)),
+            (update_fps, update_compass, update_life).run_if(in_state(GameState::Game)),
         )
-        .add_systems(
-            OnExit(GameState::Game),
-            (
-                despawn_all::<Fps>,
-                despawn_all::<Compass>,
-                despawn_all::<Aim>,
-            ),
-        );
+        .add_systems(OnExit(GameState::Game), (despawn_all::<Hud>,));
 }
 
-fn spawn_fps(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands
+fn spawn_hud(mut commands: Commands) {
+    commands.spawn((
+        Hud,
+        Name::new("Hud"),
+        NodeBundle {
+            style: Style {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                ..default()
+            },
+            ..default()
+        },
+    ));
+}
+
+fn spawn_fps(
+    mut commands: Commands,
+    hud: Query<Entity, With<Hud>>,
+    asset_server: Res<AssetServer>,
+) {
+    let fps = commands
         .spawn((
-            Name::new("FPS"),
-            Fps,
+            Name::new("HudFps"),
+            HudFps,
             NodeBundle {
                 style: Style {
                     position_type: PositionType::Absolute,
@@ -64,7 +87,7 @@ fn spawn_fps(mut commands: Commands, asset_server: Res<AssetServer>) {
         .with_children(|cmds| {
             const FONT_SIZE: f32 = 15.0;
             cmds.spawn((
-                FpsText,
+                HudFpsText,
                 TextBundle::from_sections([
                     TextSection::new(
                         "FPS: ",
@@ -81,14 +104,21 @@ fn spawn_fps(mut commands: Commands, asset_server: Res<AssetServer>) {
                     }),
                 ]),
             ));
-        });
+        })
+        .id();
+    let hud = hud.get_single().expect("Hud");
+    commands.entity(hud).push_children(&[fps]);
 }
 
-fn spawn_compass(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands
+fn spawn_compass(
+    mut commands: Commands,
+    hud: Query<Entity, With<Hud>>,
+    asset_server: Res<AssetServer>,
+) {
+    let compass = commands
         .spawn((
-            Name::new("Compass"),
-            Compass,
+            Name::new("HudCompass"),
+            HudCompass,
             NodeBundle {
                 style: Style {
                     position_type: PositionType::Absolute,
@@ -106,7 +136,7 @@ fn spawn_compass(mut commands: Commands, asset_server: Res<AssetServer>) {
         .with_children(|cmds| {
             const FONT_SIZE: f32 = 15.0;
             cmds.spawn((
-                CompassText,
+                HudCompassText,
                 TextBundle::from_sections([
                     TextSection::new(
                         "Compass: ",
@@ -125,16 +155,24 @@ fn spawn_compass(mut commands: Commands, asset_server: Res<AssetServer>) {
                     }),
                 ]),
             ));
-        });
+        })
+        .id();
+    let hud = hud.get_single().expect("Hud");
+    commands.entity(hud).push_children(&[compass]);
 }
 
-fn spawn_aim(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands
+fn spawn_aim(
+    mut commands: Commands,
+    hud: Query<Entity, With<Hud>>,
+    asset_server: Res<AssetServer>,
+) {
+    let aim = commands
         .spawn((
-            Name::new("AIM"),
-            Aim,
+            Name::new("HudAim"),
+            HudAim,
             NodeBundle {
                 style: Style {
+                    position_type: PositionType::Absolute,
                     align_items: AlignItems::Center,
                     justify_content: JustifyContent::Center,
                     width: Val::Percent(100.0),
@@ -149,10 +187,39 @@ fn spawn_aim(mut commands: Commands, asset_server: Res<AssetServer>) {
                 image: UiImage::new(asset_server.load("aim.png")),
                 ..default()
             });
-        });
+        })
+        .id();
+    let hud = hud.get_single().expect("Hud");
+    commands.entity(hud).push_children(&[aim]);
 }
 
-fn update_fps(diagnostics: Res<DiagnosticsStore>, mut query: Query<&mut Text, With<FpsText>>) {
+fn spawn_life(mut commands: Commands, hud: Query<Entity, With<Hud>>) {
+    let life = commands
+        .spawn((
+            HudLife,
+            Name::new("HudLife"),
+            ProgressBar::new(0.0, 100.0, 60.0).with_colors(Color::BLACK, Color::RED),
+            NodeBundle {
+                style: Style {
+                    position_type: PositionType::Absolute,
+                    bottom: Val::Px(25.0),
+                    left: Val::Auto,
+                    right: Val::Auto,
+                    width: Val::Percent(60.0),
+                    height: Val::Px(40.0),
+                    margin: UiRect::horizontal(Val::Auto),
+                    padding: UiRect::all(Val::Px(3.0)),
+                    ..default()
+                },
+                ..default()
+            },
+        ))
+        .id();
+    let hud = hud.get_single().expect("Hud");
+    commands.entity(hud).push_children(&[life]);
+}
+
+fn update_fps(diagnostics: Res<DiagnosticsStore>, mut query: Query<&mut Text, With<HudFpsText>>) {
     for mut text in &mut query {
         if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
             if let Some(value) = fps.smoothed() {
@@ -161,24 +228,25 @@ fn update_fps(diagnostics: Res<DiagnosticsStore>, mut query: Query<&mut Text, Wi
         }
     }
 }
+
 fn update_compass(
     transform: Query<&Transform, With<Player>>,
-    mut query: Query<&mut Text, With<CompassText>>,
+    mut query: Query<&mut Text, With<HudCompassText>>,
 ) {
     for mut text in &mut query {
         let transform = transform.get_single().expect("Can't get Player");
         let forward = transform.forward();
-        let angle = forward.compass();
+        let angle = 180.0 - forward.x.atan2(forward.z).to_degrees();
         text.sections[1].value = format!("{angle:.0}");
     }
 }
 
-trait CompassAngle {
-    fn compass(&self) -> f32;
-}
-
-impl CompassAngle for Vec3 {
-    fn compass(&self) -> f32 {
-        180.0 - self.x.atan2(self.z).to_degrees()
+fn update_life(
+    life: Query<&Life, With<Player>>,
+    mut progressbars: Query<&mut ProgressBar, With<HudLife>>,
+) {
+    let &life = life.get_single().expect("Player");
+    for mut progressbar in progressbars.iter_mut() {
+        progressbar.set_value(*life as f32);
     }
 }
