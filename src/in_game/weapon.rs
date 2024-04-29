@@ -97,7 +97,6 @@ pub struct Weapon {
     bullet_speed: f32,
     /// in secs
     reload_time: f32,
-    reloading: bool,
 }
 
 impl Weapon {
@@ -105,22 +104,16 @@ impl Weapon {
         damage: 10,
         bullet_speed: 20.0,
         reload_time: 0.4,
-        reloading: false,
     };
 
     pub const SHOTGUN: Weapon = Weapon {
         damage: 35,
         bullet_speed: 30.0,
         reload_time: 0.9,
-        reloading: false,
     };
 
-    pub fn try_fire(&self) -> Option<FireEventBuilder<NoFrom, NoOrigin, NoDirection>> {
-        if self.reloading {
-            None
-        } else {
-            Some(FireEventBuilder::<NoFrom, NoOrigin, NoDirection>::new(self))
-        }
+    pub fn fire(&self) -> FireEventBuilder<NoFrom, NoOrigin, NoDirection> {
+        FireEventBuilder::<NoFrom, NoOrigin, NoDirection>::new(self)
     }
 }
 
@@ -137,6 +130,7 @@ pub struct Bullet {
 }
 
 #[derive(Component, Deref, DerefMut)]
+#[component(storage = "SparseSet")]
 pub struct Reload(Timer);
 
 impl Reload {

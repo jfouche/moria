@@ -154,27 +154,26 @@ fn player_look(
 fn player_fires(
     mut commands: Commands,
     keys: Res<ButtonInput<KeyCode>>,
-    player: Query<(Entity, &Transform, &Weapon), (With<Player>, With<Weapon>, Without<Reload>)>,
+    player: Query<(Entity, &Transform, &Weapon), (With<Player>, Without<Reload>)>,
     mut ev_fire: EventWriter<FireEvent>,
 ) {
     // The query doesn't return if the weapon is reloading (eg. if it contains the [Reload] component)
     if let Ok((entity, transform, weapon)) = player.get_single() {
         if keys.pressed(KeyCode::Space) {
-            if let Some(event_builder) = weapon.try_fire() {
-                let direction = transform.forward();
-                let origin = transform.translation
-                    + Vec3::new(0.0, Player::HEIGHT * 0.8, 0.0)
-                    + *direction * Player::WIDTH;
-                let event = event_builder
-                    .from(FireEmitter::Player)
-                    .origin(origin)
-                    .direction(direction)
-                    .event();
-                ev_fire.send(event);
+            let direction = transform.forward();
+            let origin = transform.translation
+                + Vec3::new(0.0, Player::HEIGHT * 0.8, 0.0)
+                + *direction * Player::WIDTH;
+            let event = weapon
+                .fire()
+                .from(FireEmitter::Player)
+                .origin(origin)
+                .direction(direction)
+                .event();
+            ev_fire.send(event);
 
-                // Reload
-                commands.entity(entity).insert(Reload::new(weapon));
-            }
+            // Reload
+            commands.entity(entity).insert(Reload::new(weapon));
         }
     }
 }
