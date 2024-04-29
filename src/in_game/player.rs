@@ -1,5 +1,4 @@
 use crate::{
-    config::BulletConfig,
     core::{IntoWorldPosition, Position},
     despawn_all, GameState,
 };
@@ -16,7 +15,7 @@ use bevy_rapier3d::{
 
 use super::{
     character::Life,
-    weapon::{FireEmitter, FireEvent, Weapon},
+    weapon::{FireEmitter, FireEvent, Reload, Weapon},
 };
 
 #[derive(Component)]
@@ -153,25 +152,29 @@ fn player_look(
 }
 
 fn player_fires(
-    // buttons: Res<ButtonInput<MouseButton>>,
+    mut commands: Commands,
     keys: Res<ButtonInput<KeyCode>>,
-    player: Query<(&Transform, &Weapon), (With<Player>, With<Weapon>)>,
+    player: Query<(Entity, &Transform, &Weapon), (With<Player>, With<Weapon>, Without<Reload>)>,
     mut ev_fire: EventWriter<FireEvent>,
-    config: Res<BulletConfig>,
 ) {
-    let (transform, weapon) = player.get_single().expect("Player should be present");
-    // if buttons.just_pressed(MouseButton::Left) {
-    if keys.just_pressed(KeyCode::Space) {
-        let direction = transform.forward();
-        let origin = transform.translation
-            + Vec3::new(0.0, Player::HEIGHT * 0.8, 0.0)
-            + *direction * Player::WIDTH;
-        ev_fire.send(FireEvent {
-            from: FireEmitter::Player,
-            origin,
-            direction,
-            damage: weapon.damage,
-            speed: config.speed,
-        });
+    // The query doesn't return if the weapon is reloading (eg. if it contains the [Reload] component)
+    if let Ok((entity, transform, weapon)) = player.get_single() {
+        if keys.pressed(KeyCode::Space) {
+            if let Some(event_builder) = weapon.try_fire() {
+                let direction = transform.forward();
+                let origin = transform.translation
+                    + Vec3::new(0.0, Player::HEIGHT * 0.8, 0.0)
+                    + *direction * Player::WIDTH;
+                let event = event_builder
+                    .from(FireEmitter::Player)
+                    .origin(origin)
+                    .direction(direction)
+                    .event();
+                ev_fire.send(event);
+
+                // Reload
+                commands.entity(entity).insert(Reload::new(weapon));
+            }
+        }
     }
 }
