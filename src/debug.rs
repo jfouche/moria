@@ -12,7 +12,7 @@ use bevy_rapier3d::{
 };
 
 pub fn plugin(app: &mut App) {
-    app.add_systems(PreStartup, apply_config)
+    app.add_systems(Startup, apply_config)
         .add_systems(Update, toggle_camera_controls_system)
         .add_plugins((
             WorldInspectorPlugin::new(),

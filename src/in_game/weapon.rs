@@ -1,10 +1,13 @@
-use crate::GameState;
+use crate::{
+    config::{WeaponConfig, WeaponsConfig},
+    GameState,
+};
 use bevy::prelude::*;
 use bevy_rapier3d::{
     dynamics::{RigidBody, Velocity},
     geometry::{ActiveEvents, Collider},
 };
-use std::f32::consts::FRAC_PI_2;
+use std::{collections::HashMap, f32::consts::FRAC_PI_2};
 
 #[derive(Event)]
 pub struct FireEvent {
@@ -96,24 +99,49 @@ pub struct Weapon {
     damage: u16,
     bullet_speed: f32,
     /// in secs
-    reload_time: f32,
+    reload_delay: f32,
 }
 
 impl Weapon {
-    pub const GUN: Weapon = Weapon {
-        damage: 10,
-        bullet_speed: 20.0,
-        reload_time: 0.4,
-    };
-
-    pub const SHOTGUN: Weapon = Weapon {
-        damage: 35,
-        bullet_speed: 30.0,
-        reload_time: 0.9,
-    };
-
     pub fn fire(&self) -> FireEventBuilder<NoFrom, NoOrigin, NoDirection> {
         FireEventBuilder::<NoFrom, NoOrigin, NoDirection>::new(self)
+    }
+}
+
+impl From<&WeaponConfig> for Weapon {
+    fn from(config: &WeaponConfig) -> Self {
+        Weapon {
+            damage: config.damage,
+            bullet_speed: config.bullet_speed,
+            reload_delay: config.reload_delay,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Hash, PartialEq, Eq)]
+pub enum WeaponType {
+    Gun,
+    Shotgun,
+}
+
+impl TryFrom<&str> for WeaponType {
+    type Error = &'static str;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match value {
+            "Gun" => Ok(Self::Gun),
+            "Shotgun" => Ok(Self::Shotgun),
+            _ => Err("Unknown weapon type"),
+        }
+    }
+}
+
+#[derive(Resource)]
+pub struct Weapons(HashMap<WeaponType, Weapon>);
+
+impl Weapons {
+    pub fn get(&self, weapon_type: WeaponType) -> Weapon {
+        self.0.get(&weapon_type).expect("Existing weapon").clone()
     }
 }
 
@@ -135,7 +163,7 @@ pub struct Reload(Timer);
 
 impl Reload {
     pub fn new(weapon: &Weapon) -> Self {
-        Reload(Timer::from_seconds(weapon.reload_time, TimerMode::Once))
+        Reload(Timer::from_seconds(weapon.reload_delay, TimerMode::Once))
     }
 }
 
@@ -144,7 +172,7 @@ const BULLET_LENGTH: f32 = 0.1;
 
 pub fn plugin(app: &mut App) {
     app.add_event::<FireEvent>()
-        .add_systems(Startup, load_assets)
+        .add_systems(Startup, (load_assets, load_weapons))
         .add_systems(
             Update,
             (spawn_bullet, weapon_reloaded).run_if(in_state(GameState::Game)),
@@ -166,6 +194,19 @@ fn load_assets(
         sound,
     };
     commands.insert_resource(assets);
+}
+
+fn load_weapons(mut commands: Commands, config: Res<WeaponsConfig>) {
+    let mut weapons = Weapons(HashMap::new());
+    for conf in config.0.iter() {
+        if let Ok(weapon_type) = WeaponType::try_from(conf.name.as_str()) {
+            weapons.0.insert(weapon_type, conf.into());
+        } else {
+            error!("Invalid weapon config");
+            panic!();
+        }
+    }
+    commands.insert_resource(weapons);
 }
 
 fn spawn_bullet(

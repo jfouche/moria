@@ -3,17 +3,22 @@ use std::fs;
 use bevy::{prelude::*, render::camera::PhysicalCameraParameters};
 use serde::Deserialize;
 
+// MoriaConfig
+
 #[derive(Default, Debug, Deserialize)]
 struct MoriaConfig {
     game: GameConfig,
     maze: MazeConfig,
     camera: CameraConfig,
+    weapons: Vec<WeaponConfig>,
 }
 
 #[derive(Default, Debug, Deserialize, Resource)]
 pub struct GameConfig {
     pub debug: bool,
 }
+
+// MazeConfig
 
 #[derive(Debug, Deserialize, Resource)]
 pub struct MazeConfig {
@@ -26,6 +31,8 @@ impl Default for MazeConfig {
         Self { rows: 5, cols: 5 }
     }
 }
+
+// CameraConfig
 
 #[derive(Debug, Deserialize, Resource)]
 pub struct CameraConfig {
@@ -45,24 +52,33 @@ impl Default for CameraConfig {
     }
 }
 
-pub fn plugin(app: &mut App) {
-    app.init_resource::<GameConfig>()
-        .init_resource::<MazeConfig>()
-        .init_resource::<CameraConfig>()
-        .add_systems(PreStartup, load_config);
+// WeaponConfig
+
+#[derive(Debug, Deserialize, Default)]
+pub struct WeaponConfig {
+    pub name: String,
+    pub damage: u16,
+    pub bullet_speed: f32,
+    pub reload_delay: f32,
 }
 
-fn load_config(
-    mut game: ResMut<GameConfig>,
-    mut maze: ResMut<MazeConfig>,
-    mut camera: ResMut<CameraConfig>,
-) {
+#[derive(Resource)]
+pub struct WeaponsConfig(pub Vec<WeaponConfig>);
+
+// plugin
+
+pub fn plugin(app: &mut App) {
+    app.add_systems(PreStartup, load_config);
+}
+
+fn load_config(mut commands: Commands) {
     if let Ok(content) = fs::read_to_string("moria.toml") {
         match toml::from_str::<MoriaConfig>(&content) {
             Ok(config) => {
-                *game = config.game;
-                *maze = config.maze;
-                *camera = config.camera;
+                commands.insert_resource(config.game);
+                commands.insert_resource(config.maze);
+                commands.insert_resource(config.camera);
+                commands.insert_resource(WeaponsConfig(config.weapons));
             }
             Err(e) => error!("Can't load config file : {e:?}"),
         };

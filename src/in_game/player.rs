@@ -15,7 +15,7 @@ use bevy_rapier3d::{
 
 use super::{
     character::Life,
-    weapon::{FireEmitter, FireEvent, Reload, Weapon},
+    weapon::{FireEmitter, FireEvent, Reload, Weapon, WeaponType, Weapons},
 };
 
 #[derive(Component)]
@@ -64,13 +64,14 @@ fn spawn_player(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    weapons: Res<Weapons>,
 ) {
     let pos = Position(0, 0);
     commands.spawn((
         Player,
         Name::new("Player"),
         Life::new(100),
-        Weapon::GUN,
+        weapons.get(WeaponType::Gun),
         PbrBundle {
             mesh: meshes.add(Capsule3d::new(Player::WIDTH / 2.0, Player::HEIGHT / 2.0)),
             material: materials.add(Color::BLACK),
