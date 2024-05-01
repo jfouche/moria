@@ -1,25 +1,20 @@
 use bevy::prelude::*;
 
-use crate::despawn_all;
+use crate::{despawn_all, in_game::AudioVolume};
 
 use super::{
-    button_bundle, button_style, button_text, button_text_style, main_panel_center, menu_vertical,
-    setting_button, MenuButtonAction, MenuState, SelectedOption,
+    button_bundle, button_style, button_text, main_panel_center, menu_vertical, setting_button,
+    MenuButtonAction, MenuState, SelectedOption,
 };
-
-// One of the two settings that can be set through the menu. It will be a resource in the app
-#[derive(Resource, Debug, Component, PartialEq, Eq, Clone, Copy)]
-struct Volume(u32);
 
 #[derive(Component)]
 struct OnSoundSettingsMenuScreen;
 
 pub fn plugin(app: &mut App) {
-    app.insert_resource(Volume(7))
-        .add_systems(OnEnter(MenuState::SettingsSound), sound_settings_menu_setup)
+    app.add_systems(OnEnter(MenuState::SettingsSound), sound_settings_menu_setup)
         .add_systems(
             Update,
-            setting_button::<Volume>.run_if(in_state(MenuState::SettingsSound)),
+            setting_button::<AudioVolume>.run_if(in_state(MenuState::SettingsSound)),
         )
         .add_systems(
             OnExit(MenuState::SettingsSound),
@@ -27,7 +22,7 @@ pub fn plugin(app: &mut App) {
         );
 }
 
-fn sound_settings_menu_setup(mut commands: Commands, volume: Res<Volume>) {
+fn sound_settings_menu_setup(mut commands: Commands, volume: Res<AudioVolume>) {
     commands
         .spawn((main_panel_center(), OnSoundSettingsMenuScreen))
         .with_children(|parent| {
@@ -53,9 +48,9 @@ fn sound_settings_menu_setup(mut commands: Commands, volume: Res<Volume>) {
                                     },
                                     ..button_bundle()
                                 },
-                                Volume(volume_setting),
+                                AudioVolume(volume_setting),
                             ));
-                            if *volume == Volume(volume_setting) {
+                            if *volume == AudioVolume(volume_setting) {
                                 entity.insert(SelectedOption);
                             }
                         }
@@ -63,7 +58,7 @@ fn sound_settings_menu_setup(mut commands: Commands, volume: Res<Volume>) {
                 parent
                     .spawn((button_bundle(), MenuButtonAction::BackToSettings))
                     .with_children(|parent| {
-                        parent.spawn(TextBundle::from_section("Back", button_text_style()));
+                        parent.spawn(button_text("Back"));
                     });
             });
         });

@@ -4,6 +4,7 @@ use bevy::{
     window::{CursorGrabMode, PrimaryWindow},
 };
 
+mod audio;
 mod bullet_collision;
 mod camera;
 mod character;
@@ -14,6 +15,7 @@ mod minimap;
 mod player;
 mod weapon;
 
+pub use audio::AudioVolume;
 pub use player::Player;
 
 use crate::{despawn_all, GameState};
@@ -30,6 +32,7 @@ impl PluginGroup for InGamePlugins {
             .add(camera::plugin)
             .add(enemy::plugin)
             .add(bullet_collision::plugin)
+            .add(audio::plugin)
             .add(in_game_plugin)
     }
 }
