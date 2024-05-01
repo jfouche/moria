@@ -49,13 +49,28 @@ impl Default for MovementSettings {
     }
 }
 
+/// Event to notify the player was hit
+#[derive(Event)]
+pub struct PlayerHitEvent {
+    pub damage: u16,
+}
+
+/// Event to notify the player is dead
+#[derive(Event)]
+pub struct PlayerDeathEvent;
+
+///
+/// Plugin
+///
 pub fn plugin(app: &mut App) {
-    app.init_resource::<InputState>()
+    app.add_event::<PlayerHitEvent>()
+        .add_event::<PlayerDeathEvent>()
+        .init_resource::<InputState>()
         .init_resource::<MovementSettings>()
         .add_systems(OnEnter(GameState::Game), spawn_player)
         .add_systems(
             Update,
-            (player_move, player_look, player_fires).run_if(in_state(GameState::Game)),
+            (player_move, player_look, player_fires, on_hit).run_if(in_state(GameState::Game)),
         )
         .add_systems(OnExit(GameState::Game), despawn_all::<Player>);
 }
@@ -175,6 +190,24 @@ fn player_fires(
 
             // Reload
             commands.entity(entity).insert(Reload::new(weapon));
+        }
+    }
+}
+
+///
+/// Player is hit
+///
+fn on_hit(
+    mut hit_events: EventReader<PlayerHitEvent>,
+    mut player: Query<(&mut Life, &Transform), With<Player>>,
+    mut death_events: EventWriter<PlayerDeathEvent>,
+) {
+    let (mut life, _transform) = player.get_single_mut().expect("Player");
+    for event in hit_events.read() {
+        info!("on_hit");
+        life.hit(event.damage);
+        if life.is_dead() {
+            death_events.send(PlayerDeathEvent);
         }
     }
 }

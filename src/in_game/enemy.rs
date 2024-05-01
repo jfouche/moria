@@ -1,11 +1,18 @@
 use crate::{
     core::{IntoWorldPosition, Position},
+    in_game::weapon::FireEmitter,
     GameState,
 };
 use bevy::prelude::*;
-use bevy_rapier3d::{dynamics::RigidBody, geometry::Collider};
+use bevy_rapier3d::{
+    dynamics::RigidBody, geometry::Collider, pipeline::QueryFilter, plugin::RapierContext,
+};
 
-use super::character::Life;
+use super::{
+    character::Life,
+    weapon::{FireEvent, Reload, Weapon, WeaponType, Weapons},
+    Player,
+};
 
 #[derive(Component, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Enemy;
@@ -31,7 +38,7 @@ pub struct EnemyHitEvent {
 #[derive(Event)]
 pub struct EnemyDeathEvent {
     entity: Entity,
-    pos: Vec3,
+    _pos: Vec3,
 }
 
 pub fn plugin(app: &mut App) {
@@ -39,7 +46,10 @@ pub fn plugin(app: &mut App) {
         .add_event::<EnemyDeathEvent>()
         .add_systems(Startup, load_assets)
         .add_systems(OnEnter(GameState::Game), spawn_enemy)
-        .add_systems(Update, (on_hit, on_death));
+        .add_systems(
+            Update,
+            (on_hit, on_death, enemy_fires).run_if(in_state(GameState::Game)),
+        );
 }
 
 fn load_assets(
@@ -54,12 +64,13 @@ fn load_assets(
     commands.insert_resource(assets);
 }
 
-fn spawn_enemy(mut commands: Commands, assets: Res<EnemyAssets>) {
+fn spawn_enemy(mut commands: Commands, assets: Res<EnemyAssets>, weapons: Res<Weapons>) {
     let pos = Position(2, 2);
     commands.spawn((
         Enemy,
         Name::new("Enemy"),
         Life::new(50),
+        weapons.get(WeaponType::Shotgun),
         PbrBundle {
             mesh: assets.mesh.clone(),
             material: assets.material.clone(),
@@ -87,7 +98,7 @@ fn on_hit(
                 if life.is_dead() {
                     death_events.send(EnemyDeathEvent {
                         entity,
-                        pos: transform.translation,
+                        _pos: transform.translation,
                     });
                 }
             }
@@ -102,4 +113,43 @@ fn on_death(mut commands: Commands, mut death_events: EventReader<EnemyDeathEven
     death_events.read().map(|ev| ev.entity).for_each(|entity| {
         commands.entity(entity).despawn_recursive();
     });
+}
+
+///
+fn enemy_fires(
+    mut commands: Commands,
+    enemies: Query<(Entity, &Transform, &Weapon), (With<Enemy>, Without<Reload>)>,
+    player: Query<(Entity, &Transform), With<Player>>,
+    rapier_context: Res<RapierContext>,
+    mut ev_fire: EventWriter<FireEvent>,
+) {
+    let (player_entity, player_transform) = player.get_single().expect("Player");
+    for (enemy_entity, enemy_transform, weapon) in enemies.iter() {
+        let dy = Vec3::new(0.0, 0.1, 0.0);
+        let enemy_pos = enemy_transform.translation;
+        let ray_dir = player_transform.translation - enemy_pos;
+        let ray_pos = enemy_pos + ray_dir.normalize() * (Enemy::RADIUS + 0.2) + dy;
+        let max_toi = ray_dir.length();
+        let solid = true;
+        let filter = QueryFilter::new();
+        if let Some((entity, toi)) =
+            rapier_context.cast_ray(ray_pos, ray_dir, max_toi, solid, filter)
+        {
+            if entity == player_entity {
+                info!("Enemy sees Player, toi: {toi}");
+                // Enemy fires
+
+                let event = weapon
+                    .fire()
+                    .from(FireEmitter::Enemy)
+                    .origin(ray_pos)
+                    .direction(Direction3d::new(ray_dir).unwrap())
+                    .event();
+                ev_fire.send(event);
+
+                // Weapon reload
+                commands.entity(enemy_entity).insert(Reload::new(weapon));
+            }
+        }
+    }
 }

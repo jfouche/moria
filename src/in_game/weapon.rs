@@ -239,10 +239,13 @@ fn spawn_bullet(
 
         // spawn the audio in a different entity to be sure it doesn't stop
         // when the bullet is despawn to early
-        commands.spawn(AudioBundle {
-            source: assets.sound.clone(),
-            settings: PlaybackSettings::ONCE,
-        });
+        commands.spawn((
+            Name::new("Bullet sound"),
+            AudioBundle {
+                source: assets.sound.clone(),
+                settings: PlaybackSettings::DESPAWN,
+            },
+        ));
     }
 }
 

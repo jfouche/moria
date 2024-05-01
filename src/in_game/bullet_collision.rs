@@ -5,13 +5,20 @@ use std::collections::{HashMap, HashSet};
 
 use super::{
     enemy::{Enemy, EnemyHitEvent},
+    player::PlayerHitEvent,
     weapon::Bullet,
+    Player,
 };
 
 pub fn plugin(app: &mut App) {
     app.add_systems(
         Update,
-        (enemy_hit_by_bullet, despawn_bullet_after_collision).run_if(in_state(GameState::Game)),
+        (
+            enemy_hit_by_bullet,
+            player_hit_by_bullet,
+            despawn_bullet_after_collision,
+        )
+            .run_if(in_state(GameState::Game)),
     );
 }
 
@@ -61,6 +68,7 @@ fn enemy_hit_by_bullet(
                 for (bullet_entity, bullet) in bullets.iter() {
                     if (e1 == enemy && e2 == bullet_entity) || (e1 == bullet_entity && e2 == enemy)
                     {
+                        info!("enemy_hit_by_bullet {enemy:?}");
                         *enemies_hit.entry(enemy).or_insert(0) += bullet.damage;
                     }
                 }
@@ -73,4 +81,31 @@ fn enemy_hit_by_bullet(
             damage: *damage,
         });
     }
+}
+
+///
+/// Player hit by a bullet
+///
+fn player_hit_by_bullet(
+    mut collisions: EventReader<CollisionEvent>,
+    player: Query<Entity, With<Player>>,
+    bullets: Query<(Entity, &Bullet)>,
+    mut player_hit_events: EventWriter<PlayerHitEvent>,
+) {
+    let player = player.get_single().expect("Player");
+    collisions
+        .read()
+        .filter_map(|e| match e {
+            CollisionEvent::Started(e1, e2, _) => Some((e1, e2)),
+            _ => None,
+        })
+        .for_each(|(&e1, &e2)| {
+            for (bullet_entity, bullet) in bullets.iter() {
+                if (e1 == player && e2 == bullet_entity) || (e1 == bullet_entity && e2 == player) {
+                    player_hit_events.send(PlayerHitEvent {
+                        damage: bullet.damage,
+                    });
+                }
+            }
+        });
 }
