@@ -2,17 +2,17 @@ use super::Player;
 use crate::{
     config::MazeConfig,
     core::{IntoWorldPosition, Maze, MazeBuilder, Position, WorldPosition},
-    despawn_all, GameState,
+    despawn_all, GameState, InGameStateSet,
 };
 use bevy::prelude::*;
 use bevy_rapier3d::{dynamics::RigidBody, geometry::Collider};
 
 pub fn plugin(app: &mut App) {
     app.add_systems(Startup, load_assets)
-        .add_systems(OnEnter(GameState::Game), (spawn_maze,))
-        .add_systems(Update, add_light.run_if(in_state(GameState::Game)))
+        .add_systems(OnEnter(GameState::InGame), (spawn_maze,))
+        .add_systems(Update, add_light.in_set(InGameStateSet::Running))
         .add_systems(
-            OnExit(GameState::Game),
+            OnExit(GameState::InGame),
             (
                 despawn_all::<MazeComponent>,
                 despawn_all::<RoomLight>,

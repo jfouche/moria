@@ -1,10 +1,6 @@
-use bevy::prelude::*;
-
+use super::*;
 use crate::despawn_all;
-
-use super::{
-    button_bundle, button_text, main_panel_center, menu_vertical, MenuButtonAction, MenuState,
-};
+use bevy::prelude::*;
 
 // Tag component used to tag entities added on the settings menu screen
 #[derive(Component)]
@@ -14,9 +10,14 @@ struct OnSettingsMenuScreen;
 /// Plugin
 ///
 pub fn plugin(app: &mut App) {
-    app.add_systems(OnEnter(MenuState::Settings), spawn_settings_menu)
+    app.add_systems(OnEnter(MainMenuState::Settings), spawn_settings_menu)
+        .add_systems(OnEnter(PauseMenuState::Settings), spawn_settings_menu)
         .add_systems(
-            OnExit(MenuState::Settings),
+            OnExit(MainMenuState::Settings),
+            despawn_all::<OnSettingsMenuScreen>,
+        )
+        .add_systems(
+            OnExit(PauseMenuState::Settings),
             despawn_all::<OnSettingsMenuScreen>,
         );
 }

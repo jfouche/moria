@@ -20,14 +20,14 @@ pub fn plugin(app: &mut App) {
             RapierDebugRenderPlugin::default().disabled(),
             // PanOrbitCameraPlugin
         ))
-        .add_systems(Update, (toggle_grab).run_if(in_state(GameState::Game)))
+        .add_systems(Update, (toggle_grab).run_if(in_state(GameState::InGame)))
         .add_systems(
             Update,
             (
                 // debug_player_view.run_if(on_timer(Duration::from_secs(1))),
                 display_collision_events,
             )
-                .run_if(in_state(GameState::Game)),
+                .run_if(in_state(GameState::InGame)),
         )
         .add_systems(Update, show_axes);
 }

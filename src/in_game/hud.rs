@@ -3,7 +3,7 @@ use bevy::{
     prelude::*,
 };
 
-use crate::{despawn_all, in_game::player::Player, ui::ProgressBar, GameState};
+use crate::{despawn_all, in_game::player::Player, ui::ProgressBar, GameState, InGameStateSet};
 
 use super::character::Life;
 
@@ -33,7 +33,7 @@ const BGCOLOR: Color = Color::rgba(0.9, 0.9, 0.9, 0.3);
 pub fn plugin(app: &mut App) {
     app.add_plugins(FrameTimeDiagnosticsPlugin)
         .add_systems(
-            OnEnter(GameState::Game),
+            OnEnter(GameState::InGame),
             (
                 spawn_hud,
                 (spawn_fps, spawn_compass, spawn_aim, spawn_life).after(spawn_hud),
@@ -41,9 +41,9 @@ pub fn plugin(app: &mut App) {
         )
         .add_systems(
             Update,
-            (update_fps, update_compass, update_life).run_if(in_state(GameState::Game)),
+            (update_fps, update_compass, update_life).in_set(InGameStateSet::Running),
         )
-        .add_systems(OnExit(GameState::Game), (despawn_all::<Hud>,));
+        .add_systems(OnExit(GameState::InGame), (despawn_all::<Hud>,));
 }
 
 fn spawn_hud(mut commands: Commands) {

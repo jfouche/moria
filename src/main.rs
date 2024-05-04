@@ -14,7 +14,27 @@ enum GameState {
     #[default]
     Splash,
     Menu,
-    Game,
+    InGame,
+}
+
+#[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
+pub enum InGameState {
+    #[default]
+    Running,
+    Pause,
+}
+
+#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+pub enum InGameStateSet {
+    Running,
+    Pause,
+}
+
+fn game_is_running(
+    game_state: Res<State<GameState>>,
+    in_game_state: Res<State<InGameState>>,
+) -> bool {
+    *game_state == GameState::InGame && *in_game_state == InGameState::Running
 }
 
 fn main() {
@@ -35,6 +55,9 @@ fn main() {
         )
         .insert_resource(ClearColor(Color::BLACK))
         .init_state::<GameState>()
+        .init_state::<InGameState>()
+        .configure_sets(Update, InGameStateSet::Running.run_if(game_is_running))
+        .configure_sets(PostUpdate, InGameStateSet::Running.run_if(game_is_running))
         .add_plugins((
             splash::plugin,
             config::plugin,

@@ -3,14 +3,14 @@ use bevy::{
     render::camera::{Exposure, PhysicalCameraParameters},
 };
 
-use crate::{config::CameraConfig, in_game::Player, GameState};
+use crate::{config::CameraConfig, in_game::Player, InGameStateSet};
 
 #[derive(Component)]
 pub struct PlayerCamera;
 
 pub fn plugin(app: &mut App) {
     app.add_systems(Startup, (init_camera, load_config))
-        .add_systems(PostUpdate, follow_player.run_if(in_state(GameState::Game)));
+        .add_systems(PostUpdate, follow_player.in_set(InGameStateSet::Running));
 }
 
 fn init_camera(mut commands: Commands, mut transform: Query<Entity, With<Camera3d>>) {

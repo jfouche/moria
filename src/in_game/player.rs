@@ -1,6 +1,6 @@
 use crate::{
     core::{IntoWorldPosition, Position},
-    despawn_all, GameState,
+    despawn_all, GameState, InGameStateSet,
 };
 use bevy::{
     ecs::event::ManualEventReader,
@@ -67,12 +67,12 @@ pub fn plugin(app: &mut App) {
         .add_event::<PlayerDeathEvent>()
         .init_resource::<InputState>()
         .init_resource::<MovementSettings>()
-        .add_systems(OnEnter(GameState::Game), spawn_player)
+        .add_systems(OnEnter(GameState::InGame), spawn_player)
         .add_systems(
             Update,
-            (player_move, player_look, player_fires, on_hit).run_if(in_state(GameState::Game)),
+            (player_move, player_look, player_fires, on_hit).in_set(InGameStateSet::Running),
         )
-        .add_systems(OnExit(GameState::Game), despawn_all::<Player>);
+        .add_systems(OnExit(GameState::InGame), despawn_all::<Player>);
 }
 
 fn spawn_player(

@@ -18,7 +18,7 @@ mod weapon;
 pub use audio::AudioVolume;
 pub use player::Player;
 
-use crate::{despawn_all, GameState};
+use crate::{despawn_all, GameState, InGameState, InGameStateSet};
 pub struct InGamePlugins;
 
 impl PluginGroup for InGamePlugins {
@@ -42,14 +42,14 @@ struct MyMusic;
 
 fn in_game_plugin(app: &mut App) {
     app.add_systems(
-        OnEnter(GameState::Game),
+        OnEnter(GameState::InGame),
         (grab_cursor, set_background, start_music),
     )
     .add_systems(
-        OnExit(GameState::Game),
+        OnExit(GameState::InGame),
         (ungrab_cursor, despawn_all::<MyMusic>),
     )
-    .add_systems(Update, show_menu.run_if(in_state(GameState::Game)));
+    .add_systems(Update, show_menu.in_set(InGameStateSet::Running));
 }
 
 const BACKGROUND_COLOR: Color = Color::BLACK;
@@ -59,21 +59,21 @@ fn set_background(mut commands: Commands) {
 }
 
 fn grab_cursor(mut primary_window: Query<&mut Window, With<PrimaryWindow>>) {
-    let mut window = primary_window.get_single_mut().expect("Can't get window");
+    let mut window = primary_window.get_single_mut().expect("PrimaryWindow");
     window.cursor.grab_mode = CursorGrabMode::Confined;
     window.cursor.visible = false;
 }
 
 fn ungrab_cursor(mut primary_window: Query<&mut Window, With<PrimaryWindow>>) {
-    let mut window = primary_window.get_single_mut().expect("Can't get window");
+    let mut window = primary_window.get_single_mut().expect("PrimaryWindow");
     window.cursor.grab_mode = CursorGrabMode::None;
     window.cursor.visible = true;
 }
 
-fn show_menu(mut state: ResMut<NextState<GameState>>, keys: Res<ButtonInput<KeyCode>>) {
+fn show_menu(mut state: ResMut<NextState<InGameState>>, keys: Res<ButtonInput<KeyCode>>) {
     for key in keys.get_pressed() {
         if *key == KeyCode::Escape {
-            state.set(GameState::Menu);
+            state.set(InGameState::Pause);
         }
     }
 }

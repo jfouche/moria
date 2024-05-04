@@ -1,6 +1,6 @@
 use crate::{
     config::{WeaponConfig, WeaponsConfig},
-    GameState,
+    InGameStateSet,
 };
 use bevy::prelude::*;
 use bevy_rapier3d::{
@@ -175,7 +175,7 @@ pub fn plugin(app: &mut App) {
         .add_systems(Startup, (load_assets, load_weapons))
         .add_systems(
             Update,
-            (spawn_bullet, weapon_reloaded).run_if(in_state(GameState::Game)),
+            (spawn_bullet, weapon_reloaded).in_set(InGameStateSet::Running),
         );
 }
 

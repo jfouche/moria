@@ -1,7 +1,7 @@
 use crate::{
     core::{IntoWorldPosition, Position},
     in_game::weapon::FireEmitter,
-    GameState,
+    GameState, InGameStateSet,
 };
 use bevy::prelude::*;
 use bevy_rapier3d::{
@@ -45,10 +45,10 @@ pub fn plugin(app: &mut App) {
     app.add_event::<EnemyHitEvent>()
         .add_event::<EnemyDeathEvent>()
         .add_systems(Startup, load_assets)
-        .add_systems(OnEnter(GameState::Game), spawn_enemy)
+        .add_systems(OnEnter(GameState::InGame), spawn_enemy)
         .add_systems(
             Update,
-            (on_hit, on_death, enemy_fires).run_if(in_state(GameState::Game)),
+            (on_hit, on_death, enemy_fires).in_set(InGameStateSet::Running),
         );
 }
 

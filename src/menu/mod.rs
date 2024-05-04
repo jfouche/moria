@@ -1,9 +1,11 @@
 mod main_menu;
+mod pause_menu;
 mod settings_menu;
 mod volume_menu;
 
-use crate::GameState;
+use crate::{GameState, InGameState};
 use bevy::prelude::*;
+pub use main_menu::MainMenuState;
 
 const BACKGROUND_COLOR: Color = Color::BLACK;
 
@@ -88,31 +90,38 @@ fn menu_title(title: &str) -> TextBundle {
 // All actions that can be triggered from a button click
 #[derive(Component)]
 enum MenuButtonAction {
-    Play,
+    PlayGame,
     Settings,
     SettingsSound,
     BackToMainMenu,
     BackToSettings,
-    Quit,
+    ExitApplication,
+    QuitGame,
 }
 
-// This plugin manages the menu, with 5 different screens:
-// - a main menu with "New Game", "Settings", "Quit"
-// - a settings menu with two submenus and a back button
-// - two settings screen with a setting that can be set and a back button
 pub fn plugin(app: &mut App) {
     app.add_plugins((
         volume_menu::plugin,
         main_menu::plugin,
         settings_menu::plugin,
+        pause_menu::plugin,
     ))
     // Common systems to all screens that handles buttons behavior
-    .add_systems(Update, (button_system).run_if(in_state(GameState::Menu)));
+    .add_systems(
+        Update,
+        // (button_system).run_if(in_state(GameState::Menu).or_else(in_state(InGameState::Pause))),
+        (button_system).run_if(in_menu),
+    );
 }
 
-// State used for the current menu screen
+// run condition
+fn in_menu(game_state: Res<State<GameState>>, in_game_state: Res<State<InGameState>>) -> bool {
+    *game_state == GameState::Menu || *in_game_state == InGameState::Pause
+}
+
+// State used for the main menu screen
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
-enum MenuState {
+pub enum PauseMenuState {
     Main,
     Settings,
     SettingsSound,

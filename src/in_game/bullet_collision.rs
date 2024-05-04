@@ -1,4 +1,4 @@
-use crate::GameState;
+use crate::InGameStateSet;
 use bevy::prelude::*;
 use bevy_rapier3d::pipeline::CollisionEvent;
 use std::collections::{HashMap, HashSet};
@@ -18,7 +18,7 @@ pub fn plugin(app: &mut App) {
             player_hit_by_bullet,
             despawn_bullet_after_collision,
         )
-            .run_if(in_state(GameState::Game)),
+            .in_set(InGameStateSet::Running),
     );
 }
 
