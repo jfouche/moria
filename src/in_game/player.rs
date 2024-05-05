@@ -35,7 +35,7 @@ struct InputState {
 
 /// Mouse sensitivity and movement speed
 #[derive(Resource)]
-pub struct MovementSettings {
+struct MovementSettings {
     pub sensitivity: f32,
     pub speed: f32,
 }

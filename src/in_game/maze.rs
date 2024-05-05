@@ -6,6 +6,7 @@ use crate::{
 };
 use bevy::prelude::*;
 use bevy_rapier3d::{dynamics::RigidBody, geometry::Collider};
+use std::f32::consts::FRAC_PI_2;
 
 pub fn plugin(app: &mut App) {
     app.add_systems(Startup, load_assets)
@@ -50,11 +51,10 @@ impl Wall {
             Wall::Left => Vec3::X,
             Wall::Right => Vec3::NEG_X,
         };
-        let (w, h) = match self {
-            Wall::Top | Wall::Bottom => (WorldPosition::ROOM_WIDTH, Wall::HEIGHT),
-            Wall::Left | Wall::Right => (Wall::HEIGHT, WorldPosition::ROOM_WIDTH),
-        };
-        Plane3d::new(normal).mesh().size(w, h)
+
+        Plane3d::new(normal)
+            .mesh()
+            .size(WorldPosition::ROOM_WIDTH, Wall::HEIGHT)
     }
 
     fn transform(&self, pos: &Position) -> Transform {
@@ -68,7 +68,17 @@ impl Wall {
             Wall::Left => translation + Vec3::new(-HW, HH, 0.),
             Wall::Right => translation + Vec3::new(HW, HH, 0.),
         };
-        Transform::from_translation(translation)
+        let rotation = match self {
+            Wall::Top => Quat::IDENTITY,
+            Wall::Bottom => Quat::IDENTITY,
+            Wall::Left => Quat::from_rotation_x(FRAC_PI_2),
+            Wall::Right => Quat::from_rotation_x(FRAC_PI_2),
+        };
+        Transform {
+            translation,
+            rotation,
+            scale: Vec3::ONE,
+        }
     }
 
     fn collider(&self) -> Collider {

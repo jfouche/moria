@@ -66,7 +66,7 @@ fn spawn_main_menu(mut commands: Commands) {
                     parent
                         .spawn((button_bundle(), MenuButtonAction::ExitApplication))
                         .with_children(|parent| {
-                            parent.spawn(button_text("Quit"));
+                            parent.spawn(button_text("Exit"));
                         });
                 });
         });
