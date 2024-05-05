@@ -1,5 +1,6 @@
 mod config;
 mod core;
+mod cursor;
 mod debug;
 mod in_game;
 mod menu;
@@ -20,6 +21,7 @@ enum GameState {
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
 pub enum InGameState {
     #[default]
+    Disabled,
     Running,
     Pause,
 }

@@ -1,4 +1,11 @@
-use crate::{config::GameConfig, core::WorldPosition, in_game::Player, GameState};
+use crate::{
+    config::GameConfig,
+    core::WorldPosition,
+    cursor::set_grab_cursor,
+    in_game::Player,
+    menu::{MainMenuState, PauseMenuState},
+    GameState, InGameState,
+};
 use bevy::{
     prelude::*,
     window::{CursorGrabMode, PrimaryWindow},
@@ -29,7 +36,15 @@ pub fn plugin(app: &mut App) {
             )
                 .run_if(in_state(GameState::InGame)),
         )
-        .add_systems(Update, show_axes);
+        .add_systems(Update, show_axes)
+        // States
+        .add_systems(Update, (state_transition::<GameState>, state_transition::<InGameState>, state_transition::<MainMenuState>, state_transition::<InGameState>))
+        .add_systems(OnEnter(GameState::InGame), display_states)
+        .add_systems(OnExit(GameState::InGame), display_states)
+        .add_systems(OnEnter(InGameState::Running), display_states)
+        .add_systems(OnExit(InGameState::Pause), display_states)
+        // END
+        ;
 }
 
 fn apply_config(config: Res<GameConfig>, mut rapier: ResMut<DebugRenderContext>) {
@@ -40,21 +55,14 @@ fn toggle_grab(
     mut primary_window: Query<&mut Window, With<PrimaryWindow>>,
     keys: Res<ButtonInput<KeyCode>>,
 ) {
-    let mut window = primary_window.get_single_mut().expect("Can't get window");
-    for key in keys.get_just_pressed() {
-        info!("toggle_grab({key:?})");
-        if *key == KeyCode::KeyG {
-            match window.cursor.grab_mode {
-                CursorGrabMode::None => {
-                    info!("toggle_grab() : None => Confined");
-                    window.cursor.grab_mode = CursorGrabMode::Confined;
-                    window.cursor.visible = false;
-                }
-                _ => {
-                    info!("toggle_grab() : Confined => None");
-                    window.cursor.grab_mode = CursorGrabMode::None;
-                    window.cursor.visible = true;
-                }
+    let window = primary_window.get_single_mut().expect("PrimaryWindow");
+    if keys.just_pressed(KeyCode::KeyG) {
+        match window.cursor.grab_mode {
+            CursorGrabMode::None => {
+                set_grab_cursor(window, true);
+            }
+            _ => {
+                set_grab_cursor(window, true);
             }
         }
     }
@@ -73,7 +81,7 @@ fn toggle_camera_controls_system(
 
 #[allow(dead_code)]
 fn debug_player_view(transform: Query<&Transform, With<Player>>) {
-    let transform = transform.get_single().expect("Can't get Player");
+    let transform = transform.get_single().expect("Player");
     let translation = transform.translation;
     let pos: WorldPosition = translation.into();
     let mut forward = *transform.forward();
@@ -94,5 +102,24 @@ fn show_axes(mut gizmos: Gizmos, config: Res<GameConfig>) {
 fn display_collision_events(mut collision_events: EventReader<CollisionEvent>) {
     for collision_event in collision_events.read() {
         println!("Received collision event: {:?}", collision_event);
+    }
+}
+
+fn display_states(
+    game_state: Res<State<GameState>>,
+    in_game_state: Res<State<InGameState>>,
+    main_menu_state: Res<State<MainMenuState>>,
+    pause_menu_state: Res<State<PauseMenuState>>,
+) {
+    info!(
+        "GameState::{:?} - InGameState::{:?} - MainMenuState::{:?} - PauseMenuState::{:?}",
+        **game_state, **in_game_state, **main_menu_state, **pause_menu_state
+    );
+}
+
+fn state_transition<S: States>(mut events: EventReader<StateTransitionEvent<S>>) {
+    for event in events.read() {
+        let name = std::any::type_name::<S>();
+        info!("{name} : {:?} => {:?}", event.before, event.after);
     }
 }

@@ -1,11 +1,12 @@
-use bevy::prelude::*;
-
-use crate::{despawn_all, GameState, InGameState};
-
 use super::{
     button_bundle, button_text, main_panel_center, menu_title, menu_vertical, MenuButtonAction,
     PauseMenuState, BACKGROUND_COLOR,
 };
+use crate::{
+    cursor::{grab_cursor, ungrab_cursor},
+    despawn_all, GameState, InGameState,
+};
+use bevy::prelude::*;
 
 // Tag component used to tag entities added on the main menu screen
 #[derive(Component)]
@@ -24,7 +25,8 @@ struct OnSoundSettingsMenuScreen;
 ///
 pub fn plugin(app: &mut App) {
     app.init_state::<PauseMenuState>()
-        .add_systems(OnEnter(InGameState::Pause), menu_setup)
+        .add_systems(OnEnter(InGameState::Pause), (ungrab_cursor, menu_setup))
+        .add_systems(OnExit(InGameState::Pause), grab_cursor)
         .add_systems(OnEnter(PauseMenuState::Main), spawn_pause_menu)
         .add_systems(
             OnExit(PauseMenuState::Main),
@@ -75,24 +77,30 @@ fn menu_action(
         (Changed<Interaction>, With<Button>),
     >,
     mut menu_state: ResMut<NextState<PauseMenuState>>,
+    mut in_game_state: ResMut<NextState<InGameState>>,
     mut game_state: ResMut<NextState<GameState>>,
 ) {
     for (interaction, menu_button_action) in &interaction_query {
         if *interaction == Interaction::Pressed {
             match menu_button_action {
                 MenuButtonAction::QuitGame => {
-                    game_state.set(GameState::Menu);
                     menu_state.set(PauseMenuState::Disabled);
+                    in_game_state.set(InGameState::Disabled);
+                    game_state.set(GameState::Menu);
                 }
                 MenuButtonAction::PlayGame => {
-                    game_state.set(GameState::InGame);
                     menu_state.set(PauseMenuState::Disabled);
+                    in_game_state.set(InGameState::Running);
                 }
-                MenuButtonAction::Settings => menu_state.set(PauseMenuState::Settings),
+                MenuButtonAction::Settings => {
+                    menu_state.set(PauseMenuState::Settings);
+                }
                 MenuButtonAction::SettingsSound => {
                     menu_state.set(PauseMenuState::SettingsSound);
                 }
-                MenuButtonAction::BackToMainMenu => menu_state.set(PauseMenuState::Main),
+                MenuButtonAction::BackToMainMenu => {
+                    menu_state.set(PauseMenuState::Main);
+                }
                 MenuButtonAction::BackToSettings => {
                     menu_state.set(PauseMenuState::Settings);
                 }

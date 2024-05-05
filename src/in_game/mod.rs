@@ -1,9 +1,3 @@
-use bevy::{
-    app::PluginGroupBuilder,
-    prelude::*,
-    window::{CursorGrabMode, PrimaryWindow},
-};
-
 mod audio;
 mod bullet_collision;
 mod camera;
@@ -15,10 +9,14 @@ mod minimap;
 mod player;
 mod weapon;
 
+use crate::{
+    cursor::{grab_cursor, ungrab_cursor},
+    despawn_all, GameState, InGameState, InGameStateSet,
+};
 pub use audio::AudioVolume;
+use bevy::{app::PluginGroupBuilder, prelude::*};
 pub use player::Player;
 
-use crate::{despawn_all, GameState, InGameState, InGameStateSet};
 pub struct InGamePlugins;
 
 impl PluginGroup for InGamePlugins {
@@ -43,31 +41,29 @@ struct MyMusic;
 fn in_game_plugin(app: &mut App) {
     app.add_systems(
         OnEnter(GameState::InGame),
-        (grab_cursor, set_background, start_music),
+        (init_game, grab_cursor, set_background, start_music),
     )
     .add_systems(
         OnExit(GameState::InGame),
-        (ungrab_cursor, despawn_all::<MyMusic>),
+        (end_game, ungrab_cursor, despawn_all::<MyMusic>),
     )
+    .add_systems(OnEnter(InGameState::Running), grab_cursor)
+    .add_systems(OnExit(InGameState::Running), ungrab_cursor)
     .add_systems(Update, show_menu.in_set(InGameStateSet::Running));
 }
 
 const BACKGROUND_COLOR: Color = Color::BLACK;
 
+fn init_game(mut in_game_state: ResMut<NextState<InGameState>>) {
+    in_game_state.set(InGameState::Running);
+}
+
+fn end_game(mut in_game_state: ResMut<NextState<InGameState>>) {
+    in_game_state.set(InGameState::Disabled);
+}
+
 fn set_background(mut commands: Commands) {
     commands.insert_resource(ClearColor(BACKGROUND_COLOR));
-}
-
-fn grab_cursor(mut primary_window: Query<&mut Window, With<PrimaryWindow>>) {
-    let mut window = primary_window.get_single_mut().expect("PrimaryWindow");
-    window.cursor.grab_mode = CursorGrabMode::Confined;
-    window.cursor.visible = false;
-}
-
-fn ungrab_cursor(mut primary_window: Query<&mut Window, With<PrimaryWindow>>) {
-    let mut window = primary_window.get_single_mut().expect("PrimaryWindow");
-    window.cursor.grab_mode = CursorGrabMode::None;
-    window.cursor.visible = true;
 }
 
 fn show_menu(mut state: ResMut<NextState<InGameState>>, keys: Res<ButtonInput<KeyCode>>) {

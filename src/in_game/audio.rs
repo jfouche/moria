@@ -40,7 +40,6 @@ fn start_music(mut commands: Commands, asset_server: Res<AssetServer>, volume: R
 
 fn change_volume(volume: Res<AudioVolume>, audio: Query<&AudioSink, With<MyMusic>>) {
     if let Ok(settings) = audio.get_single() {
-        info!("change_volume({})", volume.volume());
         settings.set_volume(volume.volume());
     }
 }

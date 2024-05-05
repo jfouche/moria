@@ -1,5 +1,5 @@
 use super::*;
-use crate::{despawn_all, GameState};
+use crate::{cursor::ungrab_cursor, despawn_all, GameState};
 use bevy::{app::AppExit, prelude::*};
 
 // State used for the main menu screen
@@ -29,7 +29,7 @@ struct OnSoundSettingsMenuScreen;
 ///
 pub fn plugin(app: &mut App) {
     app.init_state::<MainMenuState>()
-        .add_systems(OnEnter(GameState::Menu), menu_setup)
+        .add_systems(OnEnter(GameState::Menu), (menu_setup, ungrab_cursor))
         .add_systems(OnEnter(MainMenuState::Main), spawn_main_menu)
         .add_systems(OnExit(MainMenuState::Main), despawn_all::<OnMainMenuScreen>)
         .add_systems(Update, (menu_action).run_if(in_state(GameState::Menu)));
