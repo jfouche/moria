@@ -29,6 +29,7 @@ fn spawn_settings_menu(mut commands: Commands) {
             parent.spawn(menu_vertical()).with_children(|parent| {
                 for (action, text) in [
                     (MenuButtonAction::SettingsSound, "Sound"),
+                    (MenuButtonAction::SettingsDisplay, "Display"),
                     (MenuButtonAction::BackToMainMenu, "Back"),
                 ] {
                     parent

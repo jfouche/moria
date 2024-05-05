@@ -1,3 +1,4 @@
+mod display_menu;
 mod main_menu;
 mod pause_menu;
 mod settings_menu;
@@ -93,6 +94,7 @@ enum MenuButtonAction {
     PlayGame,
     Settings,
     SettingsSound,
+    SettingsDisplay,
     BackToMainMenu,
     BackToSettings,
     ExitApplication,
@@ -105,6 +107,7 @@ pub fn plugin(app: &mut App) {
         main_menu::plugin,
         settings_menu::plugin,
         pause_menu::plugin,
+        display_menu::plugin,
     ))
     // Common systems to all screens that handles buttons behavior
     .add_systems(
@@ -125,6 +128,7 @@ pub enum PauseMenuState {
     Main,
     Settings,
     SettingsSound,
+    SettingsDisplay,
     #[default]
     Disabled,
 }

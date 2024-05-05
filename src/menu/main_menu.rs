@@ -8,6 +8,7 @@ pub enum MainMenuState {
     Main,
     Settings,
     SettingsSound,
+    SettingsDisplay,
     #[default]
     Disabled,
 }
@@ -90,11 +91,18 @@ fn menu_action(
                     game_state.set(GameState::InGame);
                     menu_state.set(MainMenuState::Disabled);
                 }
-                MenuButtonAction::Settings => menu_state.set(MainMenuState::Settings),
+                MenuButtonAction::Settings => {
+                    menu_state.set(MainMenuState::Settings);
+                }
                 MenuButtonAction::SettingsSound => {
                     menu_state.set(MainMenuState::SettingsSound);
                 }
-                MenuButtonAction::BackToMainMenu => menu_state.set(MainMenuState::Main),
+                MenuButtonAction::SettingsDisplay => {
+                    menu_state.set(MainMenuState::SettingsDisplay);
+                }
+                MenuButtonAction::BackToMainMenu => {
+                    menu_state.set(MainMenuState::Main);
+                }
                 MenuButtonAction::BackToSettings => {
                     menu_state.set(MainMenuState::Settings);
                 }

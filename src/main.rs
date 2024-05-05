@@ -2,6 +2,7 @@ mod config;
 mod core;
 mod cursor;
 mod debug;
+mod display;
 mod in_game;
 mod menu;
 mod splash;
@@ -64,6 +65,7 @@ fn main() {
             splash::plugin,
             config::plugin,
             menu::plugin,
+            display::plugin,
             in_game::InGamePlugins,
             ui::UiPlugins,
         ))
