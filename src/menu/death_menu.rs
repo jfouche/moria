@@ -9,22 +9,19 @@ struct OnDeathMenuScreen;
 /// Plugin
 ///
 pub fn plugin(app: &mut App) {
-    app.add_systems(
-        Update,
-        on_player_death.run_if(in_state(InGameState::Running)),
-    )
-    .add_systems(
-        OnEnter(InGameState::PlayerDied),
-        (ungrab_cursor, spawn_death_menu),
-    )
-    .add_systems(
-        OnExit(InGameState::PlayerDied),
-        despawn_all::<OnDeathMenuScreen>,
-    )
-    .add_systems(
-        Update,
-        menu_action.run_if(in_state(InGameState::PlayerDied)),
-    );
+    app.add_systems(Update, on_player_death.run_if(game_is_running))
+        .add_systems(
+            OnEnter(InGameState::PlayerDied),
+            (ungrab_cursor, spawn_death_menu),
+        )
+        .add_systems(
+            OnExit(InGameState::PlayerDied),
+            despawn_all::<OnDeathMenuScreen>,
+        )
+        .add_systems(
+            Update,
+            menu_action.run_if(in_state(InGameState::PlayerDied)),
+        );
 }
 
 fn spawn_death_menu(mut commands: Commands) {

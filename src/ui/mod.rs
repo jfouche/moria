@@ -1,6 +1,6 @@
 mod progressbar;
-
 use bevy::app::{PluginGroup, PluginGroupBuilder};
+
 pub use progressbar::*;
 
 pub struct UiPlugins;
