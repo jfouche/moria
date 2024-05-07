@@ -5,14 +5,12 @@ pub struct AudioVolume(pub u8);
 
 impl AudioVolume {
     pub fn db(&self) -> f32 {
-        // TODO: modify algo
-        // An increase of 10 decibels (dB) roughly corresponds to the perceived volume doubling in intensity.
-        // As this function scales not the volume but the amplitude, a conversion might be necessary.
-        // For example, to halve the perceived volume you need to decrease the volume by 10 dB.
-        // This corresponds to 20log(x) = -10dB, solving x = 10^(-10/20) = 0.316.
-        // Multiply the current volume by 0.316 to halve the perceived volume.
+        const DECIBELS: [f32; 10] = [0.0, 0.02, 0.05, 0.1, 0.02, 0.5, 1.0, 2.0, 5.0, 10.0];
+        *DECIBELS.get(self.0 as usize).unwrap_or(&1.0)
+    }
 
-        self.0 as f32 / 9.0
+    pub fn on(&self) -> bool {
+        self.0 != 0
     }
 }
 
