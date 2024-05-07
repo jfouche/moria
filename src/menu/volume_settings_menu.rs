@@ -1,5 +1,6 @@
 use super::*;
 use crate::ecs::*;
+use crate::ui::*;
 use bevy::prelude::*;
 
 #[derive(Component)]
@@ -29,12 +30,11 @@ fn spawn_sound_settings_menu(mut commands: Commands, volume: Res<AudioVolume>) {
                             align_items: AlignItems::Center,
                             ..default()
                         },
-                        background_color: Color::CRIMSON.into(),
                         ..default()
                     })
                     .with_children(|parent| {
                         parent.spawn(button_text("Volume"));
-                        for volume_setting in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] {
+                        for volume_setting in AudioVolume::range() {
                             let mut entity = parent.spawn((
                                 ButtonBundle {
                                     style: Style {

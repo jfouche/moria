@@ -1,5 +1,6 @@
 use super::*;
 use crate::ecs::*;
+use crate::ui::*;
 use bevy::prelude::*;
 
 #[derive(Component)]
@@ -36,8 +37,7 @@ pub fn plugin(app: &mut App) {
         .add_systems(Update, (menu_action).run_if(in_state(InGameState::Pause)));
 }
 
-fn menu_setup(mut commands: Commands, mut menu_state: ResMut<NextState<PauseMenuState>>) {
-    commands.insert_resource(ClearColor(BACKGROUND_COLOR));
+fn menu_setup(mut menu_state: ResMut<NextState<PauseMenuState>>) {
     menu_state.set(PauseMenuState::Main);
 }
 

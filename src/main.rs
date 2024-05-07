@@ -1,9 +1,9 @@
 mod config;
 mod debug;
-mod display;
 mod ecs;
 mod in_game;
 mod menu;
+mod settings;
 mod splash;
 mod ui;
 
@@ -33,7 +33,7 @@ fn main() {
             splash::plugin,
             config::plugin,
             menu::plugin,
-            display::plugin,
+            settings::plugin,
             in_game::InGamePlugins,
             ui::UiPlugins,
         ))

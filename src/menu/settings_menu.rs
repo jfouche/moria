@@ -1,5 +1,6 @@
 use super::*;
 use crate::ecs::*;
+use crate::ui::*;
 use bevy::prelude::*;
 
 #[derive(Component)]

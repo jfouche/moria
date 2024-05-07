@@ -1,7 +1,10 @@
+mod menu;
 mod progressbar;
-use bevy::app::{PluginGroup, PluginGroupBuilder};
 
+pub use menu::*;
 pub use progressbar::*;
+
+use bevy::app::{PluginGroup, PluginGroupBuilder};
 
 pub struct UiPlugins;
 
