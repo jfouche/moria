@@ -1,11 +1,8 @@
+use crate::{ecs::*, ui::ProgressBar};
 use bevy::{
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
     prelude::*,
 };
-
-use crate::{despawn_all, in_game::player::Player, ui::ProgressBar, GameState, InGameStateSet};
-
-use super::character::Life;
 
 #[derive(Component)]
 struct Hud;
@@ -41,7 +38,7 @@ pub fn plugin(app: &mut App) {
         )
         .add_systems(
             Update,
-            (update_fps, update_compass, update_life).in_set(InGameStateSet::Running),
+            (update_fps, update_compass, update_life).run_if(game_is_running),
         )
         .add_systems(OnExit(GameState::InGame), (despawn_all::<Hud>,));
 }

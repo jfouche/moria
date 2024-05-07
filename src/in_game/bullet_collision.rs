@@ -1,14 +1,7 @@
-use crate::InGameStateSet;
+use crate::ecs::*;
 use bevy::prelude::*;
-use bevy_rapier3d::pipeline::CollisionEvent;
+use bevy_rapier3d::prelude::*;
 use std::collections::{HashMap, HashSet};
-
-use super::{
-    enemy::{Enemy, EnemyHitEvent},
-    player::PlayerHitEvent,
-    weapon::Bullet,
-    Player,
-};
 
 pub fn plugin(app: &mut App) {
     app.add_systems(
@@ -18,7 +11,7 @@ pub fn plugin(app: &mut App) {
             player_hit_by_bullet,
             despawn_bullet_after_collision,
         )
-            .in_set(InGameStateSet::Running),
+            .run_if(game_is_running),
     );
 }
 

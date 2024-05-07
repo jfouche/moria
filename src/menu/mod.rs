@@ -4,9 +4,10 @@ mod pause_menu;
 mod settings_menu;
 mod volume_menu;
 
-use crate::{GameState, InGameState};
+use crate::ecs::*;
 use bevy::prelude::*;
-pub use main_menu::MainMenuState;
+
+use self::main_menu::MainMenuState;
 
 const BACKGROUND_COLOR: Color = Color::BLACK;
 
@@ -103,11 +104,14 @@ enum MenuButtonAction {
 
 pub fn plugin(app: &mut App) {
     app.add_plugins((
-        volume_menu::plugin,
         main_menu::plugin,
-        settings_menu::plugin,
         pause_menu::plugin,
-        display_menu::plugin,
+        display_menu::DisplaySettingsPlugin(MainMenuState::SettingsDisplay),
+        volume_menu::SoundSettingsPlugin(MainMenuState::SettingsSound),
+        settings_menu::SettingsPlugin(MainMenuState::Settings),
+        display_menu::DisplaySettingsPlugin(PauseMenuState::SettingsDisplay),
+        volume_menu::SoundSettingsPlugin(PauseMenuState::SettingsSound),
+        settings_menu::SettingsPlugin(PauseMenuState::Settings),
     ))
     // Common systems to all screens that handles buttons behavior
     .add_systems(

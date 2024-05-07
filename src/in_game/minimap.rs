@@ -1,20 +1,14 @@
+use crate::ecs::*;
 use bevy::prelude::*;
 
-use crate::{
-    core::{Maze, Position, Room, WorldPosition},
-    despawn_all, GameState, InGameStateSet,
-};
-
-use super::Player;
-
-pub const MINIMAP_ATLAS_FILENAME: &str = "textures/minimap_atlas.png";
-pub const MINIMAP_PLAYER_FILENAME: &str = "minimap_player.png";
+const MINIMAP_ATLAS_FILENAME: &str = "textures/minimap_atlas.png";
+const MINIMAP_PLAYER_FILENAME: &str = "minimap_player.png";
 
 #[derive(Component)]
-pub struct Minimap;
+struct Minimap;
 
 #[derive(Component)]
-pub struct MMPlayer;
+struct MMPlayer;
 
 #[derive(Component, Reflect)]
 struct RoomComponent {
@@ -85,7 +79,7 @@ pub fn plugin(app: &mut App) {
                 toggle_minimap,
                 (show_player, update_visibility).run_if(in_state(MinimapState::Show)),
             )
-                .in_set(InGameStateSet::Running),
+                .run_if(game_is_running),
         )
         .add_systems(OnEnter(MinimapState::Show), spawn_minimap)
         .add_systems(OnExit(MinimapState::Show), despawn_all::<Minimap>)

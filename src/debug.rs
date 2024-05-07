@@ -1,22 +1,11 @@
-use crate::{
-    config::GameConfig,
-    core::WorldPosition,
-    cursor::set_grab_cursor,
-    in_game::Player,
-    menu::{MainMenuState, PauseMenuState},
-    GameState, InGameState,
-};
+use crate::{config::GameConfig, ecs::*};
 use bevy::{
     prelude::*,
     window::{CursorGrabMode, PrimaryWindow},
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_panorbit_camera::PanOrbitCamera;
-use bevy_rapier3d::{
-    pipeline::CollisionEvent,
-    plugin::{NoUserData, RapierPhysicsPlugin},
-    render::{DebugRenderContext, RapierDebugRenderPlugin},
-};
+use bevy_rapier3d::prelude::*;
 
 pub fn plugin(app: &mut App) {
     app.add_systems(Startup, apply_config)
@@ -38,7 +27,7 @@ pub fn plugin(app: &mut App) {
         )
         .add_systems(Update, show_axes)
         // States
-        .add_systems(Update, (state_transition::<GameState>, state_transition::<InGameState>, state_transition::<MainMenuState>, state_transition::<InGameState>))
+        .add_systems(Update, (state_transition::<GameState>, state_transition::<InGameState>))
         .add_systems(OnEnter(GameState::InGame), display_states)
         .add_systems(OnExit(GameState::InGame), display_states)
         .add_systems(OnEnter(InGameState::Running), display_states)
@@ -105,15 +94,10 @@ fn display_collision_events(mut collision_events: EventReader<CollisionEvent>) {
     }
 }
 
-fn display_states(
-    game_state: Res<State<GameState>>,
-    in_game_state: Res<State<InGameState>>,
-    main_menu_state: Res<State<MainMenuState>>,
-    pause_menu_state: Res<State<PauseMenuState>>,
-) {
+fn display_states(game_state: Res<State<GameState>>, in_game_state: Res<State<InGameState>>) {
     info!(
-        "GameState::{:?} - InGameState::{:?} - MainMenuState::{:?} - PauseMenuState::{:?}",
-        **game_state, **in_game_state, **main_menu_state, **pause_menu_state
+        "GameState::{:?} - InGameState::{:?}",
+        **game_state, **in_game_state
     );
 }
 

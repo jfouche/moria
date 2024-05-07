@@ -1,31 +1,11 @@
-use crate::{
-    core::{IntoWorldPosition, Position},
-    despawn_all, GameState, InGameStateSet,
-};
+use crate::ecs::*;
 use bevy::{
     ecs::event::ManualEventReader,
     input::mouse::MouseMotion,
     prelude::*,
     window::{CursorGrabMode, PrimaryWindow},
 };
-use bevy_rapier3d::{
-    dynamics::{LockedAxes, RigidBody, Velocity},
-    geometry::Collider,
-};
-
-use super::{
-    character::Life,
-    weapon::{FireEmitter, FireEvent, Reload, Weapon, WeaponType, Weapons},
-};
-
-#[derive(Component)]
-pub struct Player;
-
-impl Player {
-    pub const HEIGHT: f32 = 0.6;
-
-    const WIDTH: f32 = 0.1;
-}
+use bevy_rapier3d::prelude::*;
 
 /// Keeps track of mouse motion events, pitch, and yaw
 #[derive(Resource, Default)]
@@ -49,16 +29,6 @@ impl Default for MovementSettings {
     }
 }
 
-/// Event to notify the player was hit
-#[derive(Event)]
-pub struct PlayerHitEvent {
-    pub damage: u16,
-}
-
-/// Event to notify the player is dead
-#[derive(Event)]
-pub struct PlayerDeathEvent;
-
 ///
 /// Plugin
 ///
@@ -70,7 +40,7 @@ pub fn plugin(app: &mut App) {
         .add_systems(OnEnter(GameState::InGame), spawn_player)
         .add_systems(
             Update,
-            (player_move, player_look, player_fires, on_hit).in_set(InGameStateSet::Running),
+            (player_move, player_look, player_fires, on_hit).run_if(game_is_running),
         )
         .add_systems(OnExit(GameState::InGame), despawn_all::<Player>);
 }

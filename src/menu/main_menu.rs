@@ -1,9 +1,9 @@
 use super::*;
-use crate::{cursor::ungrab_cursor, despawn_all, GameState};
+use crate::ecs::*;
 use bevy::{app::AppExit, prelude::*};
 
 // State used for the main menu screen
-#[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
+#[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States, Component)]
 pub enum MainMenuState {
     Main,
     Settings,

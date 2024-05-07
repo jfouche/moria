@@ -1,25 +1,18 @@
 use super::*;
-use crate::despawn_all;
+use crate::ecs::*;
 use bevy::prelude::*;
 
 // Tag component used to tag entities added on the settings menu screen
 #[derive(Component)]
 struct OnSettingsMenuScreen;
 
-///
-/// Plugin
-///
-pub fn plugin(app: &mut App) {
-    app.add_systems(OnEnter(MainMenuState::Settings), spawn_settings_menu)
-        .add_systems(OnEnter(PauseMenuState::Settings), spawn_settings_menu)
-        .add_systems(
-            OnExit(MainMenuState::Settings),
-            despawn_all::<OnSettingsMenuScreen>,
-        )
-        .add_systems(
-            OnExit(PauseMenuState::Settings),
-            despawn_all::<OnSettingsMenuScreen>,
-        );
+pub struct SettingsPlugin<S>(pub S);
+
+impl<S: States + Copy> Plugin for SettingsPlugin<S> {
+    fn build(&self, app: &mut App) {
+        app.add_systems(OnEnter(self.0), spawn_settings_menu)
+            .add_systems(OnExit(self.0), despawn_all::<OnSettingsMenuScreen>);
+    }
 }
 
 fn spawn_settings_menu(mut commands: Commands) {

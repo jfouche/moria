@@ -1,34 +1,24 @@
 use super::*;
-use crate::{despawn_all, in_game::AudioVolume};
+use crate::ecs::*;
 use bevy::prelude::*;
 
 #[derive(Component)]
 struct OnSoundSettingsMenuScreen;
 
-pub fn plugin(app: &mut App) {
-    app.add_systems(
-        OnEnter(MainMenuState::SettingsSound),
-        sound_settings_menu_setup,
-    )
-    .add_systems(
-        OnEnter(PauseMenuState::SettingsSound),
-        sound_settings_menu_setup,
-    )
-    .add_systems(
-        Update,
-        setting_button::<AudioVolume>.run_if(in_state(MainMenuState::SettingsSound)),
-    )
-    .add_systems(
-        OnExit(MainMenuState::SettingsSound),
-        despawn_all::<OnSoundSettingsMenuScreen>,
-    )
-    .add_systems(
-        OnExit(PauseMenuState::SettingsSound),
-        despawn_all::<OnSoundSettingsMenuScreen>,
-    );
+pub struct SoundSettingsPlugin<S>(pub S);
+
+impl<S: States + Copy> Plugin for SoundSettingsPlugin<S> {
+    fn build(&self, app: &mut App) {
+        app.add_systems(OnEnter(self.0), spawn_sound_settings_menu)
+            .add_systems(OnExit(self.0), despawn_all::<OnSoundSettingsMenuScreen>)
+            .add_systems(
+                Update,
+                setting_button::<AudioVolume>.run_if(in_state(self.0)),
+            );
+    }
 }
 
-fn sound_settings_menu_setup(mut commands: Commands, volume: Res<AudioVolume>) {
+fn spawn_sound_settings_menu(mut commands: Commands, volume: Res<AudioVolume>) {
     commands
         .spawn((main_panel_center(), OnSoundSettingsMenuScreen))
         .with_children(|parent| {

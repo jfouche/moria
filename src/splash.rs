@@ -1,6 +1,5 @@
+use crate::ecs::*;
 use bevy::prelude::*;
-
-use crate::{cursor::ungrab_cursor, despawn_all, GameState};
 
 pub fn plugin(app: &mut App) {
     app.add_systems(OnEnter(GameState::Splash), (splash_setup, ungrab_cursor))

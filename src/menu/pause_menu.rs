@@ -1,11 +1,5 @@
-use super::{
-    button_bundle, button_text, main_panel_center, menu_title, menu_vertical, MenuButtonAction,
-    PauseMenuState, BACKGROUND_COLOR,
-};
-use crate::{
-    cursor::{grab_cursor, ungrab_cursor},
-    despawn_all, GameState, InGameState,
-};
+use super::*;
+use crate::ecs::*;
 use bevy::prelude::*;
 
 // Tag component used to tag entities added on the main menu screen
@@ -26,7 +20,6 @@ struct OnSoundSettingsMenuScreen;
 pub fn plugin(app: &mut App) {
     app.init_state::<PauseMenuState>()
         .add_systems(OnEnter(InGameState::Pause), (ungrab_cursor, menu_setup))
-        .add_systems(OnExit(InGameState::Pause), grab_cursor)
         .add_systems(OnEnter(PauseMenuState::Main), spawn_pause_menu)
         .add_systems(
             OnExit(PauseMenuState::Main),

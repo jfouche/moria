@@ -1,7 +1,6 @@
 mod audio;
 mod bullet_collision;
 mod camera;
-mod character;
 mod enemy;
 mod hud;
 mod maze;
@@ -9,13 +8,8 @@ mod minimap;
 mod player;
 mod weapon;
 
-use crate::{
-    cursor::{grab_cursor, ungrab_cursor},
-    despawn_all, GameState, InGameState, InGameStateSet,
-};
-pub use audio::AudioVolume;
+use crate::ecs::*;
 use bevy::{app::PluginGroupBuilder, prelude::*};
-pub use player::Player;
 
 pub struct InGamePlugins;
 
@@ -49,7 +43,7 @@ fn in_game_plugin(app: &mut App) {
     )
     .add_systems(OnEnter(InGameState::Running), grab_cursor)
     .add_systems(OnExit(InGameState::Running), ungrab_cursor)
-    .add_systems(Update, show_menu.in_set(InGameStateSet::Running));
+    .add_systems(Update, show_menu.run_if(game_is_running));
 }
 
 const BACKGROUND_COLOR: Color = Color::BLACK;

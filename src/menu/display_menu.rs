@@ -1,34 +1,21 @@
 use super::*;
-use crate::{despawn_all, display::DisplaySettings};
+use crate::ecs::*;
 use bevy::prelude::*;
 
 #[derive(Component)]
 struct OnDisplaySettingsMenuScreen;
 
-pub fn plugin(app: &mut App) {
-    app.add_systems(OnEnter(MainMenuState::SettingsDisplay), spawn_display_menu)
-        .add_systems(OnEnter(PauseMenuState::SettingsDisplay), spawn_display_menu)
-        .add_systems(
-            Update,
-            setting_button::<DisplaySettings>.run_if(in_display_settings),
-        )
-        .add_systems(
-            OnExit(MainMenuState::SettingsDisplay),
-            despawn_all::<OnDisplaySettingsMenuScreen>,
-        )
-        .add_systems(
-            OnExit(PauseMenuState::SettingsDisplay),
-            despawn_all::<OnDisplaySettingsMenuScreen>,
-        );
-}
+pub struct DisplaySettingsPlugin<S>(pub S);
 
-/// Condition that returns `true` if a menu is in a DisplaySettings state
-fn in_display_settings(
-    main_menu_state: Res<State<MainMenuState>>,
-    pause_menu_state: Res<State<PauseMenuState>>,
-) -> bool {
-    *main_menu_state == MainMenuState::SettingsDisplay
-        || *pause_menu_state == PauseMenuState::SettingsDisplay
+impl<S: States + Copy> Plugin for DisplaySettingsPlugin<S> {
+    fn build(&self, app: &mut App) {
+        app.add_systems(OnEnter(self.0), spawn_display_menu)
+            .add_systems(OnExit(self.0), despawn_all::<OnDisplaySettingsMenuScreen>)
+            .add_systems(
+                Update,
+                setting_button::<DisplaySettings>.run_if(in_state(self.0)),
+            );
+    }
 }
 
 fn spawn_display_menu(mut commands: Commands, settings: Res<DisplaySettings>) {
