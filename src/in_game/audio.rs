@@ -8,6 +8,7 @@ pub fn plugin(app: &mut App) {
     app.insert_resource(AudioVolume(9))
         .add_systems(OnEnter(GameState::InGame), start_music)
         .add_systems(Update, change_volume.run_if(in_state(GameState::InGame)))
+        // .add_systems(Update, _toggle.run_if(in_state(GameState::InGame)))
         .add_systems(OnExit(GameState::InGame), despawn_all::<MyMusic>);
 }
 
@@ -28,6 +29,14 @@ fn change_volume(volume: Res<AudioVolume>, sink: Query<&AudioSink, With<MyMusic>
             sink.play();
         } else {
             sink.pause();
+        }
+    }
+}
+
+fn _toggle(keys: Res<ButtonInput<KeyCode>>, sink: Query<&AudioSink, With<MyMusic>>) {
+    if let Ok(sink) = sink.get_single() {
+        if keys.just_pressed(KeyCode::KeyM) {
+            sink.toggle();
         }
     }
 }
