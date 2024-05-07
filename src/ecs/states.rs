@@ -14,6 +14,7 @@ pub enum InGameState {
     Disabled,
     Running,
     Pause,
+    PlayerDied,
 }
 
 pub fn game_is_running(

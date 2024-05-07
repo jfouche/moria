@@ -1,3 +1,4 @@
+mod death_menu;
 mod display_settings_menu;
 mod main_menu;
 mod pause_menu;
@@ -89,7 +90,7 @@ fn menu_title(title: &str) -> TextBundle {
 }
 
 // All actions that can be triggered from a button click
-#[derive(Component)]
+#[derive(Component, PartialEq)]
 enum MenuButtonAction {
     PlayGame,
     Settings,
@@ -111,6 +112,7 @@ pub fn plugin(app: &mut App) {
         display_settings_menu::DisplaySettingsPlugin(PauseMenuState::SettingsDisplay),
         volume_settings_menu::SoundSettingsPlugin(PauseMenuState::SettingsSound),
         settings_menu::SettingsPlugin(PauseMenuState::Settings),
+        death_menu::plugin,
     ))
     .add_systems(Update, (button_system).run_if(in_menu));
 }
