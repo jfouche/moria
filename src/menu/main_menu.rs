@@ -13,15 +13,12 @@ pub enum MainMenuState {
     Disabled,
 }
 
-// Tag component used to tag entities added on the main menu screen
 #[derive(Component)]
 struct OnMainMenuScreen;
 
-// Tag component used to tag entities added on the display settings menu screen
 #[derive(Component)]
 struct OnDisplaySettingsMenuScreen;
 
-// Tag component used to tag entities added on the sound settings menu screen
 #[derive(Component)]
 struct OnSoundSettingsMenuScreen;
 

@@ -1,13 +1,12 @@
-mod display_menu;
+mod display_settings_menu;
 mod main_menu;
 mod pause_menu;
 mod settings_menu;
-mod volume_menu;
+mod volume_settings_menu;
 
+use self::{main_menu::MainMenuState, pause_menu::PauseMenuState};
 use crate::ecs::*;
 use bevy::prelude::*;
-
-use self::main_menu::MainMenuState;
 
 const BACKGROUND_COLOR: Color = Color::BLACK;
 
@@ -106,35 +105,19 @@ pub fn plugin(app: &mut App) {
     app.add_plugins((
         main_menu::plugin,
         pause_menu::plugin,
-        display_menu::DisplaySettingsPlugin(MainMenuState::SettingsDisplay),
-        volume_menu::SoundSettingsPlugin(MainMenuState::SettingsSound),
+        display_settings_menu::DisplaySettingsPlugin(MainMenuState::SettingsDisplay),
+        volume_settings_menu::SoundSettingsPlugin(MainMenuState::SettingsSound),
         settings_menu::SettingsPlugin(MainMenuState::Settings),
-        display_menu::DisplaySettingsPlugin(PauseMenuState::SettingsDisplay),
-        volume_menu::SoundSettingsPlugin(PauseMenuState::SettingsSound),
+        display_settings_menu::DisplaySettingsPlugin(PauseMenuState::SettingsDisplay),
+        volume_settings_menu::SoundSettingsPlugin(PauseMenuState::SettingsSound),
         settings_menu::SettingsPlugin(PauseMenuState::Settings),
     ))
-    // Common systems to all screens that handles buttons behavior
-    .add_systems(
-        Update,
-        // (button_system).run_if(in_state(GameState::Menu).or_else(in_state(InGameState::Pause))),
-        (button_system).run_if(in_menu),
-    );
+    .add_systems(Update, (button_system).run_if(in_menu));
 }
 
 // run condition
 fn in_menu(game_state: Res<State<GameState>>, in_game_state: Res<State<InGameState>>) -> bool {
     *game_state == GameState::Menu || *in_game_state == InGameState::Pause
-}
-
-// State used for the main menu screen
-#[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
-pub enum PauseMenuState {
-    Main,
-    Settings,
-    SettingsSound,
-    SettingsDisplay,
-    #[default]
-    Disabled,
 }
 
 // Tag component used to mark which setting is currently selected

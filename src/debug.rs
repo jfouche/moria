@@ -51,7 +51,7 @@ fn toggle_grab(
                 set_grab_cursor(window, true);
             }
             _ => {
-                set_grab_cursor(window, true);
+                set_grab_cursor(window, false);
             }
         }
     }
