@@ -17,16 +17,15 @@ impl<S: States + Copy> Plugin for SettingsPlugin<S> {
 
 fn spawn_settings_menu(mut commands: Commands) {
     commands
-        .spawn((main_panel_center(), OnSettingsMenuScreen))
-        .with_children(|parent| {
-            parent.spawn(menu_vertical()).with_children(|parent| {
+        .spawn((centered(), OnSettingsMenuScreen))
+        .with_children(|wnd| {
+            wnd.spawn(menu()).with_children(|menu| {
                 for (action, text) in [
                     (MenuButtonAction::SettingsSound, "Sound"),
                     (MenuButtonAction::SettingsDisplay, "Display"),
                     (MenuButtonAction::BackToMainMenu, "Back"),
                 ] {
-                    parent
-                        .spawn((button_bundle(), action))
+                    menu.spawn((button_bundle(), action))
                         .with_children(|parent| {
                             parent.spawn(button_text(text));
                         });

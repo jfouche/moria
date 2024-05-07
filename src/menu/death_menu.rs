@@ -27,13 +27,11 @@ pub fn plugin(app: &mut App) {
 
 fn spawn_death_menu(mut commands: Commands) {
     commands
-        .spawn((main_panel_center(), OnDeathMenuScreen))
-        .with_children(|parent| {
-            parent.spawn(menu_vertical()).with_children(|parent| {
-                // Display the game name
-                parent.spawn(menu_title("You died !"));
-                parent
-                    .spawn((button_bundle(), MenuButtonAction::QuitGame))
+        .spawn((centered(), OnDeathMenuScreen))
+        .with_children(|wnd| {
+            wnd.spawn(menu()).with_children(|menu| {
+                menu.spawn(menu_title("You died !"));
+                menu.spawn((button_bundle(), MenuButtonAction::QuitGame))
                     .with_children(|parent| {
                         parent.spawn(button_text("Quit"));
                     });

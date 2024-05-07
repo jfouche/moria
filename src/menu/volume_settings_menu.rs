@@ -21,38 +21,31 @@ impl<S: States + Copy> Plugin for SoundSettingsPlugin<S> {
 
 fn spawn_sound_settings_menu(mut commands: Commands, volume: Res<AudioVolume>) {
     commands
-        .spawn((main_panel_center(), OnSoundSettingsMenuScreen))
-        .with_children(|parent| {
-            parent.spawn(menu_vertical()).with_children(|parent| {
-                parent
-                    .spawn(NodeBundle {
-                        style: Style {
-                            align_items: AlignItems::Center,
-                            ..default()
-                        },
-                        ..default()
-                    })
-                    .with_children(|parent| {
-                        parent.spawn(button_text("Volume"));
-                        for volume_setting in AudioVolume::range() {
-                            let mut entity = parent.spawn((
-                                ButtonBundle {
-                                    style: Style {
-                                        width: Val::Px(30.0),
-                                        height: Val::Px(65.0),
-                                        ..button_style()
-                                    },
-                                    ..button_bundle()
+        .spawn((centered(), OnSoundSettingsMenuScreen))
+        .with_children(|wnd| {
+            wnd.spawn(menu()).with_children(|menu| {
+                menu.spawn(menu_title("Sound settings"));
+
+                menu.spawn(button_text("Volume"));
+                menu.spawn(hsizer()).with_children(|sizer| {
+                    for volume_setting in AudioVolume::range() {
+                        let mut entity = sizer.spawn((
+                            ButtonBundle {
+                                style: Style {
+                                    width: Val::Px(30.0),
+                                    height: Val::Px(65.0),
+                                    ..button_style()
                                 },
-                                AudioVolume(volume_setting),
-                            ));
-                            if *volume == AudioVolume(volume_setting) {
-                                entity.insert(SelectedOption);
-                            }
+                                ..button_bundle()
+                            },
+                            AudioVolume(volume_setting),
+                        ));
+                        if *volume == AudioVolume(volume_setting) {
+                            entity.insert(SelectedOption);
                         }
-                    });
-                parent
-                    .spawn((button_bundle(), MenuButtonAction::BackToSettings))
+                    }
+                });
+                menu.spawn((button_bundle(), MenuButtonAction::BackToSettings))
                     .with_children(|parent| {
                         parent.spawn(button_text("Back"));
                     });

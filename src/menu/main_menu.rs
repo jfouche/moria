@@ -41,32 +41,25 @@ fn menu_setup(mut commands: Commands, mut menu_state: ResMut<NextState<MainMenuS
 
 fn spawn_main_menu(mut commands: Commands) {
     commands
-        // Entire screen
-        .spawn((main_panel_center(), OnMainMenuScreen))
-        .with_children(|parent| {
-            parent
-                // Main Menu
-                .spawn(menu_vertical())
-                .with_children(|parent| {
-                    // Display the game name
-                    parent.spawn(menu_title("Moria"));
+        .spawn((centered(), OnMainMenuScreen))
+        .with_children(|wnd| {
+            wnd.spawn(menu()).with_children(|menu| {
+                // Display the game name
+                menu.spawn(menu_title("Moria"));
 
-                    parent
-                        .spawn((button_bundle(), MenuButtonAction::PlayGame))
-                        .with_children(|parent| {
-                            parent.spawn(button_text("New Game"));
-                        });
-                    parent
-                        .spawn((button_bundle(), MenuButtonAction::Settings))
-                        .with_children(|parent| {
-                            parent.spawn(button_text("Settings"));
-                        });
-                    parent
-                        .spawn((button_bundle(), MenuButtonAction::ExitApplication))
-                        .with_children(|parent| {
-                            parent.spawn(button_text("Exit"));
-                        });
-                });
+                menu.spawn((button_bundle(), MenuButtonAction::PlayGame))
+                    .with_children(|parent| {
+                        parent.spawn(button_text("New Game"));
+                    });
+                menu.spawn((button_bundle(), MenuButtonAction::Settings))
+                    .with_children(|parent| {
+                        parent.spawn(button_text("Settings"));
+                    });
+                menu.spawn((button_bundle(), MenuButtonAction::ExitApplication))
+                    .with_children(|parent| {
+                        parent.spawn(button_text("Exit"));
+                    });
+            });
         });
 }
 

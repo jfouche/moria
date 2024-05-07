@@ -40,7 +40,7 @@ pub fn button_text(text: &str) -> TextBundle {
     TextBundle::from_section(text, button_text_style())
 }
 
-pub fn main_panel_center() -> NodeBundle {
+pub fn centered() -> NodeBundle {
     NodeBundle {
         style: Style {
             width: Val::Percent(100.0),
@@ -53,15 +53,10 @@ pub fn main_panel_center() -> NodeBundle {
     }
 }
 
-pub fn menu_vertical() -> NodeBundle {
+pub fn menu() -> NodeBundle {
     NodeBundle {
-        style: Style {
-            flex_direction: FlexDirection::Column,
-            align_items: AlignItems::Center,
-            ..default()
-        },
         background_color: Color::CRIMSON.into(),
-        ..default()
+        ..vsizer()
     }
 }
 
@@ -78,4 +73,26 @@ pub fn menu_title(title: &str) -> TextBundle {
         margin: UiRect::all(Val::Px(50.0)),
         ..default()
     })
+}
+
+pub fn hsizer() -> NodeBundle {
+    NodeBundle {
+        style: Style {
+            flex_direction: FlexDirection::Row,
+            align_items: AlignItems::Center,
+            ..default()
+        },
+        ..default()
+    }
+}
+
+pub fn vsizer() -> NodeBundle {
+    NodeBundle {
+        style: Style {
+            flex_direction: FlexDirection::Column,
+            align_items: AlignItems::Center,
+            ..default()
+        },
+        ..default()
+    }
 }

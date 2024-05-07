@@ -43,32 +43,25 @@ fn menu_setup(mut menu_state: ResMut<NextState<PauseMenuState>>) {
 
 fn spawn_pause_menu(mut commands: Commands) {
     commands
-        // Entire screen
-        .spawn((main_panel_center(), OnMainMenuScreen))
-        .with_children(|parent| {
-            parent
-                // Main Menu
-                .spawn(menu_vertical())
-                .with_children(|parent| {
-                    // Display the game name
-                    parent.spawn(menu_title("Moria - Pause"));
+        .spawn((centered(), OnMainMenuScreen))
+        .with_children(|wnd| {
+            wnd.spawn(menu()).with_children(|menu| {
+                // Display the game name
+                menu.spawn(menu_title("Moria - Pause"));
 
-                    parent
-                        .spawn((button_bundle(), MenuButtonAction::PlayGame))
-                        .with_children(|parent| {
-                            parent.spawn(button_text("Resume"));
-                        });
-                    parent
-                        .spawn((button_bundle(), MenuButtonAction::Settings))
-                        .with_children(|parent| {
-                            parent.spawn(button_text("Settings"));
-                        });
-                    parent
-                        .spawn((button_bundle(), MenuButtonAction::QuitGame))
-                        .with_children(|parent| {
-                            parent.spawn(button_text("Quit"));
-                        });
-                });
+                menu.spawn((button_bundle(), MenuButtonAction::PlayGame))
+                    .with_children(|parent| {
+                        parent.spawn(button_text("Resume"));
+                    });
+                menu.spawn((button_bundle(), MenuButtonAction::Settings))
+                    .with_children(|parent| {
+                        parent.spawn(button_text("Settings"));
+                    });
+                menu.spawn((button_bundle(), MenuButtonAction::QuitGame))
+                    .with_children(|parent| {
+                        parent.spawn(button_text("Quit"));
+                    });
+            });
         });
 }
 

@@ -42,13 +42,14 @@ pub fn plugin(app: &mut App) {
     .add_systems(Update, (button_system).run_if(in_menu));
 }
 
-// run condition
+/// run condition
 fn in_menu(game_state: Res<State<GameState>>, in_game_state: Res<State<InGameState>>) -> bool {
     *game_state == GameState::Menu || *in_game_state == InGameState::Pause
 }
 
-// Tag component used to mark which setting is currently selected
+/// Tag component used to mark which setting is currently selected
 #[derive(Component)]
+#[component(storage = "SparseSet")]
 struct SelectedOption;
 
 // This system handles changing all buttons color based on mouse interaction
@@ -68,8 +69,8 @@ fn button_system(
     }
 }
 
-// This system updates the settings when a new value for a setting is selected, and marks
-// the button as the one currently selected
+/// This system updates the settings when a new value for a setting is selected, and marks
+/// the button as the one currently selected
 fn setting_button<T: Resource + Component + PartialEq + Copy>(
     interaction_query: Query<(&Interaction, &T, Entity), (Changed<Interaction>, With<Button>)>,
     mut selected_query: Query<(Entity, &mut BackgroundColor), With<SelectedOption>>,

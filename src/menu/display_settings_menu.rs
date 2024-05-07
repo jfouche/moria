@@ -29,37 +29,42 @@ fn spawn_display_menu(
     current_exposure: Res<ExposureSettings>,
 ) {
     commands
-        .spawn((main_panel_center(), OnDisplaySettingsMenuScreen))
-        .with_children(|parent| {
-            parent.spawn(menu_vertical()).with_children(|parent| {
-                parent.spawn(menu_title("Display"));
-                for display in [DisplaySettings::Window, DisplaySettings::FullScreen] {
-                    let mut btn = parent.spawn((button_bundle(), display));
-                    btn.with_children(|parent| {
-                        parent.spawn(button_text(&display.to_string()));
-                    });
-                    if *current_settings == display {
-                        btn.insert(SelectedOption);
-                    }
-                }
+        .spawn((centered(), OnDisplaySettingsMenuScreen))
+        .with_children(|wnd| {
+            wnd.spawn(menu()).with_children(|menu| {
+                menu.spawn(menu_title("Display settings"));
 
-                parent.spawn(button_text("Exposure"));
-                for exposure in [
-                    ExposureSettings::Dark,
-                    ExposureSettings::Medium,
-                    ExposureSettings::Light,
-                ] {
-                    let mut btn = parent.spawn((button_bundle(), exposure));
-                    btn.with_children(|parent| {
-                        parent.spawn(button_text(&exposure.to_string()));
-                    });
-                    if *current_exposure == exposure {
-                        btn.insert(SelectedOption);
+                menu.spawn(button_text("Display"));
+                menu.spawn(hsizer()).with_children(|sizer| {
+                    for display in [DisplaySettings::Window, DisplaySettings::FullScreen] {
+                        let mut btn = sizer.spawn((button_bundle(), display));
+                        btn.with_children(|parent| {
+                            parent.spawn(button_text(&display.to_string()));
+                        });
+                        if *current_settings == display {
+                            btn.insert(SelectedOption);
+                        }
                     }
-                }
+                });
 
-                parent
-                    .spawn((button_bundle(), MenuButtonAction::BackToSettings))
+                menu.spawn(button_text("Exposure"));
+                menu.spawn(hsizer()).with_children(|sizer| {
+                    for exposure in [
+                        ExposureSettings::Dark,
+                        ExposureSettings::Medium,
+                        ExposureSettings::Light,
+                    ] {
+                        let mut btn = sizer.spawn((button_bundle(), exposure));
+                        btn.with_children(|parent| {
+                            parent.spawn(button_text(&exposure.to_string()));
+                        });
+                        if *current_exposure == exposure {
+                            btn.insert(SelectedOption);
+                        }
+                    }
+                });
+
+                menu.spawn((button_bundle(), MenuButtonAction::BackToSettings))
                     .with_children(|parent| {
                         parent.spawn(button_text("Back"));
                     });
