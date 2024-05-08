@@ -12,7 +12,6 @@ pub fn plugin(app: &mut App) {
         .add_systems(Update, toggle_camera_controls_system)
         .add_plugins((
             WorldInspectorPlugin::new(),
-            RapierPhysicsPlugin::<NoUserData>::default(),
             RapierDebugRenderPlugin::default().disabled(),
             // PanOrbitCameraPlugin
         ))

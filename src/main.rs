@@ -8,7 +8,7 @@ mod splash;
 mod ui;
 
 use bevy::{prelude::*, window::WindowResolution};
-use bevy_rapier3d::{dynamics::RigidBody, geometry::Collider};
+use bevy_rapier3d::prelude::*;
 
 fn main() {
     App::new()
@@ -29,6 +29,7 @@ fn main() {
         .insert_resource(ClearColor(Color::BLACK))
         .init_state::<ecs::GameState>()
         .init_state::<ecs::InGameState>()
+        .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugins((
             splash::plugin,
             config::plugin,

@@ -10,6 +10,7 @@ mod weapon;
 
 use crate::ecs::*;
 use bevy::{app::PluginGroupBuilder, prelude::*};
+use bevy_rapier3d::plugin::RapierConfiguration;
 
 pub struct InGamePlugins;
 
@@ -41,8 +42,8 @@ fn in_game_plugin(app: &mut App) {
         OnExit(GameState::InGame),
         (end_game, ungrab_cursor, despawn_all::<MyMusic>),
     )
-    .add_systems(OnEnter(InGameState::Running), grab_cursor)
-    .add_systems(OnExit(InGameState::Running), ungrab_cursor)
+    .add_systems(OnEnter(InGameState::Running), (grab_cursor, start_physics))
+    .add_systems(OnExit(InGameState::Running), (ungrab_cursor, stop_physics))
     .add_systems(Update, show_menu.run_if(game_is_running));
 }
 
@@ -76,4 +77,12 @@ fn start_music(mut commands: Commands, asset_server: Res<AssetServer>) {
         },
         MyMusic,
     ));
+}
+
+fn start_physics(mut physics: ResMut<RapierConfiguration>) {
+    physics.physics_pipeline_active = true;
+}
+
+fn stop_physics(mut physics: ResMut<RapierConfiguration>) {
+    physics.physics_pipeline_active = false;
 }
