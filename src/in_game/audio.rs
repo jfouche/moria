@@ -5,7 +5,7 @@ use bevy::prelude::*;
 struct MyMusic;
 
 pub fn plugin(app: &mut App) {
-    app.insert_resource(AudioVolume(9))
+    app.insert_resource(AudioVolume(6))
         .add_systems(OnEnter(GameState::InGame), start_music)
         .add_systems(Update, change_volume.run_if(in_state(GameState::InGame)))
         // .add_systems(Update, _toggle.run_if(in_state(GameState::InGame)))
