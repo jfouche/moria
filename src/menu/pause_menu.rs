@@ -46,7 +46,6 @@ fn spawn_pause_menu(mut commands: Commands) {
         .spawn((centered(), OnMainMenuScreen))
         .with_children(|wnd| {
             wnd.spawn(menu()).with_children(|menu| {
-                // Display the game name
                 menu.spawn(menu_title("Moria - Pause"));
 
                 menu.spawn((button_bundle(), MenuButtonAction::PlayGame))
@@ -91,6 +90,9 @@ fn menu_action(
                 }
                 MenuButtonAction::SettingsSound => {
                     menu_state.set(PauseMenuState::SettingsSound);
+                }
+                MenuButtonAction::SettingsDisplay => {
+                    menu_state.set(PauseMenuState::SettingsDisplay);
                 }
                 MenuButtonAction::BackToMainMenu => {
                     menu_state.set(PauseMenuState::Main);
