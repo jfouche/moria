@@ -69,39 +69,60 @@ fn menu_action(
         (&Interaction, &MenuButtonAction),
         (Changed<Interaction>, With<Button>),
     >,
-    mut menu_state: ResMut<NextState<PauseMenuState>>,
-    mut in_game_state: ResMut<NextState<InGameState>>,
-    mut game_state: ResMut<NextState<GameState>>,
+    keys: Res<ButtonInput<KeyCode>>,
+    menu_state: Res<State<PauseMenuState>>,
+    mut next_menu_state: ResMut<NextState<PauseMenuState>>,
+    mut next_in_game_state: ResMut<NextState<InGameState>>,
+    mut next_game_state: ResMut<NextState<GameState>>,
 ) {
     for (interaction, menu_button_action) in &interaction_query {
         if *interaction == Interaction::Pressed {
             match menu_button_action {
                 MenuButtonAction::QuitGame => {
-                    menu_state.set(PauseMenuState::Disabled);
-                    in_game_state.set(InGameState::Disabled);
-                    game_state.set(GameState::Menu);
+                    next_menu_state.set(PauseMenuState::Disabled);
+                    next_in_game_state.set(InGameState::Disabled);
+                    next_game_state.set(GameState::Menu);
                 }
                 MenuButtonAction::PlayGame => {
-                    menu_state.set(PauseMenuState::Disabled);
-                    in_game_state.set(InGameState::Running);
+                    next_menu_state.set(PauseMenuState::Disabled);
+                    next_in_game_state.set(InGameState::Running);
                 }
                 MenuButtonAction::Settings => {
-                    menu_state.set(PauseMenuState::Settings);
+                    next_menu_state.set(PauseMenuState::Settings);
                 }
                 MenuButtonAction::SettingsSound => {
-                    menu_state.set(PauseMenuState::SettingsSound);
+                    next_menu_state.set(PauseMenuState::SettingsSound);
                 }
                 MenuButtonAction::SettingsDisplay => {
-                    menu_state.set(PauseMenuState::SettingsDisplay);
+                    next_menu_state.set(PauseMenuState::SettingsDisplay);
                 }
                 MenuButtonAction::BackToMainMenu => {
-                    menu_state.set(PauseMenuState::Main);
+                    next_menu_state.set(PauseMenuState::Main);
                 }
                 MenuButtonAction::BackToSettings => {
-                    menu_state.set(PauseMenuState::Settings);
+                    next_menu_state.set(PauseMenuState::Settings);
                 }
                 _ => {}
             }
+        }
+    }
+
+    if keys.just_pressed(KeyCode::Escape) {
+        match *menu_state.get() {
+            PauseMenuState::Main => {
+                next_menu_state.set(PauseMenuState::Disabled);
+                next_in_game_state.set(InGameState::Running);
+            }
+            PauseMenuState::Settings => {
+                next_menu_state.set(PauseMenuState::Main);
+            }
+            PauseMenuState::SettingsDisplay => {
+                next_menu_state.set(PauseMenuState::Settings);
+            }
+            PauseMenuState::SettingsSound => {
+                next_menu_state.set(PauseMenuState::Settings);
+            }
+            _ => {}
         }
     }
 }

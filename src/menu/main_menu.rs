@@ -68,9 +68,11 @@ fn menu_action(
         (&Interaction, &MenuButtonAction),
         (Changed<Interaction>, With<Button>),
     >,
+    keys: Res<ButtonInput<KeyCode>>,
+    menu_state: Res<State<MainMenuState>>,
     mut app_exit_events: EventWriter<AppExit>,
-    mut menu_state: ResMut<NextState<MainMenuState>>,
-    mut game_state: ResMut<NextState<GameState>>,
+    mut next_menu_state: ResMut<NextState<MainMenuState>>,
+    mut next_game_state: ResMut<NextState<GameState>>,
 ) {
     for (interaction, menu_button_action) in &interaction_query {
         if *interaction == Interaction::Pressed {
@@ -79,26 +81,41 @@ fn menu_action(
                     app_exit_events.send(AppExit);
                 }
                 MenuButtonAction::PlayGame => {
-                    game_state.set(GameState::InGame);
-                    menu_state.set(MainMenuState::Disabled);
+                    next_game_state.set(GameState::InGame);
+                    next_menu_state.set(MainMenuState::Disabled);
                 }
                 MenuButtonAction::Settings => {
-                    menu_state.set(MainMenuState::Settings);
+                    next_menu_state.set(MainMenuState::Settings);
                 }
                 MenuButtonAction::SettingsSound => {
-                    menu_state.set(MainMenuState::SettingsSound);
+                    next_menu_state.set(MainMenuState::SettingsSound);
                 }
                 MenuButtonAction::SettingsDisplay => {
-                    menu_state.set(MainMenuState::SettingsDisplay);
+                    next_menu_state.set(MainMenuState::SettingsDisplay);
                 }
                 MenuButtonAction::BackToMainMenu => {
-                    menu_state.set(MainMenuState::Main);
+                    next_menu_state.set(MainMenuState::Main);
                 }
                 MenuButtonAction::BackToSettings => {
-                    menu_state.set(MainMenuState::Settings);
+                    next_menu_state.set(MainMenuState::Settings);
                 }
                 _ => {}
             }
+        }
+    }
+
+    if keys.just_pressed(KeyCode::Escape) {
+        match *menu_state.get() {
+            MainMenuState::Settings => {
+                next_menu_state.set(MainMenuState::Main);
+            }
+            MainMenuState::SettingsDisplay => {
+                next_menu_state.set(MainMenuState::Settings);
+            }
+            MainMenuState::SettingsSound => {
+                next_menu_state.set(MainMenuState::Settings);
+            }
+            _ => {}
         }
     }
 }

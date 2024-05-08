@@ -62,10 +62,8 @@ fn set_background(mut commands: Commands) {
 }
 
 fn show_menu(mut state: ResMut<NextState<InGameState>>, keys: Res<ButtonInput<KeyCode>>) {
-    for key in keys.get_pressed() {
-        if *key == KeyCode::Escape {
-            state.set(InGameState::Pause);
-        }
+    if keys.just_pressed(KeyCode::Escape) {
+        state.set(InGameState::Pause);
     }
 }
 
