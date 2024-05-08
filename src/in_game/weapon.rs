@@ -73,11 +73,10 @@ fn spawn_bullet(
                 transform,
                 ..default()
             },
-            RigidBody::Dynamic,
+            RigidBody::KinematicVelocityBased,
             Collider::cylinder(BULLET_LENGTH / 2.0, BULLET_RADIUS / 2.0),
             Velocity::linear(*fire_ev.direction * fire_ev.weapon.bullet_speed),
             ActiveEvents::COLLISION_EVENTS,
-            // ColliderMassProperties::Density(0.0005), // TODO: don't hard code
         ));
 
         // spawn the audio in a different entity to be sure it doesn't stop
