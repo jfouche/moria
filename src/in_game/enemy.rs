@@ -13,6 +13,7 @@ pub fn plugin(app: &mut App) {
         .add_event::<EnemyDeathEvent>()
         .add_systems(Startup, load_assets)
         .add_systems(OnEnter(GameState::InGame), spawn_enemy)
+        .add_systems(OnExit(GameState::InGame), despawn_all::<Enemy>)
         .add_systems(
             Update,
             (on_hit, on_death, enemy_fires).run_if(game_is_running),
