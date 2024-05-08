@@ -40,15 +40,19 @@ pub fn button_text(text: &str) -> TextBundle {
     TextBundle::from_section(text, button_text_style())
 }
 
+pub fn centered_style() -> Style {
+    Style {
+        width: Val::Percent(100.0),
+        height: Val::Percent(100.0),
+        align_items: AlignItems::Center,
+        justify_content: JustifyContent::Center,
+        ..default()
+    }
+}
+
 pub fn centered() -> NodeBundle {
     NodeBundle {
-        style: Style {
-            width: Val::Percent(100.0),
-            height: Val::Percent(100.0),
-            align_items: AlignItems::Center,
-            justify_content: JustifyContent::Center,
-            ..default()
-        },
+        style: centered_style(),
         ..default()
     }
 }

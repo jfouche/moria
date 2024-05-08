@@ -1,4 +1,4 @@
-use crate::{ecs::*, ui::ProgressBar};
+use crate::{ecs::*, ui::*};
 use bevy::{
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
     prelude::*,
@@ -36,6 +36,8 @@ pub fn plugin(app: &mut App) {
                 (spawn_fps, spawn_compass, spawn_aim, spawn_life).after(spawn_hud),
             ),
         )
+        .add_systems(OnEnter(InGameState::Running), spawn_aim)
+        .add_systems(OnExit(InGameState::Running), despawn_all::<HudAim>)
         .add_systems(
             Update,
             (update_fps, update_compass, update_life).run_if(game_is_running),
@@ -161,8 +163,13 @@ fn spawn_compass(
 fn spawn_aim(
     mut commands: Commands,
     hud: Query<Entity, With<Hud>>,
+    aim_query: Query<(), With<HudAim>>,
     asset_server: Res<AssetServer>,
 ) {
+    if !aim_query.is_empty() {
+        // There is already an aim, no need to spawn it
+        return;
+    }
     let aim = commands
         .spawn((
             Name::new("HudAim"),
@@ -170,11 +177,7 @@ fn spawn_aim(
             NodeBundle {
                 style: Style {
                     position_type: PositionType::Absolute,
-                    align_items: AlignItems::Center,
-                    justify_content: JustifyContent::Center,
-                    width: Val::Percent(100.0),
-                    height: Val::Percent(100.0),
-                    ..default()
+                    ..centered_style()
                 },
                 ..default()
             },
