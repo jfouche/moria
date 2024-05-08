@@ -35,7 +35,7 @@ pub fn plugin(app: &mut App) {
 }
 
 fn menu_setup(mut commands: Commands, mut menu_state: ResMut<NextState<MainMenuState>>) {
-    commands.insert_resource(ClearColor(BACKGROUND_COLOR));
+    commands.insert_resource(ClearColor(Color::BLACK));
     menu_state.set(MainMenuState::Main);
 }
 

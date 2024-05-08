@@ -31,10 +31,7 @@ pub fn plugin(app: &mut App) {
     app.add_plugins(FrameTimeDiagnosticsPlugin)
         .add_systems(
             OnEnter(GameState::InGame),
-            (
-                spawn_hud,
-                (spawn_fps, spawn_compass, spawn_aim, spawn_life).after(spawn_hud),
-            ),
+            ((spawn_hud, (spawn_fps, spawn_compass, spawn_aim, spawn_life)).chain(),),
         )
         .add_systems(OnEnter(InGameState::Running), spawn_aim)
         .add_systems(OnExit(InGameState::Running), despawn_all::<HudAim>)
@@ -46,18 +43,7 @@ pub fn plugin(app: &mut App) {
 }
 
 fn spawn_hud(mut commands: Commands) {
-    commands.spawn((
-        Hud,
-        Name::new("Hud"),
-        NodeBundle {
-            style: Style {
-                width: Val::Percent(100.0),
-                height: Val::Percent(100.0),
-                ..default()
-            },
-            ..default()
-        },
-    ));
+    commands.spawn((Hud, Name::new("Hud"), centered()));
 }
 
 fn spawn_fps(
