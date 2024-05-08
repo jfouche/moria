@@ -73,7 +73,7 @@ fn button_system(
 /// the button as the one currently selected
 fn setting_button<T: Resource + Component + PartialEq + Copy>(
     interaction_query: Query<(&Interaction, &T, Entity), (Changed<Interaction>, With<Button>)>,
-    mut selected_query: Query<(Entity, &mut BackgroundColor), With<SelectedOption>>,
+    mut selected_query: Query<(Entity, &mut BackgroundColor), (With<SelectedOption>, With<T>)>,
     mut commands: Commands,
     mut setting: ResMut<T>,
 ) {
