@@ -26,3 +26,20 @@ pub fn despawn_all<T: Component>(to_despawn: Query<Entity, With<T>>, mut command
         commands.entity(entity).despawn_recursive();
     }
 }
+
+/// Generic system to set a the Visibility of a Component
+///
+/// ex:
+/// ```
+/// app.add_system(set_visibility::<MyComponent>(Visibility::Hidden));
+///
+/// ```
+pub fn set_visibility<T: Component>(
+    visibility: Visibility,
+) -> impl FnMut(Query<&mut Visibility, With<T>>) {
+    move |mut query| {
+        for mut v in query.iter_mut() {
+            *v = visibility;
+        }
+    }
+}

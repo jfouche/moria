@@ -27,14 +27,27 @@ struct HudLife;
 
 const BGCOLOR: Color = Color::rgba(0.9, 0.9, 0.9, 0.3);
 
+#[derive(Resource)]
+struct HudAssets {
+    font: Handle<Font>,
+    aim: Handle<Image>,
+}
+
 pub fn plugin(app: &mut App) {
     app.add_plugins(FrameTimeDiagnosticsPlugin)
+        .add_systems(Startup, load_assets)
         .add_systems(
             OnEnter(GameState::InGame),
-            ((spawn_hud, (spawn_fps, spawn_compass, spawn_aim, spawn_life)).chain(),),
+            (spawn_fps, spawn_compass, spawn_aim, spawn_life),
         )
-        .add_systems(OnEnter(InGameState::Running), spawn_aim)
-        .add_systems(OnExit(InGameState::Running), despawn_all::<HudAim>)
+        .add_systems(
+            OnEnter(InGameState::Running),
+            set_visibility::<HudAim>(Visibility::Inherited),
+        )
+        .add_systems(
+            OnExit(InGameState::Running),
+            set_visibility::<HudAim>(Visibility::Hidden),
+        )
         .add_systems(
             Update,
             (update_fps, update_compass, update_life).run_if(game_is_running),
@@ -42,22 +55,23 @@ pub fn plugin(app: &mut App) {
         .add_systems(OnExit(GameState::InGame), (despawn_all::<Hud>,));
 }
 
-fn spawn_hud(mut commands: Commands) {
-    commands.spawn((Hud, Name::new("Hud"), centered()));
+fn load_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let font = asset_server.load("fonts/FiraSans-Bold.ttf");
+    let aim = asset_server.load("aim.png");
+    let assets = HudAssets { font, aim };
+    commands.insert_resource(assets);
 }
 
-fn spawn_fps(
-    mut commands: Commands,
-    hud: Query<Entity, With<Hud>>,
-    asset_server: Res<AssetServer>,
-) {
-    let fps = commands
+fn spawn_fps(mut commands: Commands, assets: Res<HudAssets>) {
+    commands
         .spawn((
             Name::new("HudFps"),
+            Hud,
             HudFps,
             NodeBundle {
                 style: Style {
                     position_type: PositionType::Absolute,
+                    top: Val::Px(0.0),
                     right: Val::Px(0.0),
                     width: Val::Px(90.0),
                     height: Val::Px(30.),
@@ -77,36 +91,31 @@ fn spawn_fps(
                     TextSection::new(
                         "FPS: ",
                         TextStyle {
-                            font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                            font: assets.font.clone(),
                             font_size: FONT_SIZE,
                             ..default()
                         },
                     ),
                     TextSection::from_style(TextStyle {
                         font_size: FONT_SIZE,
-                        font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                        font: assets.font.clone(),
                         ..default()
                     }),
                 ]),
             ));
-        })
-        .id();
-    let hud = hud.get_single().expect("Hud");
-    commands.entity(hud).push_children(&[fps]);
+        });
 }
 
-fn spawn_compass(
-    mut commands: Commands,
-    hud: Query<Entity, With<Hud>>,
-    asset_server: Res<AssetServer>,
-) {
-    let compass = commands
+fn spawn_compass(mut commands: Commands, assets: Res<HudAssets>) {
+    commands
         .spawn((
             Name::new("HudCompass"),
             HudCompass,
+            Hud,
             NodeBundle {
                 style: Style {
                     position_type: PositionType::Absolute,
+                    top: Val::Px(0.0),
                     left: Val::Px(0.0),
                     width: Val::Px(90.0),
                     height: Val::Px(30.),
@@ -126,8 +135,7 @@ fn spawn_compass(
                     TextSection::new(
                         "Compass: ",
                         TextStyle {
-                            // This font is loaded and will be used instead of the default font.
-                            font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                            font: assets.font.clone(),
                             font_size: FONT_SIZE,
                             ..default()
                         },
@@ -135,74 +143,60 @@ fn spawn_compass(
                     TextSection::from_style(TextStyle {
                         font_size: FONT_SIZE,
                         color: Color::GOLD,
-                        // If no font is specified, the default font (a minimal subset of FiraMono) will be used.
-                        ..default()
+                        font: assets.font.clone(),
                     }),
                 ]),
             ));
-        })
-        .id();
-    let hud = hud.get_single().expect("Hud");
-    commands.entity(hud).push_children(&[compass]);
+        });
 }
 
-fn spawn_aim(
-    mut commands: Commands,
-    hud: Query<Entity, With<Hud>>,
-    aim_query: Query<(), With<HudAim>>,
-    asset_server: Res<AssetServer>,
-) {
+fn spawn_aim(mut commands: Commands, aim_query: Query<(), With<HudAim>>, assets: Res<HudAssets>) {
     if !aim_query.is_empty() {
         // There is already an aim, no need to spawn it
         return;
     }
-    let aim = commands
+    commands
         .spawn((
             Name::new("HudAim"),
             HudAim,
+            Hud,
             NodeBundle {
                 style: Style {
                     position_type: PositionType::Absolute,
                     ..centered_style()
                 },
-                ..default()
+                ..centered()
             },
         ))
         .with_children(|parent| {
             parent.spawn(ImageBundle {
-                image: UiImage::new(asset_server.load("aim.png")),
+                image: UiImage::new(assets.aim.clone()),
                 ..default()
             });
-        })
-        .id();
-    let hud = hud.get_single().expect("Hud");
-    commands.entity(hud).push_children(&[aim]);
+        });
 }
 
-fn spawn_life(mut commands: Commands, hud: Query<Entity, With<Hud>>) {
-    let life = commands
-        .spawn((
-            HudLife,
-            Name::new("HudLife"),
-            ProgressBar::new(0.0, 100.0, 60.0).with_colors(Color::BLACK, Color::RED),
-            NodeBundle {
-                style: Style {
-                    position_type: PositionType::Absolute,
-                    bottom: Val::Px(25.0),
-                    left: Val::Auto,
-                    right: Val::Auto,
-                    width: Val::Percent(60.0),
-                    height: Val::Px(40.0),
-                    margin: UiRect::horizontal(Val::Auto),
-                    padding: UiRect::all(Val::Px(3.0)),
-                    ..default()
-                },
+fn spawn_life(mut commands: Commands) {
+    commands.spawn((
+        HudLife,
+        Hud,
+        Name::new("HudLife"),
+        ProgressBar::new(0.0, 100.0, 60.0).with_colors(Color::BLACK, Color::RED),
+        NodeBundle {
+            style: Style {
+                position_type: PositionType::Absolute,
+                bottom: Val::Px(25.0),
+                left: Val::Auto,
+                right: Val::Auto,
+                width: Val::Percent(60.0),
+                height: Val::Px(40.0),
+                margin: UiRect::horizontal(Val::Auto),
+                padding: UiRect::all(Val::Px(3.0)),
                 ..default()
             },
-        ))
-        .id();
-    let hud = hud.get_single().expect("Hud");
-    commands.entity(hud).push_children(&[life]);
+            ..default()
+        },
+    ));
 }
 
 fn update_fps(diagnostics: Res<DiagnosticsStore>, mut query: Query<&mut Text, With<HudFpsText>>) {
