@@ -30,17 +30,11 @@ impl PluginGroup for InGamePlugins {
     }
 }
 
-#[derive(Component)]
-struct MyMusic;
 
 fn in_game_plugin(app: &mut App) {
     app.add_systems(
         OnEnter(GameState::InGame),
-        (init_game, grab_cursor, set_background, start_music),
-    )
-    .add_systems(
-        OnExit(GameState::InGame),
-        (end_game, ungrab_cursor, despawn_all::<MyMusic>),
+        (init_game, grab_cursor, set_background),
     )
     .add_systems(OnEnter(InGameState::Running), (grab_cursor, start_physics))
     .add_systems(OnExit(InGameState::Running), (ungrab_cursor, stop_physics))

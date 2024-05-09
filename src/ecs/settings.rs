@@ -7,21 +7,17 @@ use bevy::prelude::*;
 pub struct AudioVolume(pub u8);
 
 impl AudioVolume {
-    const MAX: u8 = 9;
+    const MAX: u8 = 7;
 
     pub const fn range() -> Range<u8> {
         0..Self::MAX + 1
     }
 
     pub fn db(&self) -> f32 {
-        const DECIBELS: [f32; 10] = [0.0, 0.02, 0.05, 0.1, 0.02, 0.5, 1.0, 2.0, 5.0, 10.0];
+        const DECIBELS: [f32; 8] = [0.0, 0.04, 0.08, 0.1, 0.3, 0.6, 1.0, 2.0];
         *DECIBELS
             .get(self.0 as usize)
             .unwrap_or(&DECIBELS[Self::MAX as usize])
-    }
-
-    pub fn on(&self) -> bool {
-        self.0 != 0
     }
 }
 

@@ -25,12 +25,7 @@ fn start_music(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 fn change_volume(volume: Res<AudioVolume>, sink: Query<&AudioSink, With<MyMusic>>) {
     if let Ok(sink) = sink.get_single() {
-        if volume.on() {
-            sink.set_volume(volume.db());
-            sink.play();
-        } else {
-            sink.pause();
-        }
+        sink.set_volume(volume.db());
     }
 }
 
