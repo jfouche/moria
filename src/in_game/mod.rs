@@ -30,18 +30,26 @@ impl PluginGroup for InGamePlugins {
     }
 }
 
+#[derive(Component, Deref, DerefMut)]
+struct LifeTime(Timer);
+
+impl LifeTime {
+    fn new(secs: f32) -> Self {
+        LifeTime(Timer::from_seconds(secs, TimerMode::Once))
+    }
+}
 
 fn in_game_plugin(app: &mut App) {
     app.add_systems(
         OnEnter(GameState::InGame),
         (init_game, grab_cursor, set_background),
     )
+    .add_systems(OnExit(GameState::InGame), (end_game, ungrab_cursor))
     .add_systems(OnEnter(InGameState::Running), (grab_cursor, start_physics))
     .add_systems(OnExit(InGameState::Running), (ungrab_cursor, stop_physics))
-    .add_systems(Update, show_menu.run_if(game_is_running));
+    .add_systems(Update, show_menu.run_if(game_is_running))
+    .add_systems(Update, despawn_if_too_old);
 }
-
-const BACKGROUND_COLOR: Color = Color::BLACK;
 
 fn init_game(mut in_game_state: ResMut<NextState<InGameState>>) {
     in_game_state.set(InGameState::Running);
@@ -52,7 +60,7 @@ fn end_game(mut in_game_state: ResMut<NextState<InGameState>>) {
 }
 
 fn set_background(mut commands: Commands) {
-    commands.insert_resource(ClearColor(BACKGROUND_COLOR));
+    commands.insert_resource(ClearColor(Color::BLACK));
 }
 
 fn show_menu(mut state: ResMut<NextState<InGameState>>, keys: Res<ButtonInput<KeyCode>>) {
@@ -61,20 +69,22 @@ fn show_menu(mut state: ResMut<NextState<InGameState>>, keys: Res<ButtonInput<Ke
     }
 }
 
-fn start_music(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn((
-        AudioBundle {
-            source: asset_server.load("audio/Goblins_Den_Regular.ogg"),
-            settings: PlaybackSettings::LOOP,
-        },
-        MyMusic,
-    ));
-}
-
 fn start_physics(mut physics: ResMut<RapierConfiguration>) {
     physics.physics_pipeline_active = true;
 }
 
 fn stop_physics(mut physics: ResMut<RapierConfiguration>) {
     physics.physics_pipeline_active = false;
+}
+
+fn despawn_if_too_old(
+    mut commands: Commands,
+    mut query: Query<(Entity, &mut LifeTime)>,
+    time: Res<Time>,
+) {
+    for (entity, mut lifetime) in &mut query {
+        if lifetime.tick(time.delta()).finished() {
+            commands.entity(entity).despawn_recursive();
+        }
+    }
 }

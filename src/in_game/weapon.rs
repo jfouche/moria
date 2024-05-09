@@ -3,6 +3,8 @@ use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 use std::f32::consts::FRAC_PI_2;
 
+use super::LifeTime;
+
 #[derive(Resource)]
 struct WeaponAssets {
     mesh: Handle<Mesh>,
@@ -66,6 +68,7 @@ fn spawn_bullet(
                 damage: fire_ev.weapon.damage,
             },
             Name::new("BULLET"),
+            LifeTime::new(1.0),
             fire_ev.from,
             PbrBundle {
                 mesh: assets.mesh.clone(),

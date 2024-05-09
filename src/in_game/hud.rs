@@ -3,15 +3,13 @@ use bevy::{
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
     prelude::*,
 };
+use std::f32::consts::PI;
 
 #[derive(Component)]
 struct Hud;
 
 #[derive(Component)]
 struct HudCompass;
-
-#[derive(Component)]
-struct HudCompassText;
 
 #[derive(Component)]
 struct HudFps;
@@ -25,12 +23,11 @@ struct HudAim;
 #[derive(Component)]
 struct HudLife;
 
-const BGCOLOR: Color = Color::rgba(0.9, 0.9, 0.9, 0.3);
-
 #[derive(Resource)]
 struct HudAssets {
     font: Handle<Font>,
     aim: Handle<Image>,
+    compass: Handle<Image>,
 }
 
 pub fn plugin(app: &mut App) {
@@ -40,6 +37,7 @@ pub fn plugin(app: &mut App) {
             OnEnter(GameState::InGame),
             (spawn_fps, spawn_compass, spawn_aim, spawn_life),
         )
+        .add_systems(OnExit(GameState::InGame), (despawn_all::<Hud>,))
         .add_systems(
             OnEnter(InGameState::Running),
             set_visibility::<HudAim>(Visibility::Inherited),
@@ -51,14 +49,14 @@ pub fn plugin(app: &mut App) {
         .add_systems(
             Update,
             (update_fps, update_compass, update_life).run_if(game_is_running),
-        )
-        .add_systems(OnExit(GameState::InGame), (despawn_all::<Hud>,));
+        );
 }
 
 fn load_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
     let font = asset_server.load("fonts/FiraSans-Bold.ttf");
     let aim = asset_server.load("aim.png");
-    let assets = HudAssets { font, aim };
+    let compass = asset_server.load("compass.png");
+    let assets = HudAssets { font, aim, compass };
     commands.insert_resource(assets);
 }
 
@@ -75,99 +73,52 @@ fn spawn_fps(mut commands: Commands, assets: Res<HudAssets>) {
                     right: Val::Px(0.0),
                     width: Val::Px(90.0),
                     height: Val::Px(30.),
-                    flex_direction: FlexDirection::Column,
-                    justify_content: JustifyContent::SpaceBetween,
-                    ..default()
+                    ..centered_style()
                 },
-                background_color: BGCOLOR.into(),
+                background_color: Color::rgba(0.8, 0.8, 0.8, 0.3).into(),
                 ..Default::default()
             },
         ))
         .with_children(|cmds| {
             const FONT_SIZE: f32 = 15.0;
+            let text_style = TextStyle {
+                font: assets.font.clone(),
+                font_size: FONT_SIZE,
+                ..default()
+            };
             cmds.spawn((
                 HudFpsText,
                 TextBundle::from_sections([
-                    TextSection::new(
-                        "FPS: ",
-                        TextStyle {
-                            font: assets.font.clone(),
-                            font_size: FONT_SIZE,
-                            ..default()
-                        },
-                    ),
-                    TextSection::from_style(TextStyle {
-                        font_size: FONT_SIZE,
-                        font: assets.font.clone(),
-                        ..default()
-                    }),
+                    TextSection::new("FPS: ", text_style.clone()),
+                    TextSection::from_style(text_style),
                 ]),
             ));
         });
 }
 
 fn spawn_compass(mut commands: Commands, assets: Res<HudAssets>) {
-    commands
-        .spawn((
-            Name::new("HudCompass"),
-            HudCompass,
-            Hud,
-            NodeBundle {
-                style: Style {
-                    position_type: PositionType::Absolute,
-                    top: Val::Px(0.0),
-                    left: Val::Px(0.0),
-                    width: Val::Px(90.0),
-                    height: Val::Px(30.),
-                    flex_direction: FlexDirection::Column,
-                    justify_content: JustifyContent::SpaceBetween,
-                    ..default()
-                },
-                background_color: BGCOLOR.into(),
-                ..Default::default()
+    commands.spawn((
+        Name::new("HudCompass"),
+        HudCompass,
+        Hud,
+        ImageBundle {
+            image: UiImage::new(assets.compass.clone()),
+            background_color: Color::rgba(0.4, 0.4, 0.4, 0.7).into(),
+            style: Style {
+                position_type: PositionType::Absolute,
+                top: Val::Px(20.0),
+                left: Val::Px(20.0),
+                ..default()
             },
-        ))
-        .with_children(|cmds| {
-            const FONT_SIZE: f32 = 15.0;
-            cmds.spawn((
-                HudCompassText,
-                TextBundle::from_sections([
-                    TextSection::new(
-                        "Compass: ",
-                        TextStyle {
-                            font: assets.font.clone(),
-                            font_size: FONT_SIZE,
-                            ..default()
-                        },
-                    ),
-                    TextSection::from_style(TextStyle {
-                        font_size: FONT_SIZE,
-                        color: Color::GOLD,
-                        font: assets.font.clone(),
-                    }),
-                ]),
-            ));
-        });
+            transform: Transform::default().with_scale(Vec3::splat(0.6)),
+            ..default()
+        },
+    ));
 }
 
-fn spawn_aim(mut commands: Commands, aim_query: Query<(), With<HudAim>>, assets: Res<HudAssets>) {
-    if !aim_query.is_empty() {
-        // There is already an aim, no need to spawn it
-        return;
-    }
+fn spawn_aim(mut commands: Commands, assets: Res<HudAssets>) {
     commands
-        .spawn((
-            Name::new("HudAim"),
-            HudAim,
-            Hud,
-            NodeBundle {
-                style: Style {
-                    position_type: PositionType::Absolute,
-                    ..centered_style()
-                },
-                ..centered()
-            },
-        ))
+        .spawn((Name::new("HudAim"), HudAim, Hud, centered()))
         .with_children(|parent| {
             parent.spawn(ImageBundle {
                 image: UiImage::new(assets.aim.clone()),
@@ -211,13 +162,12 @@ fn update_fps(diagnostics: Res<DiagnosticsStore>, mut query: Query<&mut Text, Wi
 
 fn update_compass(
     transform: Query<&Transform, With<Player>>,
-    mut query: Query<&mut Text, With<HudCompassText>>,
+    mut compass: Query<&mut Transform, (With<HudCompass>, Without<Player>)>,
 ) {
-    for mut text in &mut query {
-        let transform = transform.get_single().expect("Can't get Player");
-        let forward = transform.forward();
-        let angle = 180.0 - forward.x.atan2(forward.z).to_degrees();
-        text.sections[1].value = format!("{angle:.0}");
+    let forward = transform.get_single().expect("Can't get Player").forward();
+    if let Ok(mut transform) = compass.get_single_mut() {
+        let angle = PI - forward.x.atan2(forward.z);
+        transform.rotation = Quat::from_rotation_z(angle);
     }
 }
 
