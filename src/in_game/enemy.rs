@@ -4,8 +4,7 @@ use bevy_rapier3d::prelude::*;
 
 #[derive(Resource)]
 struct EnemyAssets {
-    mesh: Handle<Mesh>,
-    material: Handle<StandardMaterial>,
+    scene: Handle<Scene>,
 }
 
 pub fn plugin(app: &mut App) {
@@ -20,14 +19,9 @@ pub fn plugin(app: &mut App) {
         );
 }
 
-fn load_assets(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
+fn load_assets(mut commands: Commands, assets_server: Res<AssetServer>) {
     let assets = EnemyAssets {
-        mesh: meshes.add(Sphere::new(Enemy::RADIUS)),
-        material: materials.add(Color::RED),
+        scene: assets_server.load("SWAT.glb#Scene0"),
     };
     commands.insert_resource(assets);
 }
@@ -39,10 +33,10 @@ fn spawn_enemy(mut commands: Commands, assets: Res<EnemyAssets>, weapons: Res<We
         Name::new("Enemy"),
         Life::new(50),
         weapons.get(WeaponType::Shotgun),
-        PbrBundle {
-            mesh: assets.mesh.clone(),
-            material: assets.material.clone(),
-            transform: Transform::from_translation(pos.to_world().translation()),
+        SceneBundle {
+            scene: assets.scene.clone(),
+            transform: Transform::from_translation(pos.to_world().translation())
+                .with_scale(Vec3::splat(0.4)),
             ..default()
         },
         RigidBody::Dynamic,
