@@ -89,7 +89,7 @@ fn show_axes(mut gizmos: Gizmos, config: Res<GameConfig>) {
 
 fn display_collision_events(mut collision_events: EventReader<CollisionEvent>) {
     for collision_event in collision_events.read() {
-        println!("Received collision event: {:?}", collision_event);
+        info!("Received collision event: {:?}", collision_event);
     }
 }
 

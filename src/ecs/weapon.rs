@@ -169,6 +169,7 @@ pub struct BulletBundle {
     collider: Collider,
     velocity: Velocity,
     collider_events: ActiveEvents,
+    collision_tpes: ActiveCollisionTypes,
 }
 
 impl BulletBundle {
@@ -192,6 +193,8 @@ impl BulletBundle {
             collider: Collider::cylinder(Bullet::LENGTH / 2.0, Bullet::RADIUS / 2.0),
             velocity: Velocity::linear(*fire_ev.direction * fire_ev.weapon.bullet_speed),
             collider_events: ActiveEvents::COLLISION_EVENTS,
+            collision_tpes: ActiveCollisionTypes::default()
+                | ActiveCollisionTypes::KINEMATIC_STATIC,
         }
     }
 
