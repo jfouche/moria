@@ -34,8 +34,7 @@ impl EnemyBundle {
     }
 
     pub fn at(mut self, pos: Position) -> Self {
-        self.scene.transform = Transform::from_translation(pos.to_world().translation())
-            .looking_to(Vec3::NEG_Z, Vec3::Y);
+        self.scene.transform = Transform::from_translation(pos.to_world().translation());
         self
     }
 

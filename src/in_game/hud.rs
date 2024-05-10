@@ -177,6 +177,6 @@ fn update_life(
 ) {
     let &life = life.get_single().expect("Player");
     for mut progressbar in progressbars.iter_mut() {
-        progressbar.set_value(*life as f32);
+        progressbar.set_value(life.get() as f32);
     }
 }

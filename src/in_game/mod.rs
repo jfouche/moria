@@ -6,6 +6,7 @@ mod hud;
 mod maze;
 mod minimap;
 mod player;
+mod potion;
 mod weapon;
 
 use crate::ecs::*;
@@ -26,6 +27,7 @@ impl PluginGroup for InGamePlugins {
             .add(enemy::plugin)
             .add(bullet_collision::plugin)
             .add(audio::plugin)
+            .add(potion::plugin)
             .add(in_game_plugin)
     }
 }

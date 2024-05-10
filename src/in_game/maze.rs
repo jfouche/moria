@@ -228,7 +228,7 @@ fn spawn_wall(commands: &mut Commands, wall: Wall, pos: Position, assets: &MazeA
     let material = assets.wall_material.clone();
     let wall_pos = WallPosition { wall, pos };
     commands
-        .spawn(WallBundle::new(wall_pos) /*.with_pbr(mesh, material)*/)
+        .spawn(WallBundle::new(wall_pos).with_pbr(mesh, material))
         .with_children(|c| {
             c.spawn(WallColliderBundle::new(wall_pos));
         })
@@ -253,8 +253,8 @@ fn spawn_maze(mut commands: Commands, assets: Res<MazeAssets>, config: Res<MazeC
             .spawn((
                 Name::new(format!("Floor {pos}")),
                 PbrBundle {
-                    // mesh: assets.floor_mesh.clone(),
-                    // material: assets.floor_material.clone(),
+                    mesh: assets.floor_mesh.clone(),
+                    material: assets.floor_material.clone(),
                     transform: Transform::from_translation(pos.to_world().translation()),
                     ..default()
                 },
@@ -267,8 +267,8 @@ fn spawn_maze(mut commands: Commands, assets: Res<MazeAssets>, config: Res<MazeC
             .spawn((
                 Name::new(format!("Ceiling {pos}")),
                 PbrBundle {
-                    // mesh: assets.ceiling_mesh.clone(),
-                    // material: assets.ceiling_material.clone(),
+                    mesh: assets.ceiling_mesh.clone(),
+                    material: assets.ceiling_material.clone(),
                     transform: Transform::from_translation(
                         pos.to_world().translation_with_y(Wall::HEIGHT),
                     ),

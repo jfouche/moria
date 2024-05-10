@@ -87,9 +87,18 @@ fn show_axes(mut gizmos: Gizmos, config: Res<GameConfig>) {
     }
 }
 
-fn display_collision_events(mut collision_events: EventReader<CollisionEvent>) {
-    for collision_event in collision_events.read() {
-        info!("Received collision event: {:?}", collision_event);
+fn display_collision_events(
+    mut collision_events: EventReader<CollisionEvent>,
+    names: Query<DebugName>,
+) {
+    for event in collision_events.read() {
+        let (collision_type, &e1, &e2) = match event {
+            CollisionEvent::Started(e1, e2, _) => ("Started", e1, e2),
+            CollisionEvent::Stopped(e1, e2, _) => ("Stopped", e1, e2),
+        };
+        let name1 = names.get(e1);
+        let name2 = names.get(e2);
+        info!("Received collision event: {collision_type}, {name1:?}, {name2:?}");
     }
 }
 
