@@ -30,15 +30,6 @@ impl PluginGroup for InGamePlugins {
     }
 }
 
-#[derive(Component, Deref, DerefMut)]
-struct LifeTime(Timer);
-
-impl LifeTime {
-    fn new(secs: f32) -> Self {
-        LifeTime(Timer::from_seconds(secs, TimerMode::Once))
-    }
-}
-
 fn in_game_plugin(app: &mut App) {
     app.add_systems(
         OnEnter(GameState::InGame),
@@ -75,16 +66,4 @@ fn start_physics(mut physics: ResMut<RapierConfiguration>) {
 
 fn stop_physics(mut physics: ResMut<RapierConfiguration>) {
     physics.physics_pipeline_active = false;
-}
-
-fn despawn_if_too_old(
-    mut commands: Commands,
-    mut query: Query<(Entity, &mut LifeTime)>,
-    time: Res<Time>,
-) {
-    for (entity, mut lifetime) in &mut query {
-        if lifetime.tick(time.delta()).finished() {
-            commands.entity(entity).despawn_recursive();
-        }
-    }
 }

@@ -1,6 +1,8 @@
+use super::*;
 use crate::config::WeaponConfig;
 use bevy::prelude::*;
-use std::collections::HashMap;
+use bevy_rapier3d::prelude::*;
+use std::{collections::HashMap, f32::consts::FRAC_PI_2};
 
 #[derive(Event)]
 pub struct FireEvent {
@@ -149,6 +151,55 @@ impl Weapons {
 #[derive(Component)]
 pub struct Bullet {
     pub damage: u16,
+}
+
+impl Bullet {
+    pub const RADIUS: f32 = 0.03;
+    pub const LENGTH: f32 = 0.1;
+}
+
+#[derive(Bundle)]
+pub struct BulletBundle {
+    bullet: Bullet,
+    name: Name,
+    lifetime: LifeTime,
+    emiter: FireEmitter,
+    pbr: PbrBundle,
+    body: RigidBody,
+    collider: Collider,
+    velocity: Velocity,
+    collider_events: ActiveEvents,
+}
+
+impl BulletBundle {
+    pub fn new(fire_ev: &FireEvent) -> Self {
+        let mut transform = Transform::from_translation(fire_ev.origin);
+        transform.look_to(*fire_ev.direction, Vec3::Y);
+        transform.rotate_local_x(FRAC_PI_2);
+
+        BulletBundle {
+            bullet: Bullet {
+                damage: fire_ev.weapon.damage,
+            },
+            name: Name::new("BULLET"),
+            lifetime: LifeTime::new(1.0),
+            emiter: fire_ev.from,
+            pbr: PbrBundle {
+                transform,
+                ..default()
+            },
+            body: RigidBody::KinematicVelocityBased,
+            collider: Collider::cylinder(Bullet::LENGTH / 2.0, Bullet::RADIUS / 2.0),
+            velocity: Velocity::linear(*fire_ev.direction * fire_ev.weapon.bullet_speed),
+            collider_events: ActiveEvents::COLLISION_EVENTS,
+        }
+    }
+
+    pub fn with_pbr(mut self, mesh: Handle<Mesh>, material: Handle<StandardMaterial>) -> Self {
+        self.pbr.mesh = mesh;
+        self.pbr.material = material;
+        self
+    }
 }
 
 #[derive(Component, Deref, DerefMut)]

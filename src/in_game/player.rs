@@ -29,6 +29,12 @@ impl Default for MovementSettings {
     }
 }
 
+#[derive(Resource)]
+struct PlayerAssets {
+    mesh: Handle<Mesh>,
+    material: Handle<StandardMaterial>,
+}
+
 ///
 /// Plugin
 ///
@@ -37,6 +43,7 @@ pub fn plugin(app: &mut App) {
         .add_event::<PlayerDeathEvent>()
         .init_resource::<InputState>()
         .init_resource::<MovementSettings>()
+        .add_systems(Startup, load_assets)
         .add_systems(OnEnter(GameState::InGame), spawn_player)
         .add_systems(
             Update,
@@ -45,37 +52,23 @@ pub fn plugin(app: &mut App) {
         .add_systems(OnExit(GameState::InGame), despawn_all::<Player>);
 }
 
-fn spawn_player(
+fn load_assets(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    weapons: Res<Weapons>,
 ) {
+    let mesh = meshes.add(Capsule3d::new(Player::WIDTH / 2.0, Player::HEIGHT / 2.0));
+    let material = materials.add(Color::BLACK);
+    let player_assets = PlayerAssets { mesh, material };
+    commands.insert_resource(player_assets);
+}
+
+fn spawn_player(mut commands: Commands, assets: Res<PlayerAssets>, weapons: Res<Weapons>) {
     let pos = Position(0, 0);
-    commands.spawn((
-        Player,
-        Name::new("Player"),
-        Life::new(100),
-        weapons.get(WeaponType::Gun),
-        PbrBundle {
-            mesh: meshes.add(Capsule3d::new(Player::WIDTH / 2.0, Player::HEIGHT / 2.0)),
-            material: materials.add(Color::BLACK),
-            transform: Transform::from_translation(pos.to_world().translation())
-                .looking_to(Vec3::NEG_Z, Vec3::Y),
-            ..default()
-        },
-        RigidBody::Dynamic,
-        Collider::round_cuboid(
-            Player::WIDTH / 2.0,
-            Player::WIDTH / 2.0,
-            Player::HEIGHT / 2.0,
-            0.05,
-        ),
-        LockedAxes::ROTATION_LOCKED_X
-            | LockedAxes::ROTATION_LOCKED_Y
-            | LockedAxes::ROTATION_LOCKED_Z,
-        Velocity::zero(),
-    ));
+    let weapon = weapons.get(WeaponType::Shotgun);
+    let mesh = assets.mesh.clone();
+    let material = assets.material.clone();
+    commands.spawn(PlayerBundle::new(weapon).at(pos).with_pbr(mesh, material));
 }
 
 // https://github.com/sburris0/bevy_flycam/blob/master/src/lib.rs

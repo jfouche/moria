@@ -28,20 +28,9 @@ fn load_assets(mut commands: Commands, assets_server: Res<AssetServer>) {
 
 fn spawn_enemy(mut commands: Commands, assets: Res<EnemyAssets>, weapons: Res<Weapons>) {
     let pos = Position(2, 2);
-    commands.spawn((
-        Enemy,
-        Name::new("Enemy"),
-        Life::new(50),
-        weapons.get(WeaponType::Shotgun),
-        SceneBundle {
-            scene: assets.scene.clone(),
-            transform: Transform::from_translation(pos.to_world().translation())
-                .with_scale(Vec3::splat(0.4)),
-            ..default()
-        },
-        RigidBody::Dynamic,
-        Collider::ball(Enemy::RADIUS),
-    ));
+    let weapon = weapons.get(WeaponType::Gun);
+    let scene = assets.scene.clone();
+    commands.spawn(EnemyBundle::new(weapon).at(pos).with_scene(scene));
 }
 
 ///

@@ -1,9 +1,5 @@
 use crate::{config::WeaponsConfig, ecs::*};
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::*;
-use std::f32::consts::FRAC_PI_2;
-
-use super::LifeTime;
 
 #[derive(Resource)]
 struct WeaponAssets {
@@ -11,9 +7,6 @@ struct WeaponAssets {
     material: Handle<StandardMaterial>,
     sound: Handle<AudioSource>,
 }
-
-const BULLET_RADIUS: f32 = 0.03;
-const BULLET_LENGTH: f32 = 0.1;
 
 pub fn plugin(app: &mut App) {
     app.add_event::<FireEvent>()
@@ -30,7 +23,7 @@ fn load_assets(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let mesh = meshes.add(Cylinder::new(BULLET_RADIUS, BULLET_LENGTH));
+    let mesh = meshes.add(Cylinder::new(Bullet::RADIUS, Bullet::LENGTH));
     let material = materials.add(Color::ORANGE);
     let sound = asset_server.load("audio/556-Single-Isolated.ogg");
     let assets = WeaponAssets {
@@ -60,27 +53,9 @@ fn spawn_bullet(
     assets: Res<WeaponAssets>,
 ) {
     for fire_ev in events.read() {
-        let mut transform = Transform::from_translation(fire_ev.origin);
-        transform.look_to(*fire_ev.direction, Vec3::Y);
-        transform.rotate_local_x(FRAC_PI_2);
-        commands.spawn((
-            Bullet {
-                damage: fire_ev.weapon.damage,
-            },
-            Name::new("BULLET"),
-            LifeTime::new(1.0),
-            fire_ev.from,
-            PbrBundle {
-                mesh: assets.mesh.clone(),
-                material: assets.material.clone(),
-                transform,
-                ..default()
-            },
-            RigidBody::KinematicVelocityBased,
-            Collider::cylinder(BULLET_LENGTH / 2.0, BULLET_RADIUS / 2.0),
-            Velocity::linear(*fire_ev.direction * fire_ev.weapon.bullet_speed),
-            ActiveEvents::COLLISION_EVENTS,
-        ));
+        let mesh = assets.mesh.clone();
+        let material = assets.material.clone();
+        commands.spawn(BulletBundle::new(fire_ev).with_pbr(mesh, material));
 
         // spawn the audio in a different entity to be sure it doesn't stop
         // when the bullet is despawn to early

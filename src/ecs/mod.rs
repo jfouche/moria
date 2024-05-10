@@ -43,3 +43,24 @@ pub fn set_visibility<T: Component>(
         }
     }
 }
+
+#[derive(Component, Deref, DerefMut)]
+pub struct LifeTime(Timer);
+
+impl LifeTime {
+    pub fn new(secs: f32) -> Self {
+        LifeTime(Timer::from_seconds(secs, TimerMode::Once))
+    }
+}
+
+pub fn despawn_if_too_old(
+    mut commands: Commands,
+    mut query: Query<(Entity, &mut LifeTime)>,
+    time: Res<Time>,
+) {
+    for (entity, mut lifetime) in &mut query {
+        if lifetime.tick(time.delta()).finished() {
+            commands.entity(entity).despawn_recursive();
+        }
+    }
+}

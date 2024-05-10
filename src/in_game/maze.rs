@@ -35,7 +35,7 @@ enum Wall {
 }
 
 impl Wall {
-    const HEIGHT: f32 = 1.6;
+    const HEIGHT: f32 = 2.0;
 
     const COLLIDER_WIDTH: f32 = 0.02;
 
@@ -51,19 +51,49 @@ impl Wall {
             .mesh()
             .size(WorldPosition::ROOM_WIDTH, Wall::HEIGHT)
     }
+}
 
-    fn transform(&self, pos: &Position) -> Transform {
-        let translation = pos.to_world().translation();
+#[derive(Clone, Copy, Debug)]
+struct WallPosition {
+    wall: Wall,
+    pos: Position,
+}
+
+#[derive(Bundle)]
+struct WallBundle {
+    name: Name,
+    pbr: PbrBundle,
+}
+
+impl WallBundle {
+    fn new(wall_pos: WallPosition) -> Self {
+        WallBundle {
+            name: Name::new(format!("Wall {wall_pos:?}")),
+            pbr: PbrBundle {
+                transform: Self::transform(wall_pos),
+                ..default()
+            },
+        }
+    }
+
+    fn with_pbr(mut self, mesh: Handle<Mesh>, material: Handle<StandardMaterial>) -> Self {
+        self.pbr.mesh = mesh;
+        self.pbr.material = material;
+        self
+    }
+
+    fn transform(wall_pos: WallPosition) -> Transform {
+        let translation = wall_pos.pos.to_world().translation();
         const HH: f32 = Wall::HEIGHT / 2.;
         const HW: f32 = WorldPosition::ROOM_WIDTH / 2.;
 
-        let translation = match self {
+        let translation = match wall_pos.wall {
             Wall::Top => translation + Vec3::new(0., HH, -HW),
             Wall::Bottom => translation + Vec3::new(0., HH, HW),
             Wall::Left => translation + Vec3::new(-HW, HH, 0.),
             Wall::Right => translation + Vec3::new(HW, HH, 0.),
         };
-        let rotation = match self {
+        let rotation = match wall_pos.wall {
             Wall::Top => Quat::IDENTITY,
             Wall::Bottom => Quat::IDENTITY,
             Wall::Left => Quat::from_rotation_x(FRAC_PI_2),
@@ -75,18 +105,38 @@ impl Wall {
             scale: Vec3::ONE,
         }
     }
+}
 
-    fn collider(&self) -> Collider {
+#[derive(Bundle)]
+struct WallColliderBundle {
+    body: RigidBody,
+    collider: Collider,
+    spatial: SpatialBundle,
+}
+
+impl WallColliderBundle {
+    fn new(wall_pos: WallPosition) -> Self {
+        WallColliderBundle {
+            body: RigidBody::Fixed,
+            collider: Self::collider(wall_pos),
+            spatial: SpatialBundle {
+                transform: Self::transform(wall_pos),
+                ..default()
+            },
+        }
+    }
+
+    fn collider(wall_pos: WallPosition) -> Collider {
         const HRW: f32 = WorldPosition::ROOM_WIDTH / 2.0;
-        let (hx, hz) = match self {
+        let (hx, hz) = match wall_pos.wall {
             Wall::Top | Wall::Bottom => (HRW, Wall::COLLIDER_WIDTH),
             Wall::Left | Wall::Right => (Wall::COLLIDER_WIDTH, HRW),
         };
-        Collider::cuboid(hx, Self::HEIGHT / 2., hz)
+        Collider::cuboid(hx, Wall::HEIGHT / 2., hz)
     }
 
-    fn collider_transform(&self) -> Transform {
-        let (x, z) = match self {
+    fn transform(wall_pos: WallPosition) -> Transform {
+        let (x, z) = match wall_pos.wall {
             Wall::Top => (0.0, -Wall::COLLIDER_WIDTH),
             Wall::Bottom => (0.0, Wall::COLLIDER_WIDTH),
             Wall::Left => (Wall::COLLIDER_WIDTH, 0.0),
@@ -107,6 +157,17 @@ struct MazeAssets {
     bottom_wall_mesh: Handle<Mesh>,
     left_wall_mesh: Handle<Mesh>,
     right_wall_mesh: Handle<Mesh>,
+}
+
+impl MazeAssets {
+    fn mesh(&self, wall: Wall) -> Handle<Mesh> {
+        match wall {
+            Wall::Top => self.top_wall_mesh.clone(),
+            Wall::Bottom => self.bottom_wall_mesh.clone(),
+            Wall::Left => self.left_wall_mesh.clone(),
+            Wall::Right => self.right_wall_mesh.clone(),
+        }
+    }
 }
 
 fn load_assets(
@@ -162,32 +223,14 @@ fn load_assets(
     commands.insert_resource(maze_assets);
 }
 
-fn spawn_wall(commands: &mut Commands, wall: Wall, pos: &Position, assets: &MazeAssets) -> Entity {
-    let mesh = match wall {
-        Wall::Top => assets.top_wall_mesh.clone(),
-        Wall::Bottom => assets.bottom_wall_mesh.clone(),
-        Wall::Left => assets.left_wall_mesh.clone(),
-        Wall::Right => assets.right_wall_mesh.clone(),
-    };
+fn spawn_wall(commands: &mut Commands, wall: Wall, pos: Position, assets: &MazeAssets) -> Entity {
+    let mesh = assets.mesh(wall);
+    let material = assets.wall_material.clone();
+    let wall_pos = WallPosition { wall, pos };
     commands
-        .spawn((
-            Name::new(format!("Wall::{wall:?}-{pos}")),
-            PbrBundle {
-                mesh,
-                material: assets.wall_material.clone(),
-                transform: wall.transform(pos),
-                ..default()
-            },
-        ))
+        .spawn(WallBundle::new(wall_pos) /*.with_pbr(mesh, material)*/)
         .with_children(|c| {
-            c.spawn((
-                RigidBody::Fixed,
-                wall.collider(),
-                SpatialBundle {
-                    transform: wall.collider_transform(),
-                    ..default()
-                },
-            ));
+            c.spawn(WallColliderBundle::new(wall_pos));
         })
         .id()
 }
@@ -210,8 +253,8 @@ fn spawn_maze(mut commands: Commands, assets: Res<MazeAssets>, config: Res<MazeC
             .spawn((
                 Name::new(format!("Floor {pos}")),
                 PbrBundle {
-                    mesh: assets.floor_mesh.clone(),
-                    material: assets.floor_material.clone(),
+                    // mesh: assets.floor_mesh.clone(),
+                    // material: assets.floor_material.clone(),
                     transform: Transform::from_translation(pos.to_world().translation()),
                     ..default()
                 },
@@ -224,8 +267,8 @@ fn spawn_maze(mut commands: Commands, assets: Res<MazeAssets>, config: Res<MazeC
             .spawn((
                 Name::new(format!("Ceiling {pos}")),
                 PbrBundle {
-                    mesh: assets.ceiling_mesh.clone(),
-                    material: assets.ceiling_material.clone(),
+                    // mesh: assets.ceiling_mesh.clone(),
+                    // material: assets.ceiling_material.clone(),
                     transform: Transform::from_translation(
                         pos.to_world().translation_with_y(Wall::HEIGHT),
                     ),
@@ -237,22 +280,22 @@ fn spawn_maze(mut commands: Commands, assets: Res<MazeAssets>, config: Res<MazeC
 
         // Spawn walls
         if room.borders().top {
-            let wall_id = spawn_wall(&mut commands, Wall::Top, &pos, &assets);
+            let wall_id = spawn_wall(&mut commands, Wall::Top, pos, &assets);
             children.push(wall_id);
         }
 
         if room.borders().left {
-            let wall_id = spawn_wall(&mut commands, Wall::Left, &pos, &assets);
+            let wall_id = spawn_wall(&mut commands, Wall::Left, pos, &assets);
             children.push(wall_id);
         }
 
         if room.borders().bottom {
-            let wall_id = spawn_wall(&mut commands, Wall::Bottom, &pos, &assets);
+            let wall_id = spawn_wall(&mut commands, Wall::Bottom, pos, &assets);
             children.push(wall_id);
         }
 
         if room.borders().right {
-            let wall_id = spawn_wall(&mut commands, Wall::Right, &pos, &assets);
+            let wall_id = spawn_wall(&mut commands, Wall::Right, pos, &assets);
             children.push(wall_id);
         }
     });
