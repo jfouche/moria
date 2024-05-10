@@ -29,12 +29,6 @@ impl Default for MovementSettings {
     }
 }
 
-#[derive(Resource)]
-struct PlayerAssets {
-    mesh: Handle<Mesh>,
-    material: Handle<StandardMaterial>,
-}
-
 ///
 /// Plugin
 ///
@@ -54,21 +48,17 @@ pub fn plugin(app: &mut App) {
 
 fn load_assets(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    meshes: ResMut<Assets<Mesh>>,
+    materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let mesh = meshes.add(Capsule3d::new(Player::WIDTH / 2.0, Player::HEIGHT / 2.0));
-    let material = materials.add(Color::BLACK);
-    let player_assets = PlayerAssets { mesh, material };
+    let player_assets = PlayerAssets::load(meshes, materials);
     commands.insert_resource(player_assets);
 }
 
 fn spawn_player(mut commands: Commands, assets: Res<PlayerAssets>, weapons: Res<Weapons>) {
     let pos = Position(0, 0);
     let weapon = weapons.get(WeaponType::Shotgun);
-    let mesh = assets.mesh.clone();
-    let material = assets.material.clone();
-    commands.spawn(PlayerBundle::new(weapon).at(pos).with_pbr(mesh, material));
+    commands.spawn(PlayerBundle::new(weapon).at(pos).with_assets(&assets));
 }
 
 // https://github.com/sburris0/bevy_flycam/blob/master/src/lib.rs
@@ -141,7 +131,7 @@ fn player_fires(
         if keys.pressed(KeyCode::Space) {
             let direction = transform.forward();
             let origin = transform.translation
-                + Vec3::new(0.0, Player::HEIGHT * 0.8, 0.0)
+                + Vec3::new(0.0, Player::HEIGHT * 0.9, 0.0)
                 + *direction * Player::WIDTH;
             let event = weapon
                 .fire()

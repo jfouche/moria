@@ -48,6 +48,7 @@ impl Deref for WorldPosition {
 }
 
 impl WorldPosition {
+    // TODO: move to Wall
     /// Width on X and Z
     pub const ROOM_WIDTH: f32 = 2.0;
 

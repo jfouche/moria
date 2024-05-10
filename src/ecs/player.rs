@@ -2,6 +2,24 @@ use super::*;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
+#[derive(Resource)]
+pub struct PlayerAssets {
+    mesh: Handle<Mesh>,
+    material: Handle<StandardMaterial>,
+}
+
+impl PlayerAssets {
+    pub fn load(
+        mut meshes: ResMut<Assets<Mesh>>,
+        mut materials: ResMut<Assets<StandardMaterial>>,
+    ) -> Self {
+        PlayerAssets {
+            mesh: meshes.add(Capsule3d::new(Player::WIDTH / 2.0, Player::HEIGHT / 2.0)),
+            material: materials.add(Color::BLACK),
+        }
+    }
+}
+
 #[derive(Component)]
 pub struct Player;
 
@@ -51,9 +69,9 @@ impl PlayerBundle {
         self
     }
 
-    pub fn with_pbr(mut self, mesh: Handle<Mesh>, material: Handle<StandardMaterial>) -> Self {
-        self.pbr.mesh = mesh;
-        self.pbr.material = material;
+    pub fn with_assets(mut self, assets: &PlayerAssets) -> Self {
+        self.pbr.mesh = assets.mesh.clone();
+        self.pbr.material = assets.material.clone();
         self
     }
 }

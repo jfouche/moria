@@ -2,6 +2,19 @@ use super::*;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
+#[derive(Resource)]
+pub struct PotionAssets {
+    scene: Handle<Scene>,
+}
+
+impl PotionAssets {
+    pub fn load(asset_server: &AssetServer) -> Self {
+        PotionAssets {
+            scene: asset_server.load("potion.glb#Scene0"),
+        }
+    }
+}
+
 #[derive(Component)]
 pub struct Potion;
 
@@ -42,8 +55,8 @@ impl PotionBundle {
         self
     }
 
-    pub fn with_scene(mut self, scene: Handle<Scene>) -> Self {
-        self.scene.scene = scene;
+    pub fn with_assets(mut self, assets: &PotionAssets) -> Self {
+        self.scene.scene = assets.scene.clone();
         self
     }
 }

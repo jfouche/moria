@@ -48,5 +48,6 @@ fn setup(mut commands: Commands) {
     commands.spawn(Camera3dBundle::default());
 
     // ground
+    // TODO: move to Maze
     commands.spawn((RigidBody::Fixed, Collider::halfspace(Vec3::Y).unwrap()));
 }

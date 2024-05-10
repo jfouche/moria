@@ -2,6 +2,19 @@ use super::*;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
+#[derive(Resource)]
+pub struct EnemyAssets {
+    scene: Handle<Scene>,
+}
+
+impl EnemyAssets {
+    pub fn load(assets_server: &AssetServer) -> Self {
+        EnemyAssets {
+            scene: assets_server.load("SWAT.glb#Scene0"),
+        }
+    }
+}
+
 #[derive(Component, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Enemy;
 
@@ -38,8 +51,8 @@ impl EnemyBundle {
         self
     }
 
-    pub fn with_scene(mut self, scene: Handle<Scene>) -> Self {
-        self.scene.scene = scene;
+    pub fn with_assets(mut self, assets: &Res<EnemyAssets>) -> Self {
+        self.scene.scene = assets.scene.clone();
         self
     }
 }

@@ -57,7 +57,6 @@ fn enemy_hit_by_bullet(
             _ => None,
         })
         .for_each(|(&e1, &e2)| {
-            info!("enemy_hit_by_bullet - collision ({e1:?}, {e2:?})");
             for enemy in enemies.iter() {
                 for (bullet_entity, bullet) in bullets.iter() {
                     if (e1 == enemy && e2 == bullet_entity) || (e1 == bullet_entity && e2 == enemy)

@@ -1,6 +1,7 @@
 mod audio;
 mod bullet_collision;
 mod camera;
+mod end_level;
 mod enemy;
 mod hud;
 mod maze;
@@ -28,6 +29,7 @@ impl PluginGroup for InGamePlugins {
             .add(bullet_collision::plugin)
             .add(audio::plugin)
             .add(potion::plugin)
+            .add(end_level::plugin)
             .add(in_game_plugin)
     }
 }

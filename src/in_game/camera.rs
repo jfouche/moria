@@ -1,9 +1,5 @@
-use bevy::{
-    prelude::*,
-    render::camera::{Exposure, PhysicalCameraParameters},
-};
-
-use crate::{config::CameraConfig, ecs::*};
+use crate::{config::*, ecs::*};
+use bevy::{prelude::*, render::camera::*};
 
 #[derive(Component)]
 struct PlayerCamera;

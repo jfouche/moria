@@ -2,27 +2,21 @@ use crate::ecs::*;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-#[derive(Resource)]
-struct PotionAssets {
-    scene: Handle<Scene>,
-}
-
 pub fn plugin(app: &mut App) {
     app.add_systems(Startup, load_assets)
-        .add_systems(OnEnter(InGameState::Running), spawn_potions)
+        .add_systems(OnEnter(GameState::InGame), spawn_potions)
+        .add_systems(OnExit(GameState::InGame), despawn_all::<Potion>)
         .add_systems(Update, player_take_potion.run_if(game_is_running));
 }
 
 fn load_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let scene = asset_server.load("potion.glb#Scene0");
-    let assets = PotionAssets { scene };
+    let assets = PotionAssets::load(&asset_server);
     commands.insert_resource(assets);
 }
 
 fn spawn_potions(mut commands: Commands, assets: Res<PotionAssets>) {
     let pos = Position(1, 0);
-    let scene = assets.scene.clone();
-    commands.spawn(PotionBundle::new().at(pos).with_scene(scene));
+    commands.spawn(PotionBundle::new().at(pos).with_assets(&assets));
 }
 
 fn player_take_potion(

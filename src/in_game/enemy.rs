@@ -2,11 +2,6 @@ use crate::ecs::*;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-#[derive(Resource)]
-struct EnemyAssets {
-    scene: Handle<Scene>,
-}
-
 pub fn plugin(app: &mut App) {
     app.add_event::<EnemyHitEvent>()
         .add_event::<EnemyDeathEvent>()
@@ -20,17 +15,14 @@ pub fn plugin(app: &mut App) {
 }
 
 fn load_assets(mut commands: Commands, assets_server: Res<AssetServer>) {
-    let assets = EnemyAssets {
-        scene: assets_server.load("SWAT.glb#Scene0"),
-    };
+    let assets = EnemyAssets::load(&assets_server);
     commands.insert_resource(assets);
 }
 
 fn spawn_enemy(mut commands: Commands, assets: Res<EnemyAssets>, weapons: Res<Weapons>) {
     let pos = Position(2, 2);
     let weapon = weapons.get(WeaponType::Gun);
-    let scene = assets.scene.clone();
-    commands.spawn(EnemyBundle::new(weapon).at(pos).with_scene(scene));
+    commands.spawn(EnemyBundle::new(weapon).at(pos).with_assets(&assets));
 }
 
 ///
