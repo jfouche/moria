@@ -16,12 +16,17 @@ fn load_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 fn spawn_potions(mut commands: Commands, assets: Res<PotionAssets>) {
     let pos = Position(1, 0);
-    commands.spawn(PotionBundle::new().at(pos).with_assets(&assets));
+    commands.spawn(
+        PotionBundle::new(Potion::Life(30))
+            .at(pos)
+            .with_assets(&assets),
+    );
 }
 
 fn player_take_potion(
+    mut commands: Commands,
     mut events: EventReader<CollisionEvent>,
-    potions: Query<Entity, With<Potion>>,
+    potions: Query<&Potion>,
     mut player: Query<(Entity, &mut Life), With<Player>>,
 ) {
     let (player_entity, mut player_life) = player.get_single_mut().expect("Player");
@@ -32,15 +37,18 @@ fn player_take_potion(
             _ => None,
         })
         .for_each(|(&e1, &e2)| {
-            let take_potion = if e1 == player_entity {
-                potions.get(e2).is_ok()
+            let entity_and_potion = if e1 == player_entity {
+                potions.get(e2).map(|potion| (e2, potion)).ok()
             } else if e2 == player_entity {
-                potions.get(e1).is_ok()
+                potions.get(e1).map(|potion| (e1, potion)).ok()
             } else {
-                false
+                None
             };
-            if take_potion {
-                player_life.add(30);
+            if let Some((potion_entity, potion)) = entity_and_potion {
+                match potion {
+                    Potion::Life(life) => player_life.add(*life),
+                }
+                commands.entity(potion_entity).despawn_recursive();
             }
         });
 }

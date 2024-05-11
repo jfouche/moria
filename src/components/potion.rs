@@ -16,7 +16,9 @@ impl PotionAssets {
 }
 
 #[derive(Component)]
-pub struct Potion;
+pub enum Potion {
+    Life(u16),
+}
 
 impl Potion {
     const HEIGHT: f32 = 0.17;
@@ -29,7 +31,6 @@ pub struct PotionBundle {
     potion: Potion,
     name: Name,
     scene: SceneBundle,
-    body: RigidBody,
     collider: Collider,
     sensor: Sensor,
     collider_events: ActiveEvents,
@@ -37,12 +38,11 @@ pub struct PotionBundle {
 }
 
 impl PotionBundle {
-    pub fn new() -> Self {
+    pub fn new(potion: Potion) -> Self {
         PotionBundle {
-            potion: Potion,
+            potion,
             name: Name::new("Potion"),
             scene: SceneBundle::default(),
-            body: RigidBody::Fixed,
             collider: Collider::cylinder(Potion::HEIGHT / 2.0, Potion::RADIUS / 2.0),
             sensor: Sensor,
             collider_events: ActiveEvents::COLLISION_EVENTS,
