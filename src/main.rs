@@ -1,3 +1,5 @@
+mod assets_loader;
+mod bevy_gltf_collider;
 mod components;
 mod config;
 mod cursor;
@@ -10,6 +12,7 @@ mod ui;
 
 use bevy::{prelude::*, window::WindowResolution};
 use bevy_rapier3d::prelude::*;
+use components::*;
 
 fn main() {
     App::new()
@@ -28,27 +31,28 @@ fn main() {
                 .set(ImagePlugin::default_nearest()),
         )
         .insert_resource(ClearColor(Color::BLACK))
-        .init_state::<components::GameState>()
-        .init_state::<components::InGameState>()
+        .init_state::<GameState>()
+        .init_state::<InGameState>()
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugins((
-            splash::plugin,
+            assets_loader::plugin,
             config::plugin,
+            splash::plugin,
             menu::plugin,
             settings::plugin,
             in_game::InGamePlugins,
             ui::UiPlugins,
         ))
         .add_plugins(debug::plugin)
-        .add_systems(PreStartup, setup)
+        .add_systems(PreStartup, (spawn_camera, spawn_ground))
         .run();
 }
 
-fn setup(mut commands: Commands) {
-    // Camera
+fn spawn_camera(mut commands: Commands) {
     commands.spawn(Camera3dBundle::default());
+}
 
-    // ground
+fn spawn_ground(mut commands: Commands) {
     // TODO: move to Maze
     commands.spawn((RigidBody::Fixed, Collider::halfspace(Vec3::Y).unwrap()));
 }

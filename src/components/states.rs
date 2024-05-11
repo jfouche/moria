@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+/// Represent the Game state
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
 pub enum GameState {
     #[default]
@@ -8,6 +9,7 @@ pub enum GameState {
     InGame,
 }
 
+// Represent the state while in game
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
 pub enum InGameState {
     #[default]
@@ -17,9 +19,6 @@ pub enum InGameState {
     PlayerDied,
 }
 
-pub fn game_is_running(
-    game_state: Res<State<GameState>>,
-    in_game_state: Res<State<InGameState>>,
-) -> bool {
-    *game_state == GameState::InGame && *in_game_state == InGameState::Running
+pub fn game_is_running(in_game_state: Res<State<InGameState>>) -> bool {
+    *in_game_state == InGameState::Running
 }

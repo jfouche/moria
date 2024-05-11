@@ -2,16 +2,13 @@ use super::*;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-#[derive(Resource)]
-pub struct PotionAssets {
-    scene: Handle<Scene>,
-}
+#[derive(Resource, Deref, DerefMut)]
+pub struct PotionAssets(SceneWithCollidersAssets);
 
 impl PotionAssets {
     pub fn load(asset_server: &AssetServer) -> Self {
-        PotionAssets {
-            scene: asset_server.load("potion.glb#Scene0"),
-        }
+        let scene_handle = asset_server.load("potion.glb#Scene0");
+        PotionAssets(SceneWithCollidersAssets::load(scene_handle))
     }
 }
 
@@ -56,7 +53,31 @@ impl PotionBundle {
     }
 
     pub fn with_assets(mut self, assets: &PotionAssets) -> Self {
-        self.scene.scene = assets.scene.clone();
+        self.scene.scene = assets.scene();
         self
+    }
+}
+
+#[derive(Component)]
+pub struct PotionCollider;
+
+#[derive(Bundle)]
+pub struct PotionColliderBundle {
+    tag: PotionCollider,
+    collider: Collider,
+    transform: TransformBundle,
+    sensor: Sensor,
+    collider_events: ActiveEvents,
+}
+
+impl PotionColliderBundle {
+    pub fn new(collider: Collider, transform: Transform) -> Self {
+        PotionColliderBundle {
+            tag: PotionCollider,
+            collider,
+            transform: TransformBundle::from_transform(transform),
+            sensor: Sensor,
+            collider_events: ActiveEvents::COLLISION_EVENTS,
+        }
     }
 }

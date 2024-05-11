@@ -10,8 +10,8 @@ mod player;
 mod potion;
 mod weapon;
 
-use crate::cursor::*;
 use crate::components::*;
+use crate::cursor::*;
 use bevy::{app::PluginGroupBuilder, prelude::*};
 use bevy_rapier3d::plugin::RapierConfiguration;
 
@@ -43,7 +43,7 @@ fn in_game_plugin(app: &mut App) {
     .add_systems(OnExit(GameState::InGame), (end_game, ungrab_cursor))
     .add_systems(OnEnter(InGameState::Running), (grab_cursor, start_physics))
     .add_systems(OnExit(InGameState::Running), (ungrab_cursor, stop_physics))
-    .add_systems(Update, show_menu.run_if(game_is_running))
+    .add_systems(Update, switch_to_pause.run_if(game_is_running))
     .add_systems(Update, despawn_if_too_old);
 }
 
@@ -59,7 +59,7 @@ fn set_background(mut commands: Commands) {
     commands.insert_resource(ClearColor(Color::BLACK));
 }
 
-fn show_menu(mut state: ResMut<NextState<InGameState>>, keys: Res<ButtonInput<KeyCode>>) {
+fn switch_to_pause(mut state: ResMut<NextState<InGameState>>, keys: Res<ButtonInput<KeyCode>>) {
     if keys.just_pressed(KeyCode::Escape) {
         state.set(InGameState::Pause);
     }

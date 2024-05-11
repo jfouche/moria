@@ -1,4 +1,4 @@
-use crate::{config::GameConfig, cursor::*, components::*};
+use crate::{components::*, config::GameConfig, cursor::*};
 use bevy::{
     prelude::*,
     window::{CursorGrabMode, PrimaryWindow},
