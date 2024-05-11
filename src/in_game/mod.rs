@@ -10,7 +10,8 @@ mod player;
 mod potion;
 mod weapon;
 
-use crate::ecs::*;
+use crate::cursor::*;
+use crate::components::*;
 use bevy::{app::PluginGroupBuilder, prelude::*};
 use bevy_rapier3d::plugin::RapierConfiguration;
 

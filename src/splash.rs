@@ -1,4 +1,5 @@
-use crate::ecs::*;
+use crate::cursor::*;
+use crate::components::*;
 use bevy::prelude::*;
 
 pub fn plugin(app: &mut App) {

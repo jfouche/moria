@@ -1,4 +1,4 @@
-use crate::ecs::*;
+use crate::components::*;
 use bevy::prelude::*;
 
 const MINIMAP_ATLAS_FILENAME: &str = "textures/minimap_atlas.png";

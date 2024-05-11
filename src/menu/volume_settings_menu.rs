@@ -1,5 +1,5 @@
 use super::*;
-use crate::ecs::*;
+use crate::components::*;
 use crate::ui::*;
 use bevy::prelude::*;
 

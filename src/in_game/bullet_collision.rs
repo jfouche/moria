@@ -1,4 +1,4 @@
-use crate::ecs::*;
+use crate::components::*;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 use std::collections::{HashMap, HashSet};

@@ -1,4 +1,4 @@
-use crate::ecs::*;
+use crate::components::*;
 use bevy::prelude::*;
 
 #[derive(Component)]

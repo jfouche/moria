@@ -1,6 +1,7 @@
+mod components;
 mod config;
+mod cursor;
 mod debug;
-mod ecs;
 mod in_game;
 mod menu;
 mod settings;
@@ -27,8 +28,8 @@ fn main() {
                 .set(ImagePlugin::default_nearest()),
         )
         .insert_resource(ClearColor(Color::BLACK))
-        .init_state::<ecs::GameState>()
-        .init_state::<ecs::InGameState>()
+        .init_state::<components::GameState>()
+        .init_state::<components::InGameState>()
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugins((
             splash::plugin,

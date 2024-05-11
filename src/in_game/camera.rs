@@ -1,4 +1,4 @@
-use crate::{config::*, ecs::*};
+use crate::{config::*, components::*};
 use bevy::{prelude::*, render::camera::*};
 
 #[derive(Component)]

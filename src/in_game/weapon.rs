@@ -1,4 +1,4 @@
-use crate::{config::WeaponsConfig, ecs::*};
+use crate::{components::*, config::WeaponsConfig};
 use bevy::prelude::*;
 
 #[derive(Resource)]

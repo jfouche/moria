@@ -10,7 +10,7 @@ use self::{
     pause_menu::PauseMenuState, settings_menu::SettingsPlugin,
     volume_settings_menu::SoundSettingsPlugin,
 };
-use crate::ecs::*;
+use crate::components::*;
 use crate::ui::*;
 use bevy::prelude::*;
 

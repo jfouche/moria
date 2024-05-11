@@ -1,5 +1,4 @@
 mod character;
-mod cursor;
 mod enemy;
 mod maze;
 mod player;
@@ -9,7 +8,6 @@ mod states;
 mod weapon;
 
 pub use character::*;
-pub use cursor::*;
 pub use enemy::*;
 pub use maze::*;
 pub use player::*;

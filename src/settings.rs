@@ -1,4 +1,4 @@
-use crate::ecs::{DisplaySettings, ExposureSettings};
+use crate::components::{DisplaySettings, ExposureSettings};
 use bevy::{prelude::*, render::camera::Exposure, window::PrimaryWindow};
 
 pub fn plugin(app: &mut App) {

@@ -1,4 +1,4 @@
-use crate::{config::MazeConfig, ecs::*};
+use crate::{config::MazeConfig, components::*};
 use bevy::prelude::*;
 
 pub fn plugin(app: &mut App) {

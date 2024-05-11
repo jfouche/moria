@@ -1,4 +1,4 @@
-use crate::{ecs::*, ui::*};
+use crate::{components::*, ui::*};
 use bevy::{
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
     prelude::*,
