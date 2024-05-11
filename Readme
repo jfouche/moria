@@ -3,3 +3,6 @@ https://poly.pizza/
 
 - swat : https://poly.pizza/m/Btfn3G5Xv4
 - life potion : https://poly.pizza/m/5DvOJDIgDYu
+
+* External lib
+- Copy of bevy_gltf_collider () in order to manage _my_ bevy_rapier3d version
