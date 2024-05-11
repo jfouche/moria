@@ -31,6 +31,6 @@ impl Life {
     }
 
     pub fn add(&mut self, life: u16) {
-        self.current = std::cmp::max(self.current + life, self.max);
+        self.current = std::cmp::min(self.current + life, self.max);
     }
 }
