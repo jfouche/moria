@@ -17,6 +17,7 @@ pub struct SerializedCollider {
 pub enum ColliderFromSceneError {
     MeshParsingError(ColliderMeshParsingError),
     ExtrasParsingError(ColliderExtrasParsingError),
+    #[allow(dead_code)]
     NoCollidersFound,
 }
 
@@ -66,6 +67,7 @@ pub fn get_scene_colliders(
 }
 
 ///Pulls all of the scene colliders out of a scene, then parents them to a node with a matching suffix
+#[allow(dead_code)]
 pub fn extract_insert_scene_colliders(
     meshes: &mut Assets<Mesh>,
     world: &mut World,

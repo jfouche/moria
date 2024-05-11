@@ -24,11 +24,11 @@ pub enum ColliderMeshParsingError {
 pub fn get_collider_from_mesh(mesh: &Mesh) -> Result<Collider, ColliderFromMeshError> {
     let positions = mesh
         .attribute(Mesh::ATTRIBUTE_POSITION)
-        .map_or(Err(ColliderFromMeshError::MissingPositions), Ok)?;
+        .ok_or(ColliderFromMeshError::MissingPositions)?;
 
     let indices = mesh
         .indices()
-        .map_or(Err(ColliderFromMeshError::MissingIndices), Ok)?;
+        .ok_or(ColliderFromMeshError::MissingIndices)?;
 
     let positions = match positions {
         VertexAttributeValues::Float32x3(positions) => positions,
