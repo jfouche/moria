@@ -59,40 +59,6 @@ fn player_move(
     velocity.linvel = delta * time.delta_seconds() * PLAYER_SPEED;
 }
 
-// TODO: REMOVE
-// fn player_look(
-//     settings: Res<MovementSettings>,
-//     primary_window: Query<&Window, With<PrimaryWindow>>,
-//     mut state: ResMut<InputState>,
-//     motion: Res<Events<MouseMotion>>,
-//     mut query_player: Query<&mut Transform, With<Player>>,
-// ) {
-//     let window = primary_window
-//         .get_single()
-//         .expect("Can't retrieve primary window");
-//     let mut transform = query_player
-//         .get_single_mut()
-//         .expect("Player should be present");
-//     for ev in state.reader_motion.read(&motion) {
-//         let (mut yaw, mut pitch, _) = transform.rotation.to_euler(EulerRot::YXZ);
-//         match window.cursor.grab_mode {
-//             CursorGrabMode::None => (),
-//             _ => {
-//                 // Using smallest of height or width ensures equal vertical and horizontal sensitivity
-//                 let window_scale = window.height().min(window.width());
-//                 pitch -= (settings.sensitivity * ev.delta.y * window_scale).to_radians();
-//                 yaw -= (settings.sensitivity * ev.delta.x * window_scale).to_radians();
-//             }
-//         }
-
-//         pitch = pitch.clamp(-1.54, 1.54);
-
-//         // Order is important to prevent unintended roll
-//         transform.rotation =
-//             Quat::from_axis_angle(Vec3::Y, yaw) * Quat::from_axis_angle(Vec3::X, pitch);
-//     }
-// }
-
 fn player_fires(
     mut commands: Commands,
     keys: Res<ButtonInput<KeyCode>>,
