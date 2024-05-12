@@ -44,11 +44,5 @@ fn main() {
             ui::UiPlugins,
         ))
         .add_plugins(debug::plugin)
-        .add_systems(PreStartup, spawn_ground)
         .run();
-}
-
-fn spawn_ground(mut commands: Commands) {
-    // TODO: move to Maze
-    commands.spawn((RigidBody::Fixed, Collider::halfspace(Vec3::Y).unwrap()));
 }

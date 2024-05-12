@@ -1,5 +1,6 @@
 use crate::{components::*, config::MazeConfig};
 use bevy::prelude::*;
+use bevy_rapier3d::prelude::*;
 
 pub fn plugin(app: &mut App) {
     app.add_systems(Startup, load_assets)
@@ -135,6 +136,16 @@ fn spawn_maze(mut commands: Commands, assets: Res<MazeAssets>, config: Res<MazeC
             ))
             .id();
         children.push(floor_id);
+
+        // spawn floor collider
+        let floor_collider_id = commands
+            .spawn((
+                Name::new("Floor collider"),
+                RigidBody::Fixed,
+                Collider::halfspace(Vec3::Y).unwrap(),
+            ))
+            .id();
+        children.push(floor_collider_id);
 
         // Spawn ceiling
         let ceiling_id = commands
