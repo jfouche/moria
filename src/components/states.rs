@@ -17,6 +17,7 @@ pub enum InGameState {
     Running,
     Pause,
     PlayerDied,
+    PlayerFinished,
 }
 
 pub fn game_is_running(in_game_state: Res<State<InGameState>>) -> bool {

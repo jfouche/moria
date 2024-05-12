@@ -1,5 +1,6 @@
 mod death_menu;
 mod display_settings_menu;
+mod level_win_menu;
 mod main_menu;
 mod pause_menu;
 mod settings_menu;
@@ -38,6 +39,7 @@ pub fn plugin(app: &mut App) {
         SoundSettingsPlugin(PauseMenuState::SettingsSound),
         SettingsPlugin(PauseMenuState::Settings),
         death_menu::plugin,
+        level_win_menu::plugin,
     ))
     .add_systems(Update, (button_system).run_if(in_menu));
 }

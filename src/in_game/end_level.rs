@@ -27,6 +27,7 @@ fn player_ends_level(
     mut events: EventReader<CollisionEvent>,
     end_level: Query<Entity, With<EndLevel>>,
     player: Query<Entity, With<Player>>,
+    mut in_game_next_state: ResMut<NextState<InGameState>>,
 ) {
     let player_entity = player.get_single().expect("Player");
     events
@@ -44,7 +45,7 @@ fn player_ends_level(
                 false
             };
             if player_finished {
-                info!("Player finished!");
+                in_game_next_state.set(InGameState::PlayerFinished);
             }
         });
 }
