@@ -7,7 +7,7 @@ pub struct EnemyAssets(SceneWithCollidersAssets);
 
 impl EnemyAssets {
     pub fn load(assets_server: &AssetServer) -> Self {
-        let scene_handle = assets_server.load("SWAT.glb#Scene0");
+        let scene_handle = assets_server.load("slime.glb#Scene0");
         EnemyAssets(SceneWithCollidersAssets::load(scene_handle))
     }
 }
@@ -16,8 +16,16 @@ impl EnemyAssets {
 pub struct Enemy;
 
 impl Enemy {
-    pub const RADIUS: f32 = 0.3;
-    pub const SCALE: Vec3 = Vec3::splat(0.8);
+    const SIZE: Vec3 = Vec3::new(2.0, 2.0, 1.1);
+    const SCALE: Vec3 = Vec3::splat(0.3);
+
+    pub fn center(transform: &Transform) -> Vec3 {
+        transform.translation + Vec3::new(0.0, Self::SIZE.y / 2.0, 0.0) * Self::SCALE
+    }
+
+    pub fn weapon_offset() -> f32 {
+        0.2
+    }
 }
 
 #[derive(Bundle)]

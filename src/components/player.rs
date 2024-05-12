@@ -14,8 +14,12 @@ impl PlayerAssets {
         mut materials: ResMut<Assets<StandardMaterial>>,
     ) -> Self {
         PlayerAssets {
-            mesh: meshes.add(Capsule3d::new(Player::WIDTH / 2.0, Player::HEIGHT / 2.0)),
-            material: materials.add(Color::BLACK),
+            mesh: meshes.add(Cuboid::new(
+                Player::BODY_RADIUS,
+                Player::BODY_RADIUS,
+                Player::HEIGHT,
+            )),
+            material: materials.add(Color::BEIGE),
         }
     }
 }
@@ -24,13 +28,26 @@ impl PlayerAssets {
 pub struct Player;
 
 impl Player {
-    pub const HEIGHT: f32 = 0.6;
-    pub const WIDTH: f32 = 0.1;
+    const HEIGHT: f32 = 0.7;
+    const BODY_RADIUS: f32 = 0.3;
+    pub const CAMERA_HEIGHT: f32 = Self::HEIGHT * 0.9;
+
+    pub fn fire_origin(transform: &Transform) -> Vec3 {
+        let direction = transform.forward();
+        transform.translation
+            + Vec3::new(0.0, Player::HEIGHT * 0.9, 0.0)
+            + *direction * Player::BODY_RADIUS
+    }
+
+    pub fn center(transform: &Transform) -> Vec3 {
+        // TODO: add Head
+        transform.translation + Vec3::new(0.0, Self::HEIGHT / 2.0, 0.0)
+    }
 }
 
 #[derive(Bundle)]
 pub struct PlayerBundle {
-    player: Player,
+    tag: Player,
     name: Name,
     life: Life,
     weapon: Weapon,
@@ -44,19 +61,14 @@ pub struct PlayerBundle {
 impl PlayerBundle {
     pub fn new(weapon: Weapon) -> Self {
         PlayerBundle {
-            player: Player,
+            tag: Player,
             name: Name::new("Player"),
             life: Life::new(100),
             weapon,
             pbr: PbrBundle::default(),
             body: RigidBody::Dynamic,
             velocity: Velocity::zero(),
-            collider: Collider::round_cuboid(
-                Player::WIDTH / 2.0,
-                Player::WIDTH / 2.0,
-                Player::HEIGHT / 2.0,
-                0.05,
-            ),
+            collider: Collider::cylinder(Player::HEIGHT / 2.0, Player::BODY_RADIUS / 2.0),
             locked_axes: LockedAxes::ROTATION_LOCKED_X
                 | LockedAxes::ROTATION_LOCKED_Y
                 | LockedAxes::ROTATION_LOCKED_Z,

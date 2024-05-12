@@ -1,4 +1,5 @@
 mod asset_loader;
+mod camera;
 mod character;
 mod enemy;
 mod maze;
@@ -9,6 +10,7 @@ mod states;
 mod weapon;
 
 pub use asset_loader::*;
+pub use camera::*;
 pub use character::*;
 pub use enemy::*;
 pub use maze::*;

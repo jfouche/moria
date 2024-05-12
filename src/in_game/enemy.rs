@@ -40,10 +40,12 @@ fn load_colliders(
 fn spawn_enemy(mut commands: Commands, assets: Res<EnemyAssets>, weapons: Res<Weapons>) {
     let pos = Position(2, 2);
     let weapon = weapons.get(WeaponType::Gun);
+    warn!("spawn_enemy()");
     commands
         .spawn(EnemyBundle::new(weapon).at(pos).with_assets(&assets))
         .with_children(|parent| {
             for (collider, transform) in assets.colliders() {
+                warn!("spawn_enemy() collider");
                 parent.spawn(EnemyColliderBundle::new(collider.clone(), *transform));
             }
         });
@@ -85,38 +87,58 @@ fn on_death(mut commands: Commands, mut death_events: EventReader<EnemyDeathEven
 ///
 fn enemy_fires(
     mut commands: Commands,
-    enemies: Query<(Entity, &Transform, &Weapon), (With<Enemy>, Without<Reload>)>,
+    enemies: Query<(Entity, &Transform, &Weapon, &Children), (With<Enemy>, Without<Reload>)>,
+    enemy_colliders: Query<&Parent, With<EnemyCollider>>,
     player: Query<(Entity, &Transform), With<Player>>,
     rapier_context: Res<RapierContext>,
     mut ev_fire: EventWriter<FireEvent>,
+    mut gizmos: Gizmos, // TODO: REMOVE
 ) {
     let (player_entity, player_transform) = player.get_single().expect("Player");
-    for (enemy_entity, enemy_transform, weapon) in enemies.iter() {
-        let dy = Vec3::new(0.0, 0.1, 0.0);
-        let enemy_pos = enemy_transform.translation;
-        let ray_dir = player_transform.translation - enemy_pos;
-        let ray_pos = enemy_pos + ray_dir.normalize() * (Enemy::RADIUS + 0.2) + dy;
-        let max_toi = ray_dir.length();
-        let solid = true;
-        let filter = QueryFilter::new();
-        if let Some((entity, toi)) =
-            rapier_context.cast_ray(ray_pos, ray_dir, max_toi, solid, filter)
+    let player_center = Player::center(player_transform);
+    for (enemy_entity, enemy_transform, weapon, children) in enemies.iter() {
+        match children
+            .iter()
+            .find(|&child_entity| enemy_colliders.get(*child_entity).is_ok())
         {
-            if entity == player_entity {
-                info!("Enemy sees Player, toi: {toi}");
-                // Enemy fires
+            Some(enemy_collider_entity) => {
+                let enemy_center = Enemy::center(enemy_transform);
+                let ray_pos = enemy_center; // TODO:  + ray_dir.normalize() * (Enemy::weapon_offset());
+                let ray_dir = player_center - enemy_center;
+                gizmos.ray(ray_pos, ray_dir, Color::WHITE); // TODO: REMOVE
 
-                let event = weapon
-                    .fire()
-                    .from(FireEmitter::Enemy)
-                    .origin(ray_pos)
-                    .direction(Direction3d::new(ray_dir).unwrap())
-                    .event();
-                ev_fire.send(event);
+                let max_toi = ray_dir.length();
+                let solid = false;
+                let filter = QueryFilter::new()
+                    .exclude_sensors()
+                    .exclude_collider(*enemy_collider_entity);
 
-                // Weapon reload
-                commands.entity(enemy_entity).insert(Reload::new(weapon));
+                info!("enemy_fires() ray_pos: {ray_pos}, ray_dir: {ray_dir}, max_toi: {max_toi}");
+
+                if let Some((entity, toi)) =
+                    rapier_context.cast_ray(ray_pos, ray_dir, max_toi, solid, filter)
+                {
+                    if entity == player_entity {
+                        info!("Enemy sees Player, toi: {toi}");
+                        // Enemy fires
+                        let event = weapon
+                            .fire()
+                            .from(FireEmitter::Enemy)
+                            .origin(ray_pos)
+                            .direction(Direction3d::new(ray_dir).unwrap())
+                            .event();
+                        ev_fire.send(event);
+
+                        // Weapon reload
+                        commands.entity(enemy_entity).insert(Reload::new(weapon));
+                    }
+                    // TODO: REMOVE
+                    else {
+                        info!("Enemy sees {entity:?}, toi: {toi}");
+                    }
+                }
             }
+            None => warn!("EnemyCollider not found in Enemy children"),
         }
     }
 }

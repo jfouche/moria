@@ -6,6 +6,7 @@
 ## 3D models : https://poly.pizza/
 - swat : https://poly.pizza/m/Btfn3G5Xv4
 - life potion : https://poly.pizza/m/5DvOJDIgDYu
+- slime : https://poly.pizza/m/SW5h0gbCtq
 
 # External lib
 - Copy of bevy_gltf_collider (https://github.com/Defernus/bevy_gltf_collider) in order to manage **my** bevy_rapier3d version

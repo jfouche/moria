@@ -1,33 +1,8 @@
 use crate::components::*;
-use bevy::{
-    ecs::event::ManualEventReader,
-    input::mouse::MouseMotion,
-    prelude::*,
-    window::{CursorGrabMode, PrimaryWindow},
-};
+use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-/// Keeps track of mouse motion events, pitch, and yaw
-#[derive(Resource, Default)]
-struct InputState {
-    reader_motion: ManualEventReader<MouseMotion>,
-}
-
-/// Mouse sensitivity and movement speed
-#[derive(Resource)]
-struct MovementSettings {
-    pub sensitivity: f32,
-    pub speed: f32,
-}
-
-impl Default for MovementSettings {
-    fn default() -> Self {
-        Self {
-            sensitivity: 0.00012,
-            speed: 200.0,
-        }
-    }
-}
+const PLAYER_SPEED: f32 = 200.0;
 
 ///
 /// Plugin
@@ -35,13 +10,11 @@ impl Default for MovementSettings {
 pub fn plugin(app: &mut App) {
     app.add_event::<PlayerHitEvent>()
         .add_event::<PlayerDeathEvent>()
-        .init_resource::<InputState>()
-        .init_resource::<MovementSettings>()
         .add_systems(Startup, load_assets)
         .add_systems(OnEnter(GameState::InGame), spawn_player)
         .add_systems(
             Update,
-            (player_move, player_look, player_fires, on_hit).run_if(game_is_running),
+            (player_move, player_fires, on_hit).run_if(game_is_running),
         )
         .add_systems(OnExit(GameState::InGame), despawn_all::<Player>);
 }
@@ -64,7 +37,6 @@ fn spawn_player(mut commands: Commands, assets: Res<PlayerAssets>, weapons: Res<
 // https://github.com/sburris0/bevy_flycam/blob/master/src/lib.rs
 fn player_move(
     mut player: Query<(&Transform, &mut Velocity), With<Player>>,
-    settings: Res<MovementSettings>,
     keys: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
 ) {
@@ -84,55 +56,56 @@ fn player_move(
         }
     }
     delta = delta.normalize_or_zero();
-    velocity.linvel = delta * time.delta_seconds() * settings.speed;
+    velocity.linvel = delta * time.delta_seconds() * PLAYER_SPEED;
 }
 
-fn player_look(
-    settings: Res<MovementSettings>,
-    primary_window: Query<&Window, With<PrimaryWindow>>,
-    mut state: ResMut<InputState>,
-    motion: Res<Events<MouseMotion>>,
-    mut query_player: Query<&mut Transform, With<Player>>,
-) {
-    let window = primary_window
-        .get_single()
-        .expect("Can't retrieve primary window");
-    let mut transform = query_player
-        .get_single_mut()
-        .expect("Player should be present");
-    for ev in state.reader_motion.read(&motion) {
-        let (mut yaw, mut pitch, _) = transform.rotation.to_euler(EulerRot::YXZ);
-        match window.cursor.grab_mode {
-            CursorGrabMode::None => (),
-            _ => {
-                // Using smallest of height or width ensures equal vertical and horizontal sensitivity
-                let window_scale = window.height().min(window.width());
-                pitch -= (settings.sensitivity * ev.delta.y * window_scale).to_radians();
-                yaw -= (settings.sensitivity * ev.delta.x * window_scale).to_radians();
-            }
-        }
+// TODO: REMOVE
+// fn player_look(
+//     settings: Res<MovementSettings>,
+//     primary_window: Query<&Window, With<PrimaryWindow>>,
+//     mut state: ResMut<InputState>,
+//     motion: Res<Events<MouseMotion>>,
+//     mut query_player: Query<&mut Transform, With<Player>>,
+// ) {
+//     let window = primary_window
+//         .get_single()
+//         .expect("Can't retrieve primary window");
+//     let mut transform = query_player
+//         .get_single_mut()
+//         .expect("Player should be present");
+//     for ev in state.reader_motion.read(&motion) {
+//         let (mut yaw, mut pitch, _) = transform.rotation.to_euler(EulerRot::YXZ);
+//         match window.cursor.grab_mode {
+//             CursorGrabMode::None => (),
+//             _ => {
+//                 // Using smallest of height or width ensures equal vertical and horizontal sensitivity
+//                 let window_scale = window.height().min(window.width());
+//                 pitch -= (settings.sensitivity * ev.delta.y * window_scale).to_radians();
+//                 yaw -= (settings.sensitivity * ev.delta.x * window_scale).to_radians();
+//             }
+//         }
 
-        pitch = pitch.clamp(-1.54, 1.54);
+//         pitch = pitch.clamp(-1.54, 1.54);
 
-        // Order is important to prevent unintended roll
-        transform.rotation =
-            Quat::from_axis_angle(Vec3::Y, yaw) * Quat::from_axis_angle(Vec3::X, pitch);
-    }
-}
+//         // Order is important to prevent unintended roll
+//         transform.rotation =
+//             Quat::from_axis_angle(Vec3::Y, yaw) * Quat::from_axis_angle(Vec3::X, pitch);
+//     }
+// }
 
 fn player_fires(
     mut commands: Commands,
     keys: Res<ButtonInput<KeyCode>>,
     player: Query<(Entity, &Transform, &Weapon), (With<Player>, Without<Reload>)>,
+    cameras: Query<&Transform, (With<PlayerCamera>, Without<Player>)>,
     mut ev_fire: EventWriter<FireEvent>,
 ) {
     // The query doesn't return if the weapon is reloading (eg. if it contains the [Reload] component)
     if let Ok((entity, transform, weapon)) = player.get_single() {
+        let cam_transform = cameras.get_single().expect("PlayerCamera");
         if keys.pressed(KeyCode::Space) {
-            let direction = transform.forward();
-            let origin = transform.translation
-                + Vec3::new(0.0, Player::HEIGHT * 0.9, 0.0)
-                + *direction * Player::WIDTH;
+            let direction = cam_transform.forward();
+            let origin = Player::fire_origin(transform);
             let event = weapon
                 .fire()
                 .from(FireEmitter::Player)

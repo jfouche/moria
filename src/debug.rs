@@ -4,16 +4,13 @@ use bevy::{
     window::{CursorGrabMode, PrimaryWindow},
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use bevy_panorbit_camera::PanOrbitCamera;
 use bevy_rapier3d::prelude::*;
 
 pub fn plugin(app: &mut App) {
     app.add_systems(Startup, apply_config)
-        .add_systems(Update, toggle_camera_controls_system)
         .add_plugins((
             WorldInspectorPlugin::new(),
             RapierDebugRenderPlugin::default().disabled(),
-            // PanOrbitCameraPlugin
         ))
         .add_systems(Update, (toggle_grab).run_if(in_state(GameState::InGame)))
         .add_systems(
@@ -52,17 +49,6 @@ fn toggle_grab(
             _ => {
                 set_grab_cursor(window, false);
             }
-        }
-    }
-}
-
-fn toggle_camera_controls_system(
-    key_input: Res<ButtonInput<KeyCode>>,
-    mut pan_orbit_query: Query<&mut PanOrbitCamera>,
-) {
-    if key_input.just_pressed(KeyCode::KeyT) {
-        for mut pan_orbit in pan_orbit_query.iter_mut() {
-            pan_orbit.enabled = !pan_orbit.enabled;
         }
     }
 }

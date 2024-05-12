@@ -44,12 +44,8 @@ fn main() {
             ui::UiPlugins,
         ))
         .add_plugins(debug::plugin)
-        .add_systems(PreStartup, (spawn_camera, spawn_ground))
+        .add_systems(PreStartup, spawn_ground)
         .run();
-}
-
-fn spawn_camera(mut commands: Commands) {
-    commands.spawn((Name::new("Camera"), Camera3dBundle::default()));
 }
 
 fn spawn_ground(mut commands: Commands) {
