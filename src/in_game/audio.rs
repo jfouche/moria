@@ -15,6 +15,7 @@ pub fn plugin(app: &mut App) {
 fn start_music(mut commands: Commands, asset_server: Res<AssetServer>) {
     // println!("start_music()");
     commands.spawn((
+        Name::new("Music"),
         AudioBundle {
             source: asset_server.load("audio/Goblins_Den_Regular.ogg"),
             settings: PlaybackSettings::LOOP,
