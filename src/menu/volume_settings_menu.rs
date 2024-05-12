@@ -4,14 +4,14 @@ use crate::ui::*;
 use bevy::prelude::*;
 
 #[derive(Component)]
-struct OnSoundSettingsMenuScreen;
+struct SoundSettingsMenu;
 
 pub struct SoundSettingsPlugin<S>(pub S);
 
 impl<S: States + Copy> Plugin for SoundSettingsPlugin<S> {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(self.0), spawn_sound_settings_menu)
-            .add_systems(OnExit(self.0), despawn_all::<OnSoundSettingsMenuScreen>)
+            .add_systems(OnExit(self.0), despawn_all::<SoundSettingsMenu>)
             .add_systems(
                 Update,
                 setting_button::<AudioVolume>.run_if(in_state(self.0)),
@@ -21,7 +21,11 @@ impl<S: States + Copy> Plugin for SoundSettingsPlugin<S> {
 
 fn spawn_sound_settings_menu(mut commands: Commands, volume: Res<AudioVolume>) {
     commands
-        .spawn((centered(), OnSoundSettingsMenuScreen))
+        .spawn((
+            centered(),
+            Name::new("SoundSettingsMenu"),
+            SoundSettingsMenu,
+        ))
         .with_children(|wnd| {
             wnd.spawn(menu()).with_children(|menu| {
                 menu.spawn(menu_title("Sound settings"));

@@ -17,7 +17,7 @@ pub enum MainMenuState {
 }
 
 #[derive(Component)]
-struct OnMainMenuScreen;
+struct MainMenu;
 
 #[derive(Component)]
 struct OnDisplaySettingsMenuScreen;
@@ -32,7 +32,7 @@ pub fn plugin(app: &mut App) {
     app.init_state::<MainMenuState>()
         .add_systems(OnEnter(GameState::Menu), (menu_setup, ungrab_cursor))
         .add_systems(OnEnter(MainMenuState::Main), spawn_main_menu)
-        .add_systems(OnExit(MainMenuState::Main), despawn_all::<OnMainMenuScreen>)
+        .add_systems(OnExit(MainMenuState::Main), despawn_all::<MainMenu>)
         .add_systems(Update, (menu_action).run_if(in_state(GameState::Menu)));
 }
 
@@ -43,7 +43,7 @@ fn menu_setup(mut commands: Commands, mut menu_state: ResMut<NextState<MainMenuS
 
 fn spawn_main_menu(mut commands: Commands) {
     commands
-        .spawn((centered(), OnMainMenuScreen))
+        .spawn((centered(), Name::new("MainMenu"), MainMenu))
         .with_children(|wnd| {
             wnd.spawn(menu()).with_children(|menu| {
                 // Display the game name

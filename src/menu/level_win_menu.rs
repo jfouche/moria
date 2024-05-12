@@ -28,7 +28,7 @@ pub fn plugin(app: &mut App) {
 
 fn spawn_level_win_menu(mut commands: Commands) {
     commands
-        .spawn((centered(), LevelWinMenu))
+        .spawn((centered(), Name::new("LevelWinMenu"), LevelWinMenu))
         .with_children(|wnd| {
             wnd.spawn(menu()).with_children(|menu| {
                 menu.spawn(menu_title("You Win !"));

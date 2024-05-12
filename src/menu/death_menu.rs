@@ -1,11 +1,11 @@
 use super::*;
-use crate::cursor::*;
 use crate::components::*;
+use crate::cursor::*;
 use crate::ui::*;
 use bevy::prelude::*;
 
 #[derive(Component)]
-struct OnDeathMenuScreen;
+struct DeathMenu;
 
 ///
 /// Plugin
@@ -16,10 +16,7 @@ pub fn plugin(app: &mut App) {
             OnEnter(InGameState::PlayerDied),
             (ungrab_cursor, spawn_death_menu),
         )
-        .add_systems(
-            OnExit(InGameState::PlayerDied),
-            despawn_all::<OnDeathMenuScreen>,
-        )
+        .add_systems(OnExit(InGameState::PlayerDied), despawn_all::<DeathMenu>)
         .add_systems(
             Update,
             menu_action.run_if(in_state(InGameState::PlayerDied)),
@@ -28,7 +25,7 @@ pub fn plugin(app: &mut App) {
 
 fn spawn_death_menu(mut commands: Commands) {
     commands
-        .spawn((centered(), OnDeathMenuScreen))
+        .spawn((centered(), Name::new("DeathMenu"), DeathMenu))
         .with_children(|wnd| {
             wnd.spawn(menu()).with_children(|menu| {
                 menu.spawn(menu_title("You died !"));

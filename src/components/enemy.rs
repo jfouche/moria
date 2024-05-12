@@ -58,6 +58,7 @@ pub struct EnemyCollider;
 #[derive(Bundle)]
 pub struct EnemyColliderBundle {
     tag: EnemyCollider,
+    name: Name,
     collider: Collider,
     transform: TransformBundle,
     sensor: Sensor,
@@ -68,6 +69,7 @@ impl EnemyColliderBundle {
     pub fn new(collider: Collider, transform: Transform) -> Self {
         EnemyColliderBundle {
             tag: EnemyCollider,
+            name: Name::new("EnemyColliderBundle"),
             collider,
             transform: TransformBundle::from_transform(transform),
             sensor: Sensor,

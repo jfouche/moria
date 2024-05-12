@@ -4,14 +4,14 @@ use crate::ui::*;
 use bevy::prelude::*;
 
 #[derive(Component)]
-struct OnDisplaySettingsMenuScreen;
+struct DisplaySettingsMenu;
 
 pub struct DisplaySettingsPlugin<S>(pub S);
 
 impl<S: States + Copy> Plugin for DisplaySettingsPlugin<S> {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(self.0), spawn_display_menu)
-            .add_systems(OnExit(self.0), despawn_all::<OnDisplaySettingsMenuScreen>)
+            .add_systems(OnExit(self.0), despawn_all::<DisplaySettingsMenu>)
             .add_systems(
                 Update,
                 (
@@ -29,7 +29,11 @@ fn spawn_display_menu(
     current_exposure: Res<ExposureSettings>,
 ) {
     commands
-        .spawn((centered(), OnDisplaySettingsMenuScreen))
+        .spawn((
+            centered(),
+            Name::new("DisplaySettingsMenu"),
+            DisplaySettingsMenu,
+        ))
         .with_children(|wnd| {
             wnd.spawn(menu()).with_children(|menu| {
                 menu.spawn(menu_title("Display settings"));

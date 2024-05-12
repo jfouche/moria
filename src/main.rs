@@ -49,7 +49,7 @@ fn main() {
 }
 
 fn spawn_camera(mut commands: Commands) {
-    commands.spawn(Camera3dBundle::default());
+    commands.spawn((Name::new("Camera"), Camera3dBundle::default()));
 }
 
 fn spawn_ground(mut commands: Commands) {

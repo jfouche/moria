@@ -1,11 +1,11 @@
 use super::*;
-use crate::cursor::*;
 use crate::components::*;
+use crate::cursor::*;
 use crate::ui::*;
 use bevy::prelude::*;
 
 #[derive(Component)]
-struct OnMainMenuScreen;
+struct PauseMenu;
 
 #[derive(Component)]
 struct OnDisplaySettingsMenuScreen;
@@ -31,10 +31,7 @@ pub fn plugin(app: &mut App) {
     app.init_state::<PauseMenuState>()
         .add_systems(OnEnter(InGameState::Pause), (ungrab_cursor, menu_setup))
         .add_systems(OnEnter(PauseMenuState::Main), spawn_pause_menu)
-        .add_systems(
-            OnExit(PauseMenuState::Main),
-            despawn_all::<OnMainMenuScreen>,
-        )
+        .add_systems(OnExit(PauseMenuState::Main), despawn_all::<PauseMenu>)
         .add_systems(Update, (menu_action).run_if(in_state(InGameState::Pause)));
 }
 
@@ -44,7 +41,7 @@ fn menu_setup(mut menu_state: ResMut<NextState<PauseMenuState>>) {
 
 fn spawn_pause_menu(mut commands: Commands) {
     commands
-        .spawn((centered(), OnMainMenuScreen))
+        .spawn((centered(), Name::new("PauseMenu"), PauseMenu))
         .with_children(|wnd| {
             wnd.spawn(menu()).with_children(|menu| {
                 menu.spawn(menu_title("Moria - Pause"));
