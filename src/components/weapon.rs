@@ -148,7 +148,7 @@ impl Weapons {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Clone, Copy)]
 pub struct Bullet {
     pub damage: u16,
 }

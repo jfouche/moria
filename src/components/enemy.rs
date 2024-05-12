@@ -2,16 +2,13 @@ use super::*;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-#[derive(Resource)]
-pub struct EnemyAssets {
-    scene: Handle<Scene>,
-}
+#[derive(Resource, Deref, DerefMut)]
+pub struct EnemyAssets(SceneWithCollidersAssets);
 
 impl EnemyAssets {
     pub fn load(assets_server: &AssetServer) -> Self {
-        EnemyAssets {
-            scene: assets_server.load("SWAT.glb#Scene0"),
-        }
+        let scene_handle = assets_server.load("SWAT.glb#Scene0");
+        EnemyAssets(SceneWithCollidersAssets::load(scene_handle))
     }
 }
 
@@ -20,6 +17,7 @@ pub struct Enemy;
 
 impl Enemy {
     pub const RADIUS: f32 = 0.3;
+    pub const SCALE: Vec3 = Vec3::splat(0.8);
 }
 
 #[derive(Bundle)]
@@ -29,8 +27,6 @@ pub struct EnemyBundle {
     life: Life,
     weapon: Weapon,
     scene: SceneBundle,
-    body: RigidBody,
-    collider: Collider,
 }
 
 impl EnemyBundle {
@@ -41,19 +37,42 @@ impl EnemyBundle {
             life: Life::new(50),
             weapon,
             scene: SceneBundle::default(),
-            body: RigidBody::Dynamic,
-            collider: Collider::ball(Enemy::RADIUS),
         }
     }
 
     pub fn at(mut self, pos: Position) -> Self {
-        self.scene.transform = Transform::from_translation(pos.to_world().translation());
+        self.scene.transform =
+            Transform::from_translation(pos.to_world().translation()).with_scale(Enemy::SCALE);
         self
     }
 
-    pub fn with_assets(mut self, assets: &Res<EnemyAssets>) -> Self {
-        self.scene.scene = assets.scene.clone();
+    pub fn with_assets(mut self, assets: &EnemyAssets) -> Self {
+        self.scene.scene = assets.scene();
         self
+    }
+}
+
+#[derive(Component)]
+pub struct EnemyCollider;
+
+#[derive(Bundle)]
+pub struct EnemyColliderBundle {
+    tag: EnemyCollider,
+    collider: Collider,
+    transform: TransformBundle,
+    sensor: Sensor,
+    collider_events: ActiveEvents,
+}
+
+impl EnemyColliderBundle {
+    pub fn new(collider: Collider, transform: Transform) -> Self {
+        EnemyColliderBundle {
+            tag: EnemyCollider,
+            collider,
+            transform: TransformBundle::from_transform(transform),
+            sensor: Sensor,
+            collider_events: ActiveEvents::COLLISION_EVENTS,
+        }
     }
 }
 

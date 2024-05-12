@@ -1,4 +1,4 @@
-use crate::components::*;
+use crate::{assets_loader::assets_loading, components::*};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
@@ -8,21 +8,45 @@ pub fn plugin(app: &mut App) {
         .add_systems(Startup, load_assets)
         .add_systems(OnEnter(GameState::InGame), spawn_enemy)
         .add_systems(OnExit(GameState::InGame), despawn_all::<Enemy>)
+        .add_systems(Update, load_colliders.run_if(assets_loading))
         .add_systems(
             Update,
             (on_hit, on_death, enemy_fires).run_if(game_is_running),
         );
 }
 
-fn load_assets(mut commands: Commands, assets_server: Res<AssetServer>) {
+fn load_assets(
+    mut commands: Commands,
+    assets_server: Res<AssetServer>,
+    mut assets_register: ResMut<AssetsLoaderRegister>,
+) {
+    assets_register.register::<EnemyAssets>();
     let assets = EnemyAssets::load(&assets_server);
     commands.insert_resource(assets);
+}
+
+fn load_colliders(
+    scenes: ResMut<Assets<Scene>>,
+    meshes: ResMut<Assets<Mesh>>,
+    mut assets: ResMut<EnemyAssets>,
+    mut event_writer: EventWriter<AssetsLoadedEvent>,
+) {
+    if assets.just_loaded(scenes, meshes) {
+        info!("load_colliders() send event");
+        event_writer.send(AssetsLoadedEvent::from::<EnemyAssets>());
+    }
 }
 
 fn spawn_enemy(mut commands: Commands, assets: Res<EnemyAssets>, weapons: Res<Weapons>) {
     let pos = Position(2, 2);
     let weapon = weapons.get(WeaponType::Gun);
-    commands.spawn(EnemyBundle::new(weapon).at(pos).with_assets(&assets));
+    commands
+        .spawn(EnemyBundle::new(weapon).at(pos).with_assets(&assets))
+        .with_children(|parent| {
+            for (collider, transform) in assets.colliders() {
+                parent.spawn(EnemyColliderBundle::new(collider.clone(), *transform));
+            }
+        });
 }
 
 ///

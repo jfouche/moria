@@ -5,10 +5,11 @@ pub fn plugin(app: &mut App) {
     app.init_state::<AssetsLoadingState>()
         .init_resource::<AssetsLoaderRegister>()
         .add_event::<AssetsLoadedEvent>()
-        .add_systems(
-            Update,
-            on_assets_loaded.run_if(in_state(AssetsLoadingState::Loading)),
-        );
+        .add_systems(Update, on_assets_loaded.run_if(assets_loading));
+}
+
+pub fn assets_loading(state: Res<State<AssetsLoadingState>>) -> bool {
+    *state == AssetsLoadingState::Loading
 }
 
 pub fn on_assets_loaded(

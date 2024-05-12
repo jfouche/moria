@@ -22,8 +22,10 @@ impl AssetsLoaderRegister {
     }
 
     pub fn handle(&mut self, event: &AssetsLoadedEvent) {
-        let value = self.assets.get_mut(&event.0).expect("Unknown ressource!");
-        *value = true;
+        match self.assets.get_mut(&event.0) {
+            Some(loaded) => *loaded = true,
+            None => error!("Unknown ressource [{}]", event.0),
+        }
     }
 
     pub fn loaded(&self) -> bool {
@@ -55,6 +57,7 @@ impl SceneWithCollidersAssets {
         }
     }
 
+    // Return a clone of the scene handle
     pub fn scene(&self) -> Handle<Scene> {
         self.scene.clone()
     }

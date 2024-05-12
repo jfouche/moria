@@ -45,26 +45,40 @@ fn despawn_bullet_after_collision(
 ///
 fn enemy_hit_by_bullet(
     mut collisions: EventReader<CollisionEvent>,
-    enemies: Query<Entity, With<Enemy>>,
-    bullets: Query<(Entity, &Bullet)>,
+    enemies: Query<&Enemy>,
+    enemy_colliders: Query<&Parent, With<EnemyCollider>>,
+    bullets: Query<&Bullet>,
     mut enemy_hit_events: EventWriter<EnemyHitEvent>,
 ) {
     let mut enemies_hit = HashMap::new();
     collisions
         .read()
+        // Only accept Starting collision
         .filter_map(|e| match e {
             CollisionEvent::Started(e1, e2, _) => Some((e1, e2)),
             _ => None,
         })
-        .for_each(|(&e1, &e2)| {
-            for enemy in enemies.iter() {
-                for (bullet_entity, bullet) in bullets.iter() {
-                    if (e1 == enemy && e2 == bullet_entity) || (e1 == bullet_entity && e2 == enemy)
-                    {
-                        info!("enemy_hit_by_bullet {enemy:?}");
-                        *enemies_hit.entry(enemy).or_insert(0) += bullet.damage;
-                    }
-                }
+        // Filter Bullet / EnemyCollider collision, returns (Enemy entity, Bullet)
+        .filter_map(|(&e1, &e2)| {
+            if let Ok(bullet) = bullets.get(e1) {
+                enemy_colliders
+                    .get(e2)
+                    .map(|parent| (parent.get(), bullet))
+                    .ok()
+            } else if let Ok(bullet) = bullets.get(e2) {
+                enemy_colliders
+                    .get(e1)
+                    .map(|parent| (parent.get(), bullet))
+                    .ok()
+            } else {
+                None
+            }
+        })
+        // Manage enemy hit
+        .for_each(|(enemy_entity, &bullet)| {
+            if enemies.get(enemy_entity).is_ok() {
+                info!("enemy_hit_by_bullet {enemy_entity:?}");
+                *enemies_hit.entry(enemy_entity).or_insert(0) += bullet.damage;
             }
         });
 
