@@ -1,4 +1,4 @@
-use crate::{config::MazeConfig, components::*};
+use crate::{components::*, config::MazeConfig};
 use bevy::prelude::*;
 
 pub fn plugin(app: &mut App) {
@@ -7,11 +7,7 @@ pub fn plugin(app: &mut App) {
         .add_systems(Update, add_light.run_if(game_is_running))
         .add_systems(
             OnExit(GameState::InGame),
-            (
-                despawn_all::<MazeComponent>,
-                despawn_all::<RoomLight>,
-                despawn_all::<Ceiling>,
-            ),
+            (despawn_all::<MazeComponent>, despawn_all::<Ceiling>),
         );
 }
 
@@ -189,28 +185,34 @@ fn add_light(
     mut commands: Commands,
     player: Query<&Transform, With<Player>>,
     mut maze: ResMut<Maze>,
+    maze_components: Query<Entity, With<MazeComponent>>,
 ) {
-    let player_transform = player.get_single().expect("Can't get Player");
+    let player_transform = player.get_single().expect("Player");
+    let maze_entity = maze_components.get_single().expect("MazeComponent");
     let player_pos: WorldPosition = player_transform.translation.into();
     if let Some(room) = maze.get_room(&player_pos) {
         if !room.visited() {
             maze.visit(&player_pos);
-            commands.spawn((
-                Name::new("ROOM_LIGHT"),
-                RoomLight,
-                SpotLightBundle {
-                    spot_light: SpotLight {
-                        intensity: 200_000.0,
-                        outer_angle: 1.4,
+            // TODO: RoomLightBundle
+            let light_entity = commands
+                .spawn((
+                    Name::new("ROOM_LIGHT"),
+                    RoomLight,
+                    SpotLightBundle {
+                        spot_light: SpotLight {
+                            intensity: 200_000.0,
+                            outer_angle: 1.4,
+                            ..default()
+                        },
+                        transform: Transform::from_translation(
+                            player_pos.translation_with_y(Wall::HEIGHT),
+                        )
+                        .looking_at(player_pos.translation(), Vec3::Y),
                         ..default()
                     },
-                    transform: Transform::from_translation(
-                        player_pos.translation_with_y(Wall::HEIGHT),
-                    )
-                    .looking_at(player_pos.translation(), Vec3::Y),
-                    ..default()
-                },
-            ));
+                ))
+                .id();
+            commands.entity(maze_entity).add_child(light_entity);
         }
     }
 }
