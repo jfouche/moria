@@ -58,11 +58,7 @@ fn load_assets(
         ..default()
     });
 
-    let floor_mesh_handle = meshes.add(
-        Plane3d::new(Vec3::Y)
-            .mesh()
-            .size(WorldPosition::ROOM_WIDTH, WorldPosition::ROOM_WIDTH),
-    );
+    let floor_mesh_handle = meshes.add(Plane3d::new(Vec3::Y).mesh().size(Wall::WIDTH, Wall::WIDTH));
 
     // load ceiling textures and materials
     let ceiling_texture_handle = asset_server.load("textures/Asset 17.png");
@@ -74,7 +70,7 @@ fn load_assets(
     let ceiling_mesh_handle = meshes.add(
         Plane3d::new(Vec3::NEG_Y)
             .mesh()
-            .size(WorldPosition::ROOM_WIDTH, WorldPosition::ROOM_WIDTH),
+            .size(Wall::WIDTH, Wall::WIDTH),
     );
 
     // load wall textures and materials

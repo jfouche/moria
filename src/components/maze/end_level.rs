@@ -9,7 +9,7 @@ pub struct EndLevelAssets {
 }
 
 impl EndLevelAssets {
-    pub const RADIUS: f32 = WorldPosition::ROOM_WIDTH / 4.0;
+    pub const RADIUS: f32 = Wall::WIDTH / 4.0;
     pub const HEIGHT: f32 = Wall::HEIGHT / 8.0;
 
     pub fn load(

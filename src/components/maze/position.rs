@@ -1,3 +1,4 @@
+use crate::Wall;
 use bevy::prelude::*;
 use std::{fmt, ops::Deref};
 
@@ -48,19 +49,15 @@ impl Deref for WorldPosition {
 }
 
 impl WorldPosition {
-    // TODO: move to Wall
-    /// Width on X and Z
-    pub const ROOM_WIDTH: f32 = 2.0;
-
     pub fn new(x: u32, y: u32) -> Self {
         WorldPosition(Position(x, y))
     }
 
     pub fn rect(&self) -> Rect {
-        let x = self.fx() * Self::ROOM_WIDTH;
-        let z = (self.fy() + 1.0) * -Self::ROOM_WIDTH;
+        let x = self.fx() * Wall::WIDTH;
+        let z = (self.fy() + 1.0) * -Wall::WIDTH;
         let min = Vec2::new(x, z);
-        let max = min + Vec2::new(Self::ROOM_WIDTH, Self::ROOM_WIDTH);
+        let max = min + Vec2::new(Wall::WIDTH, Wall::WIDTH);
         Rect { min, max }
     }
 
@@ -85,8 +82,8 @@ impl fmt::Debug for WorldPosition {
 
 impl From<Vec3> for WorldPosition {
     fn from(world_pos: Vec3) -> Self {
-        let x = (world_pos.x / WorldPosition::ROOM_WIDTH) as u32;
-        let y = (-world_pos.z / WorldPosition::ROOM_WIDTH) as u32;
+        let x = (world_pos.x / Wall::WIDTH) as u32;
+        let y = (-world_pos.z / Wall::WIDTH) as u32;
         WorldPosition::new(x, y)
     }
 }
@@ -106,8 +103,8 @@ impl IntoWorldPosition for Position {
 mod test {
     use super::*;
 
-    const RW: f32 = WorldPosition::ROOM_WIDTH;
-    const HRW: f32 = RW / 2.0;
+    const RW: f32 = Wall::WIDTH;
+    const HRW: f32 = Wall::WIDTH / 2.0;
 
     #[test]
     fn position_to_world() {

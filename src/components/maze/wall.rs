@@ -13,6 +13,7 @@ pub enum Wall {
 
 impl Wall {
     pub const HEIGHT: f32 = 2.0;
+    pub const WIDTH: f32 = 2.0;
 
     pub const COLLIDER_WIDTH: f32 = 0.02;
 
@@ -24,9 +25,7 @@ impl Wall {
             Wall::Right => Vec3::NEG_X,
         };
 
-        Plane3d::new(normal)
-            .mesh()
-            .size(WorldPosition::ROOM_WIDTH, Wall::HEIGHT)
+        Plane3d::new(normal).mesh().size(Wall::WIDTH, Wall::HEIGHT)
     }
 }
 
@@ -62,7 +61,7 @@ impl WallBundle {
     pub fn transform(wall_pos: WallPosition) -> Transform {
         let translation = wall_pos.pos.to_world().translation();
         const HH: f32 = Wall::HEIGHT / 2.;
-        const HW: f32 = WorldPosition::ROOM_WIDTH / 2.;
+        const HW: f32 = Wall::WIDTH / 2.;
 
         let translation = match wall_pos.wall {
             Wall::Top => translation + Vec3::new(0., HH, -HW),
@@ -104,7 +103,7 @@ impl WallColliderBundle {
     }
 
     pub fn collider(wall_pos: WallPosition) -> Collider {
-        const HRW: f32 = WorldPosition::ROOM_WIDTH / 2.0;
+        const HRW: f32 = Wall::WIDTH / 2.0;
         let (hx, hz) = match wall_pos.wall {
             Wall::Top | Wall::Bottom => (HRW, Wall::COLLIDER_WIDTH),
             Wall::Left | Wall::Right => (Wall::COLLIDER_WIDTH, HRW),
