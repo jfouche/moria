@@ -170,6 +170,7 @@ pub struct BulletBundle {
     velocity: Velocity,
     collider_events: ActiveEvents,
     collision_tpes: ActiveCollisionTypes,
+    collision_groups: CollisionGroups,
 }
 
 impl BulletBundle {
@@ -177,6 +178,11 @@ impl BulletBundle {
         let mut transform = Transform::from_translation(fire_ev.origin);
         transform.look_to(*fire_ev.direction, Vec3::Y);
         transform.rotate_local_x(FRAC_PI_2);
+
+        let collision_filters = match fire_ev.from {
+            FireEmitter::Player => Group::ALL & !COLLISION_GROUP_PLAYER,
+            FireEmitter::Enemy => Group::ALL & !COLLISION_GROUP_ENEMY,
+        };
 
         BulletBundle {
             bullet: Bullet {
@@ -195,6 +201,7 @@ impl BulletBundle {
             collider_events: ActiveEvents::COLLISION_EVENTS,
             collision_tpes: ActiveCollisionTypes::default()
                 | ActiveCollisionTypes::KINEMATIC_STATIC,
+            collision_groups: CollisionGroups::new(COLLISION_GROUP_BULLET, collision_filters),
         }
     }
 

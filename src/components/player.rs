@@ -56,6 +56,7 @@ pub struct PlayerBundle {
     velocity: Velocity,
     collider: Collider,
     locked_axes: LockedAxes,
+    collision_groups: CollisionGroups,
 }
 
 impl PlayerBundle {
@@ -72,6 +73,7 @@ impl PlayerBundle {
             locked_axes: LockedAxes::ROTATION_LOCKED_X
                 | LockedAxes::ROTATION_LOCKED_Y
                 | LockedAxes::ROTATION_LOCKED_Z,
+            collision_groups: CollisionGroups::new(COLLISION_GROUP_PLAYER, Group::all()),
         }
     }
 

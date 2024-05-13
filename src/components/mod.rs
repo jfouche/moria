@@ -21,6 +21,11 @@ pub use states::*;
 pub use weapon::*;
 
 use bevy::prelude::*;
+use bevy_rapier3d::prelude::*;
+
+const COLLISION_GROUP_PLAYER: Group = Group::GROUP_1;
+const COLLISION_GROUP_ENEMY: Group = Group::GROUP_2;
+const COLLISION_GROUP_BULLET: Group = Group::GROUP_3;
 
 /// Generic system that takes a component as a parameter, and will despawn all entities with that component
 pub fn despawn_all<T: Component>(to_despawn: Query<Entity, With<T>>, mut commands: Commands) {
