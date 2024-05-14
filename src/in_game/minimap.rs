@@ -73,17 +73,29 @@ impl ImgIndex for Room {
 pub fn plugin(app: &mut App) {
     app.insert_state(MinimapState::Hide)
         .add_systems(Startup, load_minimap_atlas)
+        .add_systems(OnEnter(GameState::InGame), init_minimap)
+        .add_systems(OnExit(GameState::InGame), despawn_all::<Minimap>)
+        .add_systems(OnEnter(MinimapState::Show), spawn_minimap)
+        .add_systems(OnExit(MinimapState::Show), despawn_all::<Minimap>)
         .add_systems(
             Update,
             (
                 toggle_minimap,
-                (show_player, update_visibility).run_if(in_state(MinimapState::Show)),
+                (show_player, update_visibility).run_if(minimap_visible),
             )
                 .run_if(game_is_running),
-        )
-        .add_systems(OnEnter(MinimapState::Show), spawn_minimap)
-        .add_systems(OnExit(MinimapState::Show), despawn_all::<Minimap>)
-        .add_systems(OnExit(GameState::InGame), despawn_all::<Minimap>);
+        );
+}
+
+fn minimap_visible(
+    in_game_state: Res<State<InGameState>>,
+    minimap_state: Res<State<MinimapState>>,
+) -> bool {
+    *in_game_state == InGameState::Running && *minimap_state == MinimapState::Show
+}
+
+fn init_minimap(mut minimap_state: ResMut<NextState<MinimapState>>) {
+    minimap_state.set(MinimapState::Hide);
 }
 
 fn load_minimap_atlas(
