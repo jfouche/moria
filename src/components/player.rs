@@ -16,8 +16,8 @@ impl PlayerAssets {
         PlayerAssets {
             mesh: meshes.add(Cuboid::new(
                 Player::BODY_RADIUS,
-                Player::BODY_RADIUS,
                 Player::HEIGHT,
+                Player::BODY_RADIUS,
             )),
             material: materials.add(Color::BEIGE),
         }
@@ -69,7 +69,11 @@ impl PlayerBundle {
             pbr: PbrBundle::default(),
             body: RigidBody::Dynamic,
             velocity: Velocity::zero(),
-            collider: Collider::cylinder(Player::HEIGHT / 2.0, Player::BODY_RADIUS / 2.0),
+            collider: Collider::cuboid(
+                Player::BODY_RADIUS / 2.0,
+                Player::HEIGHT / 2.0,
+                Player::BODY_RADIUS / 2.0,
+            ),
             locked_axes: LockedAxes::ROTATION_LOCKED_X
                 | LockedAxes::ROTATION_LOCKED_Y
                 | LockedAxes::ROTATION_LOCKED_Z,
