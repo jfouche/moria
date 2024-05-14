@@ -3,33 +3,17 @@ use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
 pub fn plugin(app: &mut App) {
-    app.add_systems(Startup, load_assets)
-        .add_systems(OnEnter(GameState::InGame), spawn_potions)
-        .add_systems(OnExit(GameState::InGame), despawn_all::<Potion>)
-        .add_systems(Update, load_colliders.run_if(assets_loading))
-        .add_systems(Update, player_take_potion.run_if(game_is_running));
-}
-
-fn load_assets(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut assets_register: ResMut<AssetsLoaderRegister>,
-) {
-    assets_register.register::<PotionAssets>();
-    let assets = PotionAssets::load(&asset_server);
-    commands.insert_resource(assets);
-}
-
-fn load_colliders(
-    scenes: ResMut<Assets<Scene>>,
-    meshes: ResMut<Assets<Mesh>>,
-    mut assets: ResMut<PotionAssets>,
-    mut event_writer: EventWriter<AssetsLoadedEvent>,
-) {
-    if assets.just_loaded(scenes, meshes) {
-        info!("load_colliders() send event");
-        event_writer.send(AssetsLoadedEvent::from::<PotionAssets>());
-    }
+    app.add_systems(
+        Startup,
+        load_scene_assets::<PotionAssets>("potion.glb#Scene0"),
+    )
+    .add_systems(
+        Update,
+        load_scene_colliders::<PotionAssets>.run_if(assets_loading),
+    )
+    .add_systems(OnEnter(GameState::InGame), spawn_potions)
+    .add_systems(OnExit(GameState::InGame), despawn_all::<Potion>)
+    .add_systems(Update, player_take_potion.run_if(game_is_running));
 }
 
 fn spawn_potions(mut commands: Commands, assets: Res<PotionAssets>) {

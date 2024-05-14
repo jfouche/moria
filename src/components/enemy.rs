@@ -5,10 +5,9 @@ use bevy_rapier3d::prelude::*;
 #[derive(Resource, Deref, DerefMut)]
 pub struct EnemyAssets(SceneWithCollidersAssets);
 
-impl EnemyAssets {
-    pub fn load(assets_server: &AssetServer) -> Self {
-        let scene_handle = assets_server.load("slime.glb#Scene0");
-        EnemyAssets(SceneWithCollidersAssets::load(scene_handle))
+impl From<SceneWithCollidersAssets> for EnemyAssets {
+    fn from(value: SceneWithCollidersAssets) -> Self {
+        EnemyAssets(value)
     }
 }
 

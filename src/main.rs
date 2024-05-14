@@ -5,6 +5,7 @@ mod config;
 mod cursor;
 mod debug;
 mod in_game;
+mod math;
 mod menu;
 mod settings;
 mod splash;

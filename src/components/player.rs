@@ -2,25 +2,12 @@ use super::*;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-#[derive(Resource)]
-pub struct PlayerAssets {
-    mesh: Handle<Mesh>,
-    material: Handle<StandardMaterial>,
-}
+#[derive(Resource, Deref, DerefMut)]
+pub struct PlayerAssets(SceneWithCollidersAssets);
 
-impl PlayerAssets {
-    pub fn load(
-        mut meshes: ResMut<Assets<Mesh>>,
-        mut materials: ResMut<Assets<StandardMaterial>>,
-    ) -> Self {
-        PlayerAssets {
-            mesh: meshes.add(Cuboid::new(
-                Player::BODY_RADIUS,
-                Player::HEIGHT,
-                Player::BODY_RADIUS,
-            )),
-            material: materials.add(Color::BEIGE),
-        }
+impl From<SceneWithCollidersAssets> for PlayerAssets {
+    fn from(value: SceneWithCollidersAssets) -> Self {
+        PlayerAssets(value)
     }
 }
 
@@ -28,20 +15,24 @@ impl PlayerAssets {
 pub struct Player;
 
 impl Player {
-    const HEIGHT: f32 = 0.7;
-    const BODY_RADIUS: f32 = 0.3;
-    pub const CAMERA_HEIGHT: f32 = Self::HEIGHT * 0.9;
+    const HEIGHT: f32 = 1.08;
+    const BODY_RADIUS: f32 = 0.26;
+    const SCALE: Vec3 = Vec3::splat(0.4);
+    const CAMERA_HEIGHT: f32 = 0.95;
 
-    pub fn fire_origin(transform: &Transform) -> Vec3 {
-        let direction = transform.forward();
-        transform.translation
-            + Vec3::new(0.0, Player::CAMERA_HEIGHT, 0.0)
-            + *direction * Player::BODY_RADIUS
+    pub fn camera_translation(player_transform: &Transform) -> Vec3 {
+        player_transform.translation
+            + Self::SCALE
+                * (Vec3::new(0.0, Player::CAMERA_HEIGHT, 0.0)
+                    + player_transform.forward() * 2.0 * Player::BODY_RADIUS)
     }
 
-    pub fn center(transform: &Transform) -> Vec3 {
-        // TODO: add Head
-        transform.translation + Vec3::new(0.0, Self::HEIGHT / 2.0, 0.0)
+    pub fn fire_origin(player_transform: &Transform) -> Vec3 {
+        Self::camera_translation(player_transform)
+    }
+
+    pub fn center(player_transform: &Transform) -> Vec3 {
+        player_transform.translation + Vec3::new(0.0, Self::HEIGHT / 2.0, 0.0) * Self::SCALE
     }
 }
 
@@ -51,7 +42,7 @@ pub struct PlayerBundle {
     name: Name,
     life: Life,
     weapon: Weapon,
-    pbr: PbrBundle,
+    scene: SceneBundle,
     body: RigidBody,
     velocity: Velocity,
     locked_axes: LockedAxes,
@@ -64,7 +55,7 @@ impl PlayerBundle {
             name: Name::new("Player"),
             life: Life::new(100),
             weapon,
-            pbr: PbrBundle::default(),
+            scene: SceneBundle::default(),
             body: RigidBody::Dynamic,
             velocity: Velocity::zero(),
             locked_axes: LockedAxes::ROTATION_LOCKED_X
@@ -74,14 +65,14 @@ impl PlayerBundle {
     }
 
     pub fn at(mut self, pos: Position) -> Self {
-        self.pbr.transform = Transform::from_translation(pos.to_world().translation())
+        self.scene.transform = Transform::from_translation(pos.to_world().translation())
+            .with_scale(Player::SCALE)
             .looking_to(Vec3::NEG_Z, Vec3::Y);
         self
     }
 
     pub fn with_assets(mut self, assets: &PlayerAssets) -> Self {
-        self.pbr.mesh = assets.mesh.clone();
-        self.pbr.material = assets.material.clone();
+        self.scene.scene = assets.scene();
         self
     }
 }
@@ -92,21 +83,19 @@ pub struct PlayerCollider;
 #[derive(Bundle)]
 pub struct PlayerColliderBundle {
     tag: PlayerCollider,
+    name: Name,
     transform: TransformBundle,
     collider: Collider,
     collision_groups: CollisionGroups,
 }
 
-impl Default for PlayerColliderBundle {
-    fn default() -> Self {
+impl PlayerColliderBundle {
+    pub fn new(collider: Collider, transform: Transform) -> Self {
         PlayerColliderBundle {
             tag: PlayerCollider,
-            transform: TransformBundle::default(),
-            collider: Collider::cuboid(
-                Player::BODY_RADIUS / 2.0,
-                Player::HEIGHT / 2.0,
-                Player::BODY_RADIUS / 2.0,
-            ),
+            name: Name::new("PlayerCollider"),
+            transform: TransformBundle::from_transform(transform),
+            collider,
             collision_groups: CollisionGroups::new(COLLISION_GROUP_PLAYER, Group::all()),
         }
     }

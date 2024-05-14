@@ -1,4 +1,4 @@
-use crate::components::*;
+use crate::{assets_loader::assets_loading, components::*};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
@@ -10,22 +10,20 @@ const PLAYER_SPEED: f32 = 200.0;
 pub fn plugin(app: &mut App) {
     app.add_event::<PlayerHitEvent>()
         .add_event::<PlayerDeathEvent>()
-        .add_systems(Startup, load_assets)
+        .add_systems(
+            Startup,
+            load_scene_assets::<PlayerAssets>("player.glb#Scene0"),
+        )
+        .add_systems(
+            Update,
+            load_scene_colliders::<PlayerAssets>.run_if(assets_loading),
+        )
         .add_systems(OnEnter(GameState::InGame), spawn_player)
         .add_systems(
             Update,
             (player_move, player_fires, on_hit).run_if(game_is_running),
         )
         .add_systems(OnExit(GameState::InGame), despawn_all::<Player>);
-}
-
-fn load_assets(
-    mut commands: Commands,
-    meshes: ResMut<Assets<Mesh>>,
-    materials: ResMut<Assets<StandardMaterial>>,
-) {
-    let player_assets = PlayerAssets::load(meshes, materials);
-    commands.insert_resource(player_assets);
 }
 
 fn spawn_player(mut commands: Commands, assets: Res<PlayerAssets>, weapons: Res<Weapons>) {
@@ -35,7 +33,9 @@ fn spawn_player(mut commands: Commands, assets: Res<PlayerAssets>, weapons: Res<
     commands
         .spawn(PlayerBundle::new(weapon).at(pos).with_assets(&assets))
         .with_children(|parent| {
-            parent.spawn(PlayerColliderBundle::default());
+            for (collider, transform) in assets.colliders() {
+                parent.spawn(PlayerColliderBundle::new(collider.clone(), *transform));
+            }
         });
 }
 

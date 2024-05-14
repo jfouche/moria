@@ -5,10 +5,9 @@ use bevy_rapier3d::prelude::*;
 #[derive(Resource, Deref, DerefMut)]
 pub struct PotionAssets(SceneWithCollidersAssets);
 
-impl PotionAssets {
-    pub fn load(asset_server: &AssetServer) -> Self {
-        let scene_handle = asset_server.load("potion.glb#Scene0");
-        PotionAssets(SceneWithCollidersAssets::load(scene_handle))
+impl From<SceneWithCollidersAssets> for PotionAssets {
+    fn from(value: SceneWithCollidersAssets) -> Self {
+        PotionAssets(value)
     }
 }
 

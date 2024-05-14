@@ -1,4 +1,4 @@
-use crate::{assets_loader::assets_loading, components::*};
+use crate::{assets_loader::assets_loading, components::*, math::SignedAngle};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
@@ -10,36 +10,21 @@ pub fn plugin(app: &mut App) {
     app.add_event::<EnemyHitEvent>()
         .add_event::<EnemyDeathEvent>()
         .init_resource::<EnemiesSeingPlayer>()
-        .add_systems(Startup, load_assets)
+        .add_systems(
+            Startup,
+            load_scene_assets::<EnemyAssets>("slime.glb#Scene0"),
+        )
+        .add_systems(
+            Update,
+            load_scene_colliders::<EnemyAssets>.run_if(assets_loading),
+        )
         .add_systems(OnEnter(GameState::InGame), spawn_enemy)
         .add_systems(OnExit(GameState::InGame), despawn_all::<Enemy>)
         .add_systems(PreUpdate, cast_rays_from_enemies.run_if(game_is_running))
-        .add_systems(Update, load_colliders.run_if(assets_loading))
         .add_systems(
             Update,
-            (on_hit, on_death, enemy_fires).run_if(game_is_running),
+            (on_hit, on_death, /* enemy_fires, */ enemy_turns).run_if(game_is_running),
         );
-}
-
-fn load_assets(
-    mut commands: Commands,
-    assets_server: Res<AssetServer>,
-    mut assets_register: ResMut<AssetsLoaderRegister>,
-) {
-    assets_register.register::<EnemyAssets>();
-    let assets = EnemyAssets::load(&assets_server);
-    commands.insert_resource(assets);
-}
-
-fn load_colliders(
-    scenes: ResMut<Assets<Scene>>,
-    meshes: ResMut<Assets<Mesh>>,
-    mut assets: ResMut<EnemyAssets>,
-    mut event_writer: EventWriter<AssetsLoadedEvent>,
-) {
-    if assets.just_loaded(scenes, meshes) {
-        event_writer.send(AssetsLoadedEvent::from::<EnemyAssets>());
-    }
 }
 
 fn spawn_enemy(mut commands: Commands, assets: Res<EnemyAssets>, weapons: Res<Weapons>) {
@@ -91,12 +76,13 @@ fn on_death(mut commands: Commands, mut death_events: EventReader<EnemyDeathEven
 fn cast_rays_from_enemies(
     enemies: Query<(Entity, &Transform, &Children), (With<Enemy>, Without<Reload>)>,
     enemy_colliders: Query<&Parent, With<EnemyCollider>>,
-    player: Query<(Entity, &Transform), With<Player>>,
+    players: Query<&Transform, With<Player>>,
+    player_colliders: Query<(), With<PlayerCollider>>,
     rapier_context: Res<RapierContext>,
     mut enemies_seeing_player: ResMut<EnemiesSeingPlayer>,
 ) {
     enemies_seeing_player.clear();
-    let (player_entity, player_transform) = player.get_single().expect("Player");
+    let player_transform = players.get_single().expect("Player");
     let player_center = Player::center(player_transform);
     for (enemy_entity, enemy_transform, children) in enemies.iter() {
         match children
@@ -114,13 +100,15 @@ fn cast_rays_from_enemies(
                     .exclude_sensors()
                     .exclude_collider(*enemy_collider_entity);
 
-                info!("enemy_fires() ray_pos: {ray_pos}, ray_dir: {ray_dir}, max_toi: {max_toi}");
-
                 if let Some((entity, _toi)) =
                     rapier_context.cast_ray(ray_pos, ray_dir, max_toi, solid, filter)
                 {
-                    if entity == player_entity {
+                    if player_colliders.get(entity).is_ok() {
                         enemies_seeing_player.push(enemy_entity);
+                    }
+                    // TODO: REMOVE
+                    else {
+                        info!("Enemy sees {entity:?}, toi: {_toi}");
                     }
                 }
             }
@@ -138,8 +126,8 @@ fn enemy_fires(
     mut ev_fire: EventWriter<FireEvent>,
 ) {
     let player_transform = player.get_single().expect("Player");
-    for enemy_entity in enemies_seeing_player.iter() {
-        if let Ok((enemy_transform, weapon)) = enemies.get(*enemy_entity) {
+    for &enemy_entity in enemies_seeing_player.iter() {
+        if let Ok((enemy_transform, weapon)) = enemies.get(enemy_entity) {
             let fire_origin = Enemy::center(enemy_transform);
             let fire_direction = Player::center(player_transform) - fire_origin;
 
@@ -152,7 +140,36 @@ fn enemy_fires(
             ev_fire.send(event);
 
             // Weapon reload
-            commands.entity(*enemy_entity).insert(Reload::new(weapon));
+            commands.entity(enemy_entity).insert(Reload::new(weapon));
         }
+    }
+}
+
+fn enemy_turns(
+    enemies_seeing_player: Res<EnemiesSeingPlayer>,
+    mut enemies: Query<&mut Transform, With<Enemy>>,
+    player: Query<&Transform, (With<Player>, Without<Enemy>)>,
+    mut gizmos: Gizmos,
+) {
+    let player_transform = player.get_single().expect("Player");
+    for &enemy_entity in enemies_seeing_player.iter() {
+        let mut enemy_transform = enemies.get_mut(enemy_entity).expect("Enemy");
+        let angle = enemy_transform.signed_angle_between(player_transform);
+        info!("enemy_turns() {enemy_entity:?}: {angle}");
+
+        // DEBUG
+        {
+            gizmos.line(
+                enemy_transform.translation,
+                player_transform.translation,
+                Color::WHITE,
+            );
+
+            let mut test = *enemy_transform;
+            test.rotate_y(angle);
+            gizmos.ray(enemy_transform.translation, -*test.forward(), Color::YELLOW);
+        }
+
+        // enemy_transform.rotate_y(angle);
     }
 }

@@ -37,7 +37,7 @@ impl AssetsLoaderRegister {
 pub struct AssetsLoadedEvent(String);
 
 impl AssetsLoadedEvent {
-    pub fn from<T: Resource>() -> Self {
+    pub fn new<T: Resource>(_res: impl AsRef<T>) -> Self {
         AssetsLoadedEvent(String::from(std::any::type_name::<T>()))
     }
 }
@@ -68,15 +68,12 @@ impl SceneWithCollidersAssets {
         mut meshes: ResMut<Assets<Mesh>>,
     ) -> bool {
         if !self.loaded {
-            match scenes.get_mut(&self.scene) {
-                Some(scene) => {
-                    self.colliders = get_scene_colliders(&mut meshes, &mut scene.world)
-                        .expect("Can't get colliders");
-                    self.loaded = true;
-                    true
-                }
-                None => false,
+            if let Some(scene) = scenes.get_mut(&self.scene) {
+                self.colliders = get_scene_colliders(&mut meshes, &mut scene.world)
+                    .expect("Can't get colliders");
+                self.loaded = true;
             }
+            self.loaded
         } else {
             false
         }
@@ -84,5 +81,41 @@ impl SceneWithCollidersAssets {
 
     pub fn colliders(&self) -> Iter<(Collider, Transform)> {
         self.colliders.iter()
+    }
+}
+
+/// Generic system to load a scene assets
+pub fn load_scene_assets<R>(
+    path: impl ToString,
+) -> impl FnMut(Commands, Res<AssetServer>, ResMut<AssetsLoaderRegister>)
+where
+    R: Resource
+        + core::ops::DerefMut<Target = SceneWithCollidersAssets>
+        + From<SceneWithCollidersAssets>,
+{
+    let path = path.to_string();
+    move |mut commands, asset_server, mut assets_register| {
+        // Register the Assets resource
+        assets_register.register::<R>();
+        // load the scene
+        let scene_handle = asset_server.load(&path);
+        // Create the resource
+        let assets = R::from(SceneWithCollidersAssets::load(scene_handle));
+        commands.insert_resource(assets);
+    }
+}
+
+/// Generic system to load colliders from [SceneWithCollidersAssets] when
+/// after the scene if loaded
+pub fn load_scene_colliders<R>(
+    scenes: ResMut<Assets<Scene>>,
+    meshes: ResMut<Assets<Mesh>>,
+    mut assets: ResMut<R>,
+    mut event_writer: EventWriter<AssetsLoadedEvent>,
+) where
+    R: Resource + core::ops::DerefMut<Target = SceneWithCollidersAssets>,
+{
+    if assets.just_loaded(scenes, meshes) {
+        event_writer.send(AssetsLoadedEvent::new(assets));
     }
 }

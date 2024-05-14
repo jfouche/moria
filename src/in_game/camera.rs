@@ -84,8 +84,7 @@ fn follow_player(
 ) {
     let player_transform = players.get_single().expect("Player");
     let mut cam_transform = cameras.get_single_mut().expect("PlayerCamera");
-    cam_transform.translation =
-        player_transform.translation + Vec3::new(0.0, Player::CAMERA_HEIGHT, 0.0);
+    cam_transform.translation = Player::camera_translation(player_transform);
 }
 
 fn player_look(
