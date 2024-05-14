@@ -54,9 +54,7 @@ pub struct PlayerBundle {
     pbr: PbrBundle,
     body: RigidBody,
     velocity: Velocity,
-    collider: Collider,
     locked_axes: LockedAxes,
-    collision_groups: CollisionGroups,
 }
 
 impl PlayerBundle {
@@ -69,15 +67,9 @@ impl PlayerBundle {
             pbr: PbrBundle::default(),
             body: RigidBody::Dynamic,
             velocity: Velocity::zero(),
-            collider: Collider::cuboid(
-                Player::BODY_RADIUS / 2.0,
-                Player::HEIGHT / 2.0,
-                Player::BODY_RADIUS / 2.0,
-            ),
             locked_axes: LockedAxes::ROTATION_LOCKED_X
                 | LockedAxes::ROTATION_LOCKED_Y
                 | LockedAxes::ROTATION_LOCKED_Z,
-            collision_groups: CollisionGroups::new(COLLISION_GROUP_PLAYER, Group::all()),
         }
     }
 
@@ -91,6 +83,32 @@ impl PlayerBundle {
         self.pbr.mesh = assets.mesh.clone();
         self.pbr.material = assets.material.clone();
         self
+    }
+}
+
+#[derive(Component)]
+pub struct PlayerCollider;
+
+#[derive(Bundle)]
+pub struct PlayerColliderBundle {
+    tag: PlayerCollider,
+    transform: TransformBundle,
+    collider: Collider,
+    collision_groups: CollisionGroups,
+}
+
+impl Default for PlayerColliderBundle {
+    fn default() -> Self {
+        PlayerColliderBundle {
+            tag: PlayerCollider,
+            transform: TransformBundle::default(),
+            collider: Collider::cuboid(
+                Player::BODY_RADIUS / 2.0,
+                Player::HEIGHT / 2.0,
+                Player::BODY_RADIUS / 2.0,
+            ),
+            collision_groups: CollisionGroups::new(COLLISION_GROUP_PLAYER, Group::all()),
+        }
     }
 }
 

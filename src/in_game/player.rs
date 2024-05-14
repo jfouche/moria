@@ -32,16 +32,20 @@ fn spawn_player(mut commands: Commands, assets: Res<PlayerAssets>, weapons: Res<
     info!("spawn_player()");
     let pos = Position(0, 0);
     let weapon = weapons.get(WeaponType::Shotgun);
-    commands.spawn(PlayerBundle::new(weapon).at(pos).with_assets(&assets));
+    commands
+        .spawn(PlayerBundle::new(weapon).at(pos).with_assets(&assets))
+        .with_children(|parent| {
+            parent.spawn(PlayerColliderBundle::default());
+        });
 }
 
 // https://github.com/sburris0/bevy_flycam/blob/master/src/lib.rs
 fn player_move(
-    mut player: Query<(&Transform, &mut Velocity), With<Player>>,
+    mut players: Query<(&Transform, &mut Velocity), With<Player>>,
     keys: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
 ) {
-    let (transform, mut velocity) = player.get_single_mut().expect("Can't retrieve Player");
+    let (transform, mut velocity) = players.get_single_mut().expect("Player");
     let mut forward = *transform.forward();
     forward.y = 0.0;
     let mut right = *transform.right();
