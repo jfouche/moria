@@ -35,7 +35,7 @@ impl Player {
     pub fn fire_origin(transform: &Transform) -> Vec3 {
         let direction = transform.forward();
         transform.translation
-            + Vec3::new(0.0, Player::HEIGHT * 0.9, 0.0)
+            + Vec3::new(0.0, Player::CAMERA_HEIGHT, 0.0)
             + *direction * Player::BODY_RADIUS
     }
 
