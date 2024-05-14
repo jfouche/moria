@@ -72,15 +72,16 @@ pub fn plugin(app: &mut App) {
 }
 
 fn load_config(mut commands: Commands) {
-    if let Ok(content) = fs::read_to_string("moria.toml") {
-        match toml::from_str::<MoriaConfig>(&content) {
+    match fs::read_to_string("moria.toml") {
+        Ok(content) => match toml::from_str::<MoriaConfig>(&content) {
             Ok(config) => {
                 commands.insert_resource(config.game);
                 commands.insert_resource(config.maze);
                 commands.insert_resource(config.camera);
                 commands.insert_resource(WeaponsConfig(config.weapons));
             }
-            Err(e) => error!("Can't load config file : {e:?}"),
-        };
+            Err(e) => error!("Can't load config from file : {e:?}"),
+        },
+        Err(e) => error!("Can't read config file : {e:?}"),
     }
 }

@@ -29,6 +29,7 @@ fn load_assets(
 }
 
 fn spawn_player(mut commands: Commands, assets: Res<PlayerAssets>, weapons: Res<Weapons>) {
+    info!("spawn_player()");
     let pos = Position(0, 0);
     let weapon = weapons.get(WeaponType::Shotgun);
     commands.spawn(PlayerBundle::new(weapon).at(pos).with_assets(&assets));
