@@ -89,9 +89,7 @@ pub fn load_scene_assets<R>(
     path: impl ToString,
 ) -> impl FnMut(Commands, Res<AssetServer>, ResMut<AssetsLoaderRegister>)
 where
-    R: Resource
-        + core::ops::DerefMut<Target = SceneWithCollidersAssets>
-        + From<SceneWithCollidersAssets>,
+    R: Resource + From<SceneWithCollidersAssets>,
 {
     let path = path.to_string();
     move |mut commands, asset_server, mut assets_register| {
