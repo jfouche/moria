@@ -65,7 +65,7 @@ impl FireEventBuilder<WithFrom, WithDirection> {
     }
 }
 
-#[derive(Component, Clone, Copy, Debug)]
+#[derive(Component, Clone, Copy, Debug, PartialEq)]
 pub enum FireEmitter {
     Player,
     Enemy,
