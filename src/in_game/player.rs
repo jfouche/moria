@@ -79,8 +79,7 @@ fn player_fires(
             let origin = Player::fire_origin(transform);
             let event = weapon
                 .fire()
-                .from(FireEmitter::Player)
-                .origin(origin)
+                .from(origin, FireEmitter::Player)
                 .direction(direction)
                 .event();
             ev_fire.send(event);

@@ -45,7 +45,7 @@ fn despawn_bullet_after_collision(
 ///
 fn enemy_hit_by_bullet(
     mut collisions: EventReader<CollisionEvent>,
-    enemies: Query<&Enemy>,
+    enemies: Query<(), With<Enemy>>,
     enemy_colliders: Query<&Parent, With<EnemyCollider>>,
     bullets: Query<(&Bullet, &FireEmitter)>,
     mut enemy_hit_events: EventWriter<EnemyHitEvent>,
@@ -54,10 +54,7 @@ fn enemy_hit_by_bullet(
     collisions
         .read()
         // Only accept Starting collision
-        .filter_map(|e| match e {
-            CollisionEvent::Started(e1, e2, _) => Some((e1, e2)),
-            _ => None,
-        })
+        .filter_map(start_event_filter)
         // Filter Bullet / EnemyCollider collision, returns (Enemy entity, Bullet)
         .filter_map(|(&e1, &e2)| {
             let check_entity = |e1: Entity, e2: Entity| match bullets.get(e1) {
@@ -90,24 +87,77 @@ fn enemy_hit_by_bullet(
 ///
 fn player_hit_by_bullet(
     mut collisions: EventReader<CollisionEvent>,
-    player: Query<Entity, With<Player>>,
-    bullets: Query<(Entity, &Bullet)>,
+    players: Query<(), With<Player>>,
+    player_colliders: Query<&Parent, With<PlayerCollider>>,
+    bullets: Query<(&Bullet, &FireEmitter)>,
     mut player_hit_events: EventWriter<PlayerHitEvent>,
 ) {
-    let player = player.get_single().expect("Player");
+    let mut damage = 0;
     collisions
         .read()
-        .filter_map(|e| match e {
-            CollisionEvent::Started(e1, e2, _) => Some((e1, e2)),
-            _ => None,
+        // Only accept Starting collision
+        .filter_map(start_event_filter)
+        // Filter Bullet / PlayerCollider collision, returns (Player entity, Bullet)
+        .filter_map(|(&e1, &e2)| {
+            let check_entity = |e1: Entity, e2: Entity| match bullets.get(e1) {
+                Ok((bullet, FireEmitter::Enemy)) => player_colliders
+                    .get(e2)
+                    .map(|parent| (parent.get(), bullet))
+                    .ok(),
+                _ => None,
+            };
+            check_entity(e1, e2).or(check_entity(e2, e1))
         })
-        .for_each(|(&e1, &e2)| {
-            for (bullet_entity, bullet) in bullets.iter() {
-                if (e1 == player && e2 == bullet_entity) || (e1 == bullet_entity && e2 == player) {
-                    player_hit_events.send(PlayerHitEvent {
-                        damage: bullet.damage,
-                    });
-                }
+        .for_each(|(player_entity, &bullet)| {
+            if players.get(player_entity).is_ok() {
+                info!("player_hit_by_bullet");
+                damage += bullet.damage;
             }
         });
+
+    if damage != 0 {
+        player_hit_events.send(PlayerHitEvent { damage });
+    }
 }
+
+fn start_event_filter(event: &CollisionEvent) -> Option<(&Entity, &Entity)> {
+    match event {
+        CollisionEvent::Started(e1, e2, _) => Some((e1, e2)),
+        _ => None,
+    }
+}
+
+// struct CollisionChecker<'a, 'w: 'a, 's: 'a, T: Component> {
+//     from: FireEmitter,
+//     bullets: &'a Query<'w, 's, (&'s Bullet, &'s FireEmitter)>,
+//     colliders: &'a Query<'w, 's, &'s Parent, With<T>>,
+// }
+
+// impl<'a, 'w: 'a, 's: 'a, T: Component> CollisionChecker<'a, 'w, 's, T> {
+//     fn new(
+//         from: FireEmitter,
+//         bullets: &'a Query<'w, 's, (&'s Bullet, &'s FireEmitter)>,
+//         colliders: &'a Query<'w, 's, &'s Parent, With<T>>,
+//     ) -> Self {
+//         CollisionChecker {
+//             from,
+//             bullets,
+//             colliders,
+//         }
+//     }
+
+//     fn check_inner(&self, e1: &Entity, e2: &Entity) -> Option<(Entity, &'s Bullet)> {
+//         match self.bullets.get(*e1) {
+//             Ok((bullet, from)) => self
+//                 .colliders
+//                 .get(*e2)
+//                 .map(|parent| (parent.get(), bullet))
+//                 .ok(),
+//             _ => None,
+//         }
+//     }
+
+//     fn check(&self, e1: &Entity, e2: &Entity) -> Option<(Entity, &'s Bullet)> {
+//         self.check_inner(e1, e2).or(self.check_inner(e2, e1))
+//     }
+// }

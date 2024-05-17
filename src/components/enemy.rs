@@ -22,8 +22,8 @@ impl Enemy {
         transform.translation + Vec3::new(0.0, Self::SIZE.y / 2.0, 0.0) * Self::SCALE
     }
 
-    pub fn weapon_offset() -> f32 {
-        0.2
+    pub fn weapon_offset(transform: &Transform) -> Vec3 {
+        Self::center(transform)
     }
 }
 

@@ -1,32 +1,65 @@
 use bevy::{
-    math::{Vec2, Vec3Swizzles},
+    math::{primitives::Direction3d, Vec3},
     transform::components::Transform,
 };
 
-pub trait SignedAngle {
-    /// get the signed angle between `self` and `rhs`
-    fn signed_angle_with(&self, rhs: Self) -> f32;
-}
+#[derive(Debug, Clone, Copy)]
+pub struct HorizontalVec(f32, f32);
 
-impl SignedAngle for Vec2 {
-    fn signed_angle_with(&self, rhs: Self) -> f32 {
-        rhs.x.atan2(rhs.y) - self.x.atan2(self.y)
+impl HorizontalVec {
+    pub fn signed_angle_with(&self, rhs: HorizontalVec) -> f32 {
+        rhs.0.atan2(rhs.1) - self.0.atan2(self.1)
     }
 }
 
-impl SignedAngle for Transform {
-    fn signed_angle_with(&self, rhs: Self) -> f32 {
-        let self_direction = *self.forward();
-        let direction_to_rhs = rhs.translation - self.translation;
-        self_direction.xz().signed_angle_with(direction_to_rhs.xz())
+impl From<Vec3> for HorizontalVec {
+    fn from(v: Vec3) -> Self {
+        HorizontalVec(v.x, v.z)
+    }
+}
+
+impl From<Direction3d> for HorizontalVec {
+    fn from(v: Direction3d) -> Self {
+        HorizontalVec(v.x, v.z)
+    }
+}
+
+/// Trait to transform an object to a horizontal vec (no "y" value)
+pub trait IntoHorizontalVec {
+    fn horizontal(self) -> HorizontalVec;
+}
+
+/// Generic implementation of IntoHorizontalVec to use the core [From] trait
+impl<T> IntoHorizontalVec for T
+where
+    T: Into<HorizontalVec>,
+{
+    fn horizontal(self) -> HorizontalVec {
+        self.into()
+    }
+}
+
+pub trait SignedAngle<T> {
+    /// get the signed angle between `self` and `rhs`
+    fn signed_angle_with(&self, rhs: T) -> f32;
+}
+
+impl SignedAngle<Transform> for Transform {
+    fn signed_angle_with(&self, rhs: Transform) -> f32 {
+        let self_direction = self.forward().horizontal();
+        let direction_to_rhs: HorizontalVec = (rhs.translation - self.translation).horizontal();
+        self_direction.signed_angle_with(direction_to_rhs)
     }
 }
 
 #[cfg(test)]
 mod test {
+    use super::*;
     use std::f32::consts::{FRAC_PI_2, FRAC_PI_4, PI};
 
-    use super::*;
+    const X: HorizontalVec = HorizontalVec(1.0, 0.0);
+    const NEG_X: HorizontalVec = HorizontalVec(-1.0, 0.0);
+    const Y: HorizontalVec = HorizontalVec(0.0, 1.0);
 
     fn eq_f32(x: f32, y: f32) -> bool {
         (x - y).abs() < f32::EPSILON
@@ -43,10 +76,18 @@ mod test {
     }
 
     #[test]
-    fn test_angle() {
-        assert_eq_angle!(Vec2::X.signed_angle_with(Vec2::X), 0.0);
-        assert_eq_angle!(Vec2::X.signed_angle_with(Vec2::NEG_X), PI);
-        assert_eq_angle!(Vec2::X.signed_angle_with(Vec2::Y), -FRAC_PI_2);
-        assert_eq_angle!(Vec2::X.signed_angle_with(Vec2::new(2.0, -2.0)), FRAC_PI_4);
+    fn test_horizontal_vec() {
+        assert_eq_angle!(X.signed_angle_with(X), 0.0);
+        assert_eq_angle!(X.signed_angle_with(NEG_X), PI);
+        assert_eq_angle!(X.signed_angle_with(Y), -FRAC_PI_2);
+        assert_eq_angle!(X.signed_angle_with(HorizontalVec(2.0, -2.0)), FRAC_PI_4);
+    }
+
+    #[test]
+    fn test_horizontal_trait() {
+        let x_dir = Direction3d::new(Vec3::X).unwrap();
+        let x_dir = x_dir.horizontal();
+        assert!(eq_f32(x_dir.0, Vec3::X.x));
+        assert!(eq_f32(x_dir.1, Vec3::X.z));
     }
 }

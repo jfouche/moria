@@ -12,78 +12,60 @@ pub struct FireEvent {
     pub direction: Direction3d,
 }
 
-pub struct FireEventBuilder<F, O, D> {
+pub struct FireEventBuilder<F, D> {
     weapon: Weapon,
     from: F,
-    origin: O,
     direction: D,
 }
 
 pub struct NoFrom;
-pub struct WithFrom(FireEmitter);
-
-pub struct NoOrigin;
-pub struct WithOrigin(Vec3);
+pub struct WithFrom(Vec3, FireEmitter);
 
 pub struct NoDirection;
 pub struct WithDirection(Direction3d);
 
-impl FireEventBuilder<NoFrom, NoOrigin, NoDirection> {
+impl FireEventBuilder<NoFrom, NoDirection> {
     fn new(weapon: &Weapon) -> Self {
         FireEventBuilder {
             weapon: weapon.clone(),
             from: NoFrom,
-            origin: NoOrigin,
             direction: NoDirection,
         }
     }
 }
 
-impl<O, D> FireEventBuilder<NoFrom, O, D> {
-    pub fn from(self, from: FireEmitter) -> FireEventBuilder<WithFrom, O, D> {
+impl<D> FireEventBuilder<NoFrom, D> {
+    pub fn from(self, origin: Vec3, from: FireEmitter) -> FireEventBuilder<WithFrom, D> {
         FireEventBuilder {
             weapon: self.weapon,
-            from: WithFrom(from),
-            origin: self.origin,
+            from: WithFrom(origin, from),
             direction: self.direction,
         }
     }
 }
 
-impl<F, D> FireEventBuilder<F, NoOrigin, D> {
-    pub fn origin(self, origin: Vec3) -> FireEventBuilder<F, WithOrigin, D> {
+impl<F> FireEventBuilder<F, NoDirection> {
+    pub fn direction(self, direction: Direction3d) -> FireEventBuilder<F, WithDirection> {
         FireEventBuilder {
             weapon: self.weapon,
             from: self.from,
-            origin: WithOrigin(origin),
-            direction: self.direction,
-        }
-    }
-}
-
-impl<F, O> FireEventBuilder<F, O, NoDirection> {
-    pub fn direction(self, direction: Direction3d) -> FireEventBuilder<F, O, WithDirection> {
-        FireEventBuilder {
-            weapon: self.weapon,
-            from: self.from,
-            origin: self.origin,
             direction: WithDirection(direction),
         }
     }
 }
 
-impl FireEventBuilder<WithFrom, WithOrigin, WithDirection> {
+impl FireEventBuilder<WithFrom, WithDirection> {
     pub fn event(self) -> FireEvent {
         FireEvent {
             weapon: self.weapon,
-            from: self.from.0,
-            origin: self.origin.0,
+            from: self.from.1,
+            origin: self.from.0,
             direction: self.direction.0,
         }
     }
 }
 
-#[derive(Component, Clone, Copy)]
+#[derive(Component, Clone, Copy, Debug)]
 pub enum FireEmitter {
     Player,
     Enemy,
@@ -98,8 +80,8 @@ pub struct Weapon {
 }
 
 impl Weapon {
-    pub fn fire(&self) -> FireEventBuilder<NoFrom, NoOrigin, NoDirection> {
-        FireEventBuilder::<NoFrom, NoOrigin, NoDirection>::new(self)
+    pub fn fire(&self) -> FireEventBuilder<NoFrom, NoDirection> {
+        FireEventBuilder::<NoFrom, NoDirection>::new(self)
     }
 }
 

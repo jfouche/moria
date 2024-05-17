@@ -17,7 +17,7 @@ pub fn plugin(app: &mut App) {
 }
 
 fn spawn_potions(mut commands: Commands, assets: Res<PotionAssets>) {
-    let pos = Position(1, 0);
+    let pos = Position(1, 1);
     commands
         .spawn(
             PotionBundle::new(Potion::Life(30))

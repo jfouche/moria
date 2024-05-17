@@ -23,13 +23,13 @@ pub fn plugin(app: &mut App) {
         .add_systems(PreUpdate, cast_rays_from_enemies.run_if(game_is_running))
         .add_systems(
             Update,
-            (on_hit, on_death, /* enemy_fires, */ enemy_turns).run_if(game_is_running),
+            (on_hit, on_death, enemy_fires, enemy_turns).run_if(game_is_running),
         );
 }
 
 fn spawn_enemy(mut commands: Commands, assets: Res<EnemyAssets>, weapons: Res<Weapons>) {
     info!("spawn_enemy()");
-    let pos = Position(2, 2);
+    let pos = Position(1, 0);
     let weapon = weapons.get(WeaponType::Gun);
     commands
         .spawn(EnemyBundle::new(weapon).at(pos).with_assets(&assets))
@@ -128,13 +128,12 @@ fn enemy_fires(
     let player_transform = player.get_single().expect("Player");
     for &enemy_entity in enemies_seeing_player.iter() {
         if let Ok((enemy_transform, weapon)) = enemies.get(enemy_entity) {
-            let fire_origin = Enemy::center(enemy_transform);
+            let fire_origin = Enemy::weapon_offset(enemy_transform);
             let fire_direction = Player::center(player_transform) - fire_origin;
 
             let event = weapon
                 .fire()
-                .from(FireEmitter::Enemy)
-                .origin(fire_origin)
+                .from(fire_origin, FireEmitter::Enemy)
                 .direction(Direction3d::new(fire_direction).unwrap())
                 .event();
             ev_fire.send(event);
@@ -154,22 +153,34 @@ fn enemy_turns(
     let player_transform = player.get_single().expect("Player");
     for &enemy_entity in enemies_seeing_player.iter() {
         let mut enemy_transform = enemies.get_mut(enemy_entity).expect("Enemy");
-        let angle = enemy_transform.signed_angle_between(player_transform);
+        let angle = enemy_transform.signed_angle_with(*player_transform);
         info!("enemy_turns() {enemy_entity:?}: {angle}");
 
         // DEBUG
         {
-            gizmos.line(
+            gizmos.ray(
                 enemy_transform.translation,
-                player_transform.translation,
+                *enemy_transform.forward(),
                 Color::WHITE,
             );
 
+            // let mut test = *enemy_transform;
+            // test.rotate_y(angle);
+            // gizmos.ray(enemy_transform.translation, *test.forward(), Color::YELLOW);
+
             let mut test = *enemy_transform;
-            test.rotate_y(angle);
-            gizmos.ray(enemy_transform.translation, -*test.forward(), Color::YELLOW);
+            test.rotate_y(-angle);
+            gizmos.ray(enemy_transform.translation, *test.forward(), Color::ORANGE);
+
+            // let mut test = *enemy_transform;
+            // test.rotate_y(angle);
+            // gizmos.ray(enemy_transform.translation, -*test.forward(), Color::OLIVE);
+
+            // let mut test = *enemy_transform;
+            // test.rotate_y(-angle);
+            // gizmos.ray(enemy_transform.translation, -*test.forward(), Color::PINK);
         }
 
-        // enemy_transform.rotate_y(angle);
+        enemy_transform.rotate_y(angle);
     }
 }

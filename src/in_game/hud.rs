@@ -1,9 +1,8 @@
-use crate::{components::*, ui::*};
+use crate::{components::*, math::*, ui::*};
 use bevy::{
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
     prelude::*,
 };
-use std::f32::consts::PI;
 
 #[derive(Component)]
 struct Hud;
@@ -166,7 +165,7 @@ fn update_compass(
 ) {
     let forward = transform.get_single().expect("Can't get Player").forward();
     if let Ok(mut transform) = compass.get_single_mut() {
-        let angle = PI - forward.x.atan2(forward.z);
+        let angle = forward.horizontal().signed_angle_with(Vec3::NEG_Z.into());
         transform.rotation = Quat::from_rotation_z(angle);
     }
 }
