@@ -46,6 +46,14 @@ pub fn plugin(app: &mut App) {
             set_visibility::<HudAim>(Visibility::Hidden),
         )
         .add_systems(
+            OnEnter(CameraState::FollowPlayer),
+            set_visibility::<HudAim>(Visibility::Inherited),
+        )
+        .add_systems(
+            OnExit(CameraState::FollowPlayer),
+            set_visibility::<HudAim>(Visibility::Hidden),
+        )
+        .add_systems(
             Update,
             (update_fps, update_compass, update_life).run_if(game_is_running),
         );

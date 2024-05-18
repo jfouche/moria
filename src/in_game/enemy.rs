@@ -90,9 +90,8 @@ fn cast_rays_from_enemies(
             .find(|&child_entity| enemy_colliders.get(*child_entity).is_ok())
         {
             Some(enemy_collider_entity) => {
-                let enemy_center = Enemy::center(enemy_transform);
-                let ray_pos = enemy_center; // TODO:  + ray_dir.normalize() * (Enemy::weapon_offset());
-                let ray_dir = player_center - enemy_center;
+                let ray_pos = Enemy::center(enemy_transform);
+                let ray_dir = player_center - ray_pos;
 
                 let max_toi = ray_dir.length();
                 let solid = false;
@@ -105,10 +104,6 @@ fn cast_rays_from_enemies(
                 {
                     if player_colliders.get(entity).is_ok() {
                         enemies_seeing_player.push(enemy_entity);
-                    }
-                    // TODO: REMOVE
-                    else {
-                        info!("Enemy sees {entity:?}, toi: {_toi}");
                     }
                 }
             }

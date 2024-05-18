@@ -6,9 +6,10 @@ use bevy::{
     render::camera::*,
     window::{CursorGrabMode, PrimaryWindow},
 };
-use bevy_panorbit_camera::*;
+use bevy_rapier3d::prelude::*;
 
 const MOUSE_SENSITIVITY: f32 = 0.00012;
+const CAMERA_SPEED: f32 = 500.0;
 
 /// Keeps track of mouse motion events, pitch, and yaw
 #[derive(Resource, Default)]
@@ -19,14 +20,13 @@ struct InputState {
 pub fn plugin(app: &mut App) {
     app.init_state::<CameraState>()
         .init_resource::<InputState>()
-        .add_plugins(PanOrbitCameraPlugin)
         .add_systems(PreStartup, spawn_camera)
         .add_systems(Startup, load_config)
         .add_systems(
             Update,
             (
-                toggle_camera_controls_system.run_if(game_is_running),
-                player_look.run_if(in_follow_player_state),
+                (change_camera, player_look).run_if(game_is_running),
+                move_camera.run_if(in_free_state),
             ),
         )
         .add_systems(PostUpdate, follow_player.run_if(in_follow_player_state));
@@ -39,12 +39,20 @@ fn in_follow_player_state(
     *in_game_state == InGameState::Running && *camera_state == CameraState::FollowPlayer
 }
 
+fn in_free_state(
+    in_game_state: Res<State<InGameState>>,
+    camera_state: Res<State<CameraState>>,
+) -> bool {
+    *in_game_state == InGameState::Running && *camera_state == CameraState::Free
+}
+
 fn spawn_camera(mut commands: Commands) {
     commands.spawn((
-        Name::new("Camera"),
+        Name::new("PlayerCamera"),
         Camera3dBundle::default(),
         PlayerCamera,
-        PanOrbitCamera::default(),
+        RigidBody::Dynamic,
+        Velocity::zero(),
     ));
 }
 
@@ -57,24 +65,14 @@ fn load_config(config: Res<CameraConfig>, mut exposure: Query<&mut Exposure>) {
     *exposure.single_mut() = Exposure::from_physical_camera(params);
 }
 
-fn toggle_camera_controls_system(
+fn change_camera(
     key_input: Res<ButtonInput<KeyCode>>,
-    mut pan_orbit_query: Query<&mut PanOrbitCamera>,
-    camera_state: Res<State<CameraState>>,
     mut camera_next_state: ResMut<NextState<CameraState>>,
 ) {
-    if key_input.just_pressed(KeyCode::KeyT) {
-        let mut pan_orbit = pan_orbit_query.get_single_mut().expect("PanOrbitCamera");
-        match *camera_state.get() {
-            CameraState::FollowPlayer => {
-                camera_next_state.set(CameraState::PanOrbitCamera);
-                pan_orbit.enabled = true;
-            }
-            CameraState::PanOrbitCamera => {
-                camera_next_state.set(CameraState::FollowPlayer);
-                pan_orbit.enabled = false;
-            }
-        }
+    if key_input.just_pressed(KeyCode::Digit1) {
+        camera_next_state.set(CameraState::FollowPlayer);
+    } else if key_input.just_pressed(KeyCode::Digit2) {
+        camera_next_state.set(CameraState::Free);
     }
 }
 
@@ -121,4 +119,28 @@ fn player_look(
         direction.y = 0.0;
         player_transform.look_to(direction, Vec3::Y);
     }
+}
+
+fn move_camera(
+    mut cameras: Query<(&Transform, &mut Velocity), With<PlayerCamera>>,
+    keys: Res<ButtonInput<KeyCode>>,
+    time: Res<Time>,
+) {
+    let (transform, mut velocity) = cameras.get_single_mut().expect("PlayerCamera");
+    let mut forward = *transform.forward();
+    forward.y = 0.0;
+    let mut right = *transform.right();
+    right.y = 0.0;
+    let mut delta = Vec3::ZERO;
+    for key in keys.get_pressed() {
+        match *key {
+            KeyCode::ArrowUp | KeyCode::KeyW => delta += forward,
+            KeyCode::ArrowDown | KeyCode::KeyS => delta -= forward,
+            KeyCode::ArrowLeft | KeyCode::KeyA => delta -= right,
+            KeyCode::ArrowRight | KeyCode::KeyD => delta += right,
+            _ => {}
+        }
+    }
+    delta = delta.normalize_or_zero();
+    velocity.linvel = delta * time.delta_seconds() * CAMERA_SPEED;
 }

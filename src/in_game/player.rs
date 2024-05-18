@@ -19,9 +19,10 @@ pub fn plugin(app: &mut App) {
             load_scene_colliders::<PlayerAssets>.run_if(assets_loading),
         )
         .add_systems(OnEnter(GameState::InGame), spawn_player)
+        .add_systems(Update, (player_fires, on_hit).run_if(game_is_running))
         .add_systems(
             Update,
-            (player_move, player_fires, on_hit).run_if(game_is_running),
+            player_move.run_if(game_is_running.and_then(in_state(CameraState::FollowPlayer))),
         )
         .add_systems(OnExit(GameState::InGame), despawn_all::<Player>);
 }

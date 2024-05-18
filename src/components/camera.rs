@@ -7,5 +7,5 @@ pub struct PlayerCamera;
 pub enum CameraState {
     #[default]
     FollowPlayer,
-    PanOrbitCamera,
+    Free,
 }
