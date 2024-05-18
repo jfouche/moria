@@ -21,10 +21,10 @@ impl Player {
     const CAMERA_HEIGHT: f32 = 0.95;
 
     pub fn camera_translation(player_transform: &Transform) -> Vec3 {
-        player_transform.translation
-            + Self::SCALE
-                * (Vec3::new(0.0, Player::CAMERA_HEIGHT, 0.0)
-                    + player_transform.forward() * Player::BODY_RADIUS)
+        // TODO: add player radius
+        // Warning, adding player radius will modify the player transform while
+        // moving the mouse, so the player might clip a wall
+        player_transform.translation + Self::SCALE * (Vec3::new(0.0, Player::CAMERA_HEIGHT, 0.0))
     }
 
     pub fn fire_origin(player_transform: &Transform) -> Vec3 {
