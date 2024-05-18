@@ -1,9 +1,13 @@
-use crate::components::{DisplaySettings, ExposureSettings};
+use crate::components::*;
 use bevy::{prelude::*, render::camera::Exposure, window::PrimaryWindow};
 
 pub fn plugin(app: &mut App) {
     app.insert_resource(DisplaySettings::Window)
         .insert_resource(ExposureSettings::Dark)
+        .insert_resource(AudioVolume(6))
+        .add_systems(Startup, load_settings)
+        .add_systems(OnExit(GameState::Menu), save_settings)
+        .add_systems(OnExit(InGameState::Pause), save_settings)
         .add_systems(Update, (change_display, change_exposure));
 }
 

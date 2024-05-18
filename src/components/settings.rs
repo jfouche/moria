@@ -1,9 +1,9 @@
-use std::ops::Range;
-
 use bevy::prelude::*;
+use serde::{Deserialize, Serialize};
+use std::{fs, io::ErrorKind, ops::Range, path::PathBuf};
 
 /// Audio volume
-#[derive(Resource, Debug, Component, PartialEq, Eq, Clone, Copy)]
+#[derive(Resource, Debug, Component, PartialEq, Eq, Clone, Copy, Deserialize, Serialize)]
 pub struct AudioVolume(pub u8);
 
 impl AudioVolume {
@@ -22,7 +22,7 @@ impl AudioVolume {
 }
 
 /// Display setting
-#[derive(Resource, Debug, Component, Clone, Copy, PartialEq)]
+#[derive(Resource, Debug, Component, Clone, Copy, PartialEq, Deserialize, Serialize)]
 pub enum DisplaySettings {
     FullScreen,
     Window,
@@ -48,7 +48,7 @@ impl From<DisplaySettings> for bevy::window::WindowMode {
 }
 
 /// Gamma exposure
-#[derive(Resource, Debug, Component, Clone, Copy, PartialEq)]
+#[derive(Resource, Debug, Component, Clone, Copy, PartialEq, Deserialize, Serialize)]
 pub enum ExposureSettings {
     Dark,
     Medium,
@@ -78,5 +78,60 @@ impl From<ExposureSettings> for bevy::render::camera::PhysicalCameraParameters {
             shutter_speed_s,
             sensitivity_iso,
         }
+    }
+}
+
+#[derive(Deserialize, Serialize)]
+struct Settings {
+    audio: AudioVolume,
+    display: DisplaySettings,
+}
+
+const MORIA_SETTINGS_DIR: &str = "Moria";
+const MORIA_SETTINGS_FILE: &str = ".moria";
+
+fn settings_path() -> PathBuf {
+    let dir = dirs::data_dir().expect("DataDir").join(MORIA_SETTINGS_DIR);
+    match dir.try_exists() {
+        Err(err) => error!("Can't check if dir {dir:?} exists : {err:?}"),
+        Ok(false) => {
+            if let Err(err) = fs::create_dir(&dir) {
+                error!("Can't create settings dir {dir:?} : {err:?}")
+            }
+        }
+        _ => {}
+    }
+    dir.join(MORIA_SETTINGS_FILE)
+}
+
+pub fn load_settings(mut audio: ResMut<AudioVolume>, mut display: ResMut<DisplaySettings>) {
+    let path = settings_path();
+    match fs::read_to_string(&path) {
+        Ok(content) => match toml::from_str::<Settings>(&content) {
+            Ok(settings) => {
+                *audio = settings.audio;
+                *display = settings.display;
+            }
+            Err(e) => error!("Can't load config from file {path:?}: {e:?}"),
+        },
+        Err(err) => match err.kind() {
+            ErrorKind::NotFound => {}
+            _ => error!("{}", format!("Can't load settings {path:?}: {err:?}")),
+        },
+    }
+}
+
+pub fn save_settings(audio: Res<AudioVolume>, display: Res<DisplaySettings>) {
+    let settings = Settings {
+        audio: *audio,
+        display: *display,
+    };
+    match toml::to_string_pretty(&settings) {
+        Ok(content) => {
+            if let Err(err) = fs::write(settings_path(), content) {
+                error!("{}", format!("Can't save settings: {err:?}"));
+            }
+        }
+        Err(err) => error!("{}", format!("Can't save settings: {err:?}")),
     }
 }
