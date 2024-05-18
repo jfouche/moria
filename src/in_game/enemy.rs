@@ -29,7 +29,7 @@ pub fn plugin(app: &mut App) {
 
 fn spawn_enemy(mut commands: Commands, assets: Res<EnemyAssets>, weapons: Res<Weapons>) {
     info!("spawn_enemy()");
-    let pos = Position(1, 0);
+    let pos = Position(3, 3);
     let weapon = weapons.get(WeaponType::Gun);
     commands
         .spawn(EnemyBundle::new(weapon).at(pos).with_assets(&assets))

@@ -127,10 +127,8 @@ fn move_camera(
     time: Res<Time>,
 ) {
     let (transform, mut velocity) = cameras.get_single_mut().expect("PlayerCamera");
-    let mut forward = *transform.forward();
-    forward.y = 0.0;
-    let mut right = *transform.right();
-    right.y = 0.0;
+    let forward = *transform.forward();
+    let right = *transform.right();
     let mut delta = Vec3::ZERO;
     for key in keys.get_pressed() {
         match *key {
