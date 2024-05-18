@@ -15,16 +15,16 @@ impl From<SceneWithCollidersAssets> for PlayerAssets {
 pub struct Player;
 
 impl Player {
-    const HEIGHT: f32 = 1.08;
-    const BODY_RADIUS: f32 = 0.26;
-    const SCALE: Vec3 = Vec3::splat(0.4);
+    const HEIGHT: f32 = 1.1;
+    const BODY_RADIUS: f32 = 0.35;
+    const SCALE: Vec3 = Vec3::splat(0.5);
     const CAMERA_HEIGHT: f32 = 0.95;
 
     pub fn camera_translation(player_transform: &Transform) -> Vec3 {
         player_transform.translation
             + Self::SCALE
                 * (Vec3::new(0.0, Player::CAMERA_HEIGHT, 0.0)
-                    + player_transform.forward() * 2.0 * Player::BODY_RADIUS)
+                    + player_transform.forward() * Player::BODY_RADIUS)
     }
 
     pub fn fire_origin(player_transform: &Transform) -> Vec3 {

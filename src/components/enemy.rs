@@ -77,9 +77,9 @@ impl EnemyColliderBundle {
     pub fn new(collider: Collider, transform: Transform) -> Self {
         EnemyColliderBundle {
             tag: EnemyCollider,
-            name: Name::new("EnemyColliderBundle"),
-            collider,
+            name: Name::new("EnemyCollider"),
             transform: TransformBundle::from_transform(transform),
+            collider,
             sensor: Sensor,
             collider_events: ActiveEvents::COLLISION_EVENTS,
             collision_groups: CollisionGroups::new(COLLISION_GROUP_ENEMY, Group::all()),
