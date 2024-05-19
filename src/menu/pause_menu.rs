@@ -32,7 +32,7 @@ pub fn plugin(app: &mut App) {
         .add_systems(OnEnter(InGameState::Pause), (ungrab_cursor, menu_setup))
         .add_systems(OnEnter(PauseMenuState::Main), spawn_pause_menu)
         .add_systems(OnExit(PauseMenuState::Main), despawn_all::<PauseMenu>)
-        .add_systems(Update, (menu_action).run_if(in_state(InGameState::Pause)));
+        .add_systems(Update, menu_action.run_if(in_state(InGameState::Pause)));
 }
 
 fn menu_setup(mut menu_state: ResMut<NextState<PauseMenuState>>) {

@@ -1,4 +1,4 @@
-use crate::components::*;
+use crate::{components::*, schedule::InGameSet};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
@@ -6,7 +6,10 @@ pub fn plugin(app: &mut App) {
     app.add_systems(Startup, load_assets)
         .add_systems(OnEnter(GameState::InGame), spawn_end_level)
         .add_systems(OnExit(GameState::InGame), despawn_all::<EndLevel>)
-        .add_systems(Update, player_ends_level.run_if(game_is_running));
+        .add_systems(
+            Update,
+            player_ends_level.in_set(InGameSet::CollisionDetection),
+        );
 }
 
 fn load_assets(

@@ -1,4 +1,4 @@
-use crate::{components::*, math::*, ui::*};
+use crate::{components::*, math::*, schedule::InGameSet, ui::*};
 use bevy::{
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
     prelude::*,
@@ -55,7 +55,7 @@ pub fn plugin(app: &mut App) {
         )
         .add_systems(
             Update,
-            (update_fps, update_compass, update_life).run_if(game_is_running),
+            (update_fps, update_compass, update_life).in_set(InGameSet::EntityUpdate),
         );
 }
 

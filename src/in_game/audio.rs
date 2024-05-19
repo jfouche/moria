@@ -1,4 +1,4 @@
-use crate::components::*;
+use crate::{components::*, schedule::InGameSet};
 use bevy::prelude::*;
 
 #[derive(Component)]
@@ -6,7 +6,7 @@ struct MyMusic;
 
 pub fn plugin(app: &mut App) {
     app.add_systems(OnEnter(GameState::InGame), start_music)
-        .add_systems(Update, change_volume.run_if(in_state(GameState::InGame)))
+        .add_systems(Update, change_volume.in_set(InGameSet::EntityUpdate))
         .add_systems(OnExit(GameState::InGame), despawn_all::<MyMusic>);
 }
 

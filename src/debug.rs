@@ -1,4 +1,4 @@
-use crate::{components::*, config::GameConfig, cursor::*};
+use crate::{components::*, config::GameConfig, cursor::*, schedule::InGameSet};
 use bevy::{
     prelude::*,
     window::{CursorGrabMode, PrimaryWindow},
@@ -12,14 +12,14 @@ pub fn plugin(app: &mut App) {
             WorldInspectorPlugin::new(),
             RapierDebugRenderPlugin::default().disabled(),
         ))
-        .add_systems(Update, (toggle_grab).run_if(in_state(GameState::InGame)))
+        .add_systems(Update, toggle_grab.in_set(InGameSet::UserInput))
         .add_systems(
             Update,
             (
                 debug_player_view.run_if(bevy::time::common_conditions::on_timer(std::time::Duration::from_secs(1))),
                 display_collision_events,
             )
-                .run_if(in_state(GameState::InGame)),
+            .after(InGameSet::EntityUpdate),
         )
         .add_systems(Update, show_axes)
         // States
@@ -55,14 +55,17 @@ fn toggle_grab(
 
 #[allow(dead_code)]
 fn debug_player_view(transform: Query<&Transform, With<Player>>) {
-    let transform = transform.get_single().expect("Player");
-    let translation = transform.translation;
-    let pos: WorldPosition = translation.into();
-    let mut forward = *transform.forward();
-    forward.y = 0.0;
-    let angle = forward.angle_between(Vec3::Z).to_degrees();
-    let forward = forward.xz();
-    info!("Player translation: {translation}, pos: {pos:?}, forward: {forward:?}, angle: {angle}");
+    if let Ok(transform) = transform.get_single() {
+        let translation = transform.translation;
+        let pos: WorldPosition = translation.into();
+        let mut forward = *transform.forward();
+        forward.y = 0.0;
+        let angle = forward.angle_between(Vec3::Z).to_degrees();
+        let forward = forward.xz();
+        info!(
+            "Player translation: {translation}, pos: {pos:?}, forward: {forward:?}, angle: {angle}"
+        );
+    }
 }
 
 fn show_axes(mut gizmos: Gizmos, config: Res<GameConfig>) {

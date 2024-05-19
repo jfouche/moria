@@ -1,4 +1,4 @@
-use crate::components::*;
+use crate::{components::*, schedule::InGameSet};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 use std::collections::{HashMap, HashSet};
@@ -7,11 +7,11 @@ pub fn plugin(app: &mut App) {
     app.add_systems(
         Update,
         (
-            enemy_hit_by_bullet,
-            player_hit_by_bullet,
+            (enemy_hit_by_bullet, player_hit_by_bullet),
             despawn_bullet_after_collision,
         )
-            .run_if(game_is_running),
+            .chain()
+            .in_set(InGameSet::CollisionDetection),
     );
 }
 
@@ -36,7 +36,7 @@ fn despawn_bullet_after_collision(
         });
 
     for bullet in bullets_hit {
-        commands.entity(bullet).despawn();
+        commands.entity(bullet).despawn_recursive();
     }
 }
 

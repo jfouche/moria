@@ -1,4 +1,4 @@
-use crate::{components::*, config::WeaponsConfig};
+use crate::{components::*, config::WeaponsConfig, schedule::InGameSet};
 use bevy::prelude::*;
 
 #[derive(Resource)]
@@ -13,7 +13,7 @@ pub fn plugin(app: &mut App) {
         .add_systems(Startup, (load_assets, load_weapons))
         .add_systems(
             Update,
-            (spawn_bullet, weapon_reloaded).run_if(game_is_running),
+            (spawn_bullet, weapon_reloaded).in_set(InGameSet::EntityUpdate),
         );
 }
 

@@ -7,6 +7,7 @@ mod debug;
 mod in_game;
 mod math;
 mod menu;
+mod schedule;
 mod settings;
 mod splash;
 mod ui;
@@ -36,6 +37,7 @@ fn main() {
         .init_state::<InGameState>()
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugins((
+            schedule::plugin,
             assets_loader::plugin,
             config::plugin,
             splash::plugin,

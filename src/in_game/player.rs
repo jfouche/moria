@@ -1,4 +1,4 @@
-use crate::{assets_loader::assets_loading, components::*};
+use crate::{assets_loader::assets_loading, components::*, schedule::InGameSet};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
@@ -14,17 +14,22 @@ pub fn plugin(app: &mut App) {
             Startup,
             load_scene_assets::<PlayerAssets>("player.glb#Scene0"),
         )
+        .add_systems(OnEnter(GameState::InGame), spawn_player)
+        .add_systems(OnExit(GameState::InGame), despawn_all::<Player>)
         .add_systems(
             Update,
             load_scene_colliders::<PlayerAssets>.run_if(assets_loading),
         )
-        .add_systems(OnEnter(GameState::InGame), spawn_player)
-        .add_systems(Update, (player_fires, on_hit).run_if(game_is_running))
         .add_systems(
             Update,
-            player_move.run_if(game_is_running.and_then(in_state(CameraState::FollowPlayer))),
+            (player_fires, on_hit).in_set(InGameSet::EntityUpdate),
         )
-        .add_systems(OnExit(GameState::InGame), despawn_all::<Player>);
+        .add_systems(
+            Update,
+            player_move
+                .run_if(in_state(CameraState::FollowPlayer))
+                .in_set(InGameSet::UserInput),
+        );
 }
 
 fn spawn_player(mut commands: Commands, assets: Res<PlayerAssets>, weapons: Res<Weapons>) {

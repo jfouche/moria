@@ -1,4 +1,4 @@
-use crate::{assets_loader::assets_loading, components::*};
+use crate::{assets_loader::assets_loading, components::*, schedule::InGameSet};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
@@ -13,7 +13,10 @@ pub fn plugin(app: &mut App) {
     )
     .add_systems(OnEnter(GameState::InGame), spawn_potions)
     .add_systems(OnExit(GameState::InGame), despawn_all::<Potion>)
-    .add_systems(Update, player_take_potion.run_if(game_is_running));
+    .add_systems(
+        Update,
+        player_take_potion.in_set(InGameSet::CollisionDetection),
+    );
 }
 
 fn spawn_potions(mut commands: Commands, assets: Res<PotionAssets>) {

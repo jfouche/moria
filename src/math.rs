@@ -7,6 +7,11 @@ use bevy::{
 pub struct HorizontalVec(f32, f32);
 
 impl HorizontalVec {
+    pub fn from_angle(angle: f32) -> Self {
+        let (sin, cos) = angle.sin_cos();
+        HorizontalVec(sin, cos)
+    }
+
     pub fn signed_angle_with(&self, rhs: HorizontalVec) -> f32 {
         rhs.0.atan2(rhs.1) - self.0.atan2(self.1)
     }
@@ -21,6 +26,16 @@ impl From<Vec3> for HorizontalVec {
 impl From<Direction3d> for HorizontalVec {
     fn from(v: Direction3d) -> Self {
         HorizontalVec(v.x, v.z)
+    }
+}
+
+impl From<HorizontalVec> for Vec3 {
+    fn from(v: HorizontalVec) -> Self {
+        Vec3 {
+            x: v.0,
+            y: 0.0,
+            z: v.1,
+        }
     }
 }
 
@@ -49,6 +64,13 @@ impl SignedAngle<Transform> for Transform {
         let self_direction = self.forward().horizontal();
         let direction_to_rhs: HorizontalVec = (rhs.translation - self.translation).horizontal();
         self_direction.signed_angle_with(direction_to_rhs)
+    }
+}
+
+impl SignedAngle<HorizontalVec> for Transform {
+    fn signed_angle_with(&self, rhs: HorizontalVec) -> f32 {
+        let self_direction = self.forward().horizontal();
+        self_direction.signed_angle_with(rhs)
     }
 }
 

@@ -16,7 +16,7 @@ pub struct Player;
 
 impl Player {
     const HEIGHT: f32 = 1.1;
-    const BODY_RADIUS: f32 = 0.35;
+    const _BODY_RADIUS: f32 = 0.35;
     const SCALE: Vec3 = Vec3::splat(0.5);
     const CAMERA_HEIGHT: f32 = 0.95;
 
@@ -45,7 +45,7 @@ pub struct PlayerBundle {
     scene: SceneBundle,
     body: RigidBody,
     velocity: Velocity,
-    locked_axes: LockedAxes,
+    // locked_axes: LockedAxes,
 }
 
 impl PlayerBundle {
@@ -58,9 +58,9 @@ impl PlayerBundle {
             scene: SceneBundle::default(),
             body: RigidBody::Dynamic,
             velocity: Velocity::zero(),
-            locked_axes: LockedAxes::ROTATION_LOCKED_X
-                | LockedAxes::ROTATION_LOCKED_Y
-                | LockedAxes::ROTATION_LOCKED_Z,
+            // locked_axes: LockedAxes::ROTATION_LOCKED_X
+            //     | LockedAxes::ROTATION_LOCKED_Y
+            //     | LockedAxes::ROTATION_LOCKED_Z,
         }
     }
 

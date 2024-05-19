@@ -1,15 +1,12 @@
-use crate::{components::*, config::MazeConfig};
+use crate::{components::*, config::MazeConfig, schedule::InGameSet};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
 pub fn plugin(app: &mut App) {
     app.add_systems(Startup, load_assets)
         .add_systems(OnEnter(GameState::InGame), (spawn_maze,))
-        .add_systems(Update, add_light.run_if(game_is_running))
-        .add_systems(
-            OnExit(GameState::InGame),
-            (despawn_all::<MazeComponent>, despawn_all::<Ceiling>),
-        );
+        .add_systems(Update, add_light.in_set(InGameSet::EntityUpdate))
+        .add_systems(OnExit(GameState::InGame), despawn_all::<MazeComponent>);
 }
 
 #[derive(Component)]
@@ -17,9 +14,6 @@ struct MazeComponent;
 
 #[derive(Component)]
 struct RoomLight;
-
-#[derive(Component)]
-struct Ceiling;
 
 #[derive(Resource)]
 struct MazeAssets {

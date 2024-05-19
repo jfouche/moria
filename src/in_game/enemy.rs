@@ -1,4 +1,4 @@
-use crate::{assets_loader::assets_loading, components::*, math::SignedAngle};
+use crate::{assets_loader::assets_loading, components::*, math::SignedAngle, schedule::InGameSet};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
@@ -20,10 +20,12 @@ pub fn plugin(app: &mut App) {
         )
         .add_systems(OnEnter(GameState::InGame), spawn_enemy)
         .add_systems(OnExit(GameState::InGame), despawn_all::<Enemy>)
-        .add_systems(PreUpdate, cast_rays_from_enemies.run_if(game_is_running))
+        .add_systems(Update, on_death.in_set(InGameSet::DespawnEntities))
         .add_systems(
             Update,
-            (on_hit, on_death, enemy_fires, enemy_turns).run_if(game_is_running),
+            (cast_rays_from_enemies, (on_hit, enemy_fires, enemy_turns))
+                .chain()
+                .in_set(InGameSet::EntityUpdate),
         );
 }
 

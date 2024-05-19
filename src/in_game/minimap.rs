@@ -1,4 +1,4 @@
-use crate::components::*;
+use crate::{components::*, schedule::InGameSet};
 use bevy::prelude::*;
 
 const MINIMAP_ATLAS_FILENAME: &str = "textures/minimap_atlas.png";
@@ -80,10 +80,11 @@ pub fn plugin(app: &mut App) {
         .add_systems(
             Update,
             (
-                toggle_minimap,
-                (show_player, update_visibility).run_if(minimap_visible),
-            )
-                .run_if(game_is_running),
+                toggle_minimap.in_set(InGameSet::UserInput),
+                (show_player, update_visibility)
+                    .run_if(minimap_visible)
+                    .in_set(InGameSet::EntityUpdate),
+            ),
         );
 }
 
