@@ -1,5 +1,3 @@
-use std::f32::consts::PI;
-
 use crate::{
     components::*,
     config::*,
@@ -14,6 +12,7 @@ use bevy::{
     window::{CursorGrabMode, PrimaryWindow},
 };
 use bevy_rapier3d::prelude::*;
+use std::f32::{consts::PI, EPSILON};
 
 const MOUSE_SENSITIVITY: f32 = 0.00012;
 const CAMERA_SPEED: f32 = 500.0;
@@ -66,10 +65,16 @@ pub fn plugin(app: &mut App) {
         )
         .add_systems(
             Update,
-            (
-                (camera_follows_player).run_if(in_state(CameraState::FollowPlayer)),
-                update_camera_pitch.after(camera_follows_player),
-            )
+            (rotate_player, camera_follows_player, update_camera_pitch)
+                .chain()
+                .run_if(in_state(CameraState::FollowPlayer))
+                .in_set(InGameSet::EntityUpdate),
+        )
+        .add_systems(
+            Update,
+            (update_camera_yaw, update_camera_pitch)
+                .chain()
+                .run_if(in_state(CameraState::Free))
                 .in_set(InGameSet::EntityUpdate),
         );
 }
@@ -105,25 +110,46 @@ fn change_camera(
     }
 }
 
-fn camera_follows_player(
-    mut cameras: Query<&mut Transform, (With<PlayerCamera>, Without<Player>)>,
-    // TODO: mut players: Query<(&Transform, &mut Velocity), With<Player>>,
+fn rotate_player(
+    // TODO: use Velocity
+    // mut players: Query<(&Transform, &mut Velocity), With<Player>>,
     mut players: Query<&mut Transform, With<Player>>,
     view_rotation: Res<ViewRotation>,
 ) {
+    // let (player_transform, mut player_velocity) = players.get_single_mut().expect("Player");
     let mut player_transform = players.get_single_mut().expect("Player");
-    let mut cam_transform = cameras.get_single_mut().expect("PlayerCamera");
     let (yaw, _pitch) = view_rotation.yaw_and_pitch();
-
-    // Rotate player
     let target_dir = HorizontalVec::from_angle(yaw);
     let delta_angle = PI - player_transform.signed_angle_with(target_dir);
     player_transform.rotate_y(-delta_angle);
+    // let angvel = if delta_angle < f32::EPSILON {
+    //     Vec3::ZERO
+    // } else if delta_angle > 0.0 {
+    //     Vec3::NEG_Y
+    // } else {
+    //     Vec3::Y
+    // };
+    // player_velocity.angvel = angvel;
+}
 
-    // Camera follow player
+fn camera_follows_player(
+    mut cameras: Query<&mut Transform, (With<PlayerCamera>, Without<Player>)>,
+    players: Query<&Transform, With<Player>>,
+) {
+    let player_transform = players.get_single().expect("Player");
+    let mut cam_transform = cameras.get_single_mut().expect("PlayerCamera");
     let player_dir = player_transform.forward().horizontal();
-    cam_transform.translation = Player::camera_translation(&player_transform);
+    cam_transform.translation = Player::camera_translation(player_transform);
     cam_transform.look_to(player_dir.into(), Vec3::Y);
+}
+
+fn update_camera_yaw(
+    mut cameras: Query<&mut Transform, (With<PlayerCamera>, Without<Player>)>,
+    view_rotation: Res<ViewRotation>,
+) {
+    let mut cam_transform = cameras.get_single_mut().expect("PlayerCamera");
+    let (yaw, _pitch) = view_rotation.yaw_and_pitch();
+    cam_transform.rotation = Quat::from_axis_angle(Vec3::Y, yaw);
 }
 
 fn update_camera_pitch(

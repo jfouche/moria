@@ -10,16 +10,16 @@ const PLAYER_SPEED: f32 = 200.0;
 pub fn plugin(app: &mut App) {
     app.add_event::<PlayerHitEvent>()
         .add_event::<PlayerDeathEvent>()
-        .add_systems(
-            Startup,
-            load_scene_assets::<PlayerAssets>("player.glb#Scene0"),
-        )
+        // .add_systems(
+        //     Startup,
+        //     load_scene_assets::<PlayerAssets>("player.glb#Scene0"),
+        // )
+        // .add_systems(
+        //     Update,
+        //     load_scene_colliders::<PlayerAssets>.run_if(assets_loading),
+        // )
         .add_systems(OnEnter(GameState::InGame), spawn_player)
         .add_systems(OnExit(GameState::InGame), despawn_all::<Player>)
-        .add_systems(
-            Update,
-            load_scene_colliders::<PlayerAssets>.run_if(assets_loading),
-        )
         .add_systems(
             Update,
             (player_fires, on_hit).in_set(InGameSet::EntityUpdate),
@@ -32,17 +32,13 @@ pub fn plugin(app: &mut App) {
         );
 }
 
-fn spawn_player(mut commands: Commands, assets: Res<PlayerAssets>, weapons: Res<Weapons>) {
+fn spawn_player(mut commands: Commands, /*assets: Res<PlayerAssets>,*/ weapons: Res<Weapons>) {
     info!("spawn_player()");
     let pos = Position(0, 0);
     let weapon = weapons.get(WeaponType::Shotgun);
-    commands
-        .spawn(PlayerBundle::new(weapon).at(pos).with_assets(&assets))
-        .with_children(|parent| {
-            for (collider, transform) in assets.colliders() {
-                parent.spawn(PlayerColliderBundle::new(collider.clone(), *transform));
-            }
-        });
+    commands.spawn(
+        PlayerBundle::new(weapon).at(pos), /*.with_assets(&assets)*/
+    );
 }
 
 // https://github.com/sburris0/bevy_flycam/blob/master/src/lib.rs

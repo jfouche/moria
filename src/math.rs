@@ -2,6 +2,7 @@ use bevy::{
     math::{primitives::Direction3d, Vec3},
     transform::components::Transform,
 };
+use std::f32::consts::PI;
 
 #[derive(Debug, Clone, Copy)]
 pub struct HorizontalVec(f32, f32);
@@ -71,6 +72,24 @@ impl SignedAngle<HorizontalVec> for Transform {
     fn signed_angle_with(&self, rhs: HorizontalVec) -> f32 {
         let self_direction = self.forward().horizontal();
         self_direction.signed_angle_with(rhs)
+    }
+}
+
+trait Angle {
+    /// return the number in [0; 2*PI [
+    fn angle(&self) -> Self;
+}
+
+impl Angle for f32 {
+    fn angle(&self) -> Self {
+        let mut angle = *self;
+        while angle < 0.0 {
+            angle += 2.0 * PI;
+        }
+        while angle >= 2.0 * PI {
+            angle -= 2.0 * PI
+        }
+        angle
     }
 }
 

@@ -16,7 +16,7 @@ pub struct Player;
 
 impl Player {
     const HEIGHT: f32 = 1.1;
-    const _BODY_RADIUS: f32 = 0.35;
+    const BODY_RADIUS: f32 = 0.35;
     const SCALE: Vec3 = Vec3::splat(0.5);
     const CAMERA_HEIGHT: f32 = 0.95;
 
@@ -45,7 +45,9 @@ pub struct PlayerBundle {
     scene: SceneBundle,
     body: RigidBody,
     velocity: Velocity,
-    // locked_axes: LockedAxes,
+    collider: Collider,
+    locked_axes: LockedAxes,
+    collision_groups: CollisionGroups,
 }
 
 impl PlayerBundle {
@@ -58,9 +60,15 @@ impl PlayerBundle {
             scene: SceneBundle::default(),
             body: RigidBody::Dynamic,
             velocity: Velocity::zero(),
-            // locked_axes: LockedAxes::ROTATION_LOCKED_X
-            //     | LockedAxes::ROTATION_LOCKED_Y
-            //     | LockedAxes::ROTATION_LOCKED_Z,
+            collider: Collider::cuboid(
+                Player::BODY_RADIUS / 2.0,
+                Player::HEIGHT / 2.0,
+                Player::BODY_RADIUS / 2.0,
+            ),
+            locked_axes: LockedAxes::ROTATION_LOCKED_X
+                | LockedAxes::ROTATION_LOCKED_Y
+                | LockedAxes::ROTATION_LOCKED_Z,
+            collision_groups: CollisionGroups::new(COLLISION_GROUP_PLAYER, Group::all()),
         }
     }
 
@@ -95,7 +103,11 @@ impl PlayerColliderBundle {
             tag: PlayerCollider,
             name: Name::new("PlayerCollider"),
             transform: TransformBundle::from_transform(transform),
-            collider,
+            collider: Collider::cuboid(
+                Player::BODY_RADIUS / 2.0,
+                Player::HEIGHT / 2.0,
+                Player::BODY_RADIUS / 2.0,
+            ),
             collision_groups: CollisionGroups::new(COLLISION_GROUP_PLAYER, Group::all()),
         }
     }
