@@ -78,13 +78,12 @@ fn on_death(mut commands: Commands, mut death_events: EventReader<EnemyDeathEven
 fn cast_rays_from_enemies(
     enemies: Query<(Entity, &Transform, &Children), (With<Enemy>, Without<Reload>)>,
     enemy_colliders: Query<&Parent, With<EnemyCollider>>,
-    players: Query<&Transform, With<Player>>,
-    player_colliders: Query<(), With<PlayerCollider>>,
+    players: Query<(Entity, &Transform), With<Player>>,
     rapier_context: Res<RapierContext>,
     mut enemies_seeing_player: ResMut<EnemiesSeingPlayer>,
 ) {
     enemies_seeing_player.clear();
-    let player_transform = players.get_single().expect("Player");
+    let (player_entity, player_transform) = players.get_single().expect("Player");
     let player_center = Player::center(player_transform);
     for (enemy_entity, enemy_transform, children) in enemies.iter() {
         match children
@@ -104,7 +103,7 @@ fn cast_rays_from_enemies(
                 if let Some((entity, _toi)) =
                     rapier_context.cast_ray(ray_pos, ray_dir, max_toi, solid, filter)
                 {
-                    if player_colliders.get(entity).is_ok() {
+                    if entity == player_entity {
                         enemies_seeing_player.push(enemy_entity);
                     }
                 }

@@ -79,37 +79,9 @@ impl PlayerBundle {
         self
     }
 
-    pub fn with_assets(mut self, assets: &PlayerAssets) -> Self {
+    pub fn _with_assets(mut self, assets: &PlayerAssets) -> Self {
         self.scene.scene = assets.scene();
         self
-    }
-}
-
-#[derive(Component)]
-pub struct PlayerCollider;
-
-#[derive(Bundle)]
-pub struct PlayerColliderBundle {
-    tag: PlayerCollider,
-    name: Name,
-    transform: TransformBundle,
-    collider: Collider,
-    collision_groups: CollisionGroups,
-}
-
-impl PlayerColliderBundle {
-    pub fn new(collider: Collider, transform: Transform) -> Self {
-        PlayerColliderBundle {
-            tag: PlayerCollider,
-            name: Name::new("PlayerCollider"),
-            transform: TransformBundle::from_transform(transform),
-            collider: Collider::cuboid(
-                Player::BODY_RADIUS / 2.0,
-                Player::HEIGHT / 2.0,
-                Player::BODY_RADIUS / 2.0,
-            ),
-            collision_groups: CollisionGroups::new(COLLISION_GROUP_PLAYER, Group::all()),
-        }
     }
 }
 

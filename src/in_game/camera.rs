@@ -12,7 +12,7 @@ use bevy::{
     window::{CursorGrabMode, PrimaryWindow},
 };
 use bevy_rapier3d::prelude::*;
-use std::f32::{consts::PI, EPSILON};
+use std::f32::consts::PI;
 
 const MOUSE_SENSITIVITY: f32 = 0.00012;
 const CAMERA_SPEED: f32 = 500.0;

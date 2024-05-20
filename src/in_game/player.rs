@@ -1,4 +1,4 @@
-use crate::{assets_loader::assets_loading, components::*, schedule::InGameSet};
+use crate::{components::*, schedule::InGameSet};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
