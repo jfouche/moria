@@ -14,6 +14,7 @@ mod weapon;
 use crate::components::*;
 use crate::cursor::*;
 use crate::schedule::InGameSet;
+use bevy::ecs::query::{QueryData, QueryFilter, WorldQuery};
 use bevy::{app::PluginGroupBuilder, prelude::*};
 use bevy_rapier3d::prelude::*;
 
@@ -82,4 +83,21 @@ fn start_event_filter(event: &CollisionEvent) -> Option<(&Entity, &Entity)> {
         CollisionEvent::Started(e1, e2, _) => Some((e1, e2)),
         _ => None,
     }
+}
+
+/// Filter a iterator with either `e1` or `e2`, returning a `([QueryData], [Entity from query], [other Entity])`
+fn filter_either<'w, D, F>(
+    query: &'w Query<'w, '_, D, F>,
+    e1: Entity,
+    e2: Entity,
+) -> Option<(<D as WorldQuery>::Item<'w>, Entity, Entity)>
+where
+    D: QueryData<ReadOnly = D>,
+    F: QueryFilter,
+{
+    query
+        .get(e1)
+        .map(|data| (data, e1, e2))
+        .or(query.get(e2).map(|data| (data, e2, e1)))
+        .ok()
 }

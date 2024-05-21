@@ -17,7 +17,10 @@ pub fn plugin(app: &mut App) {
         .init_resource::<EnemiesSeingPlayer>()
         .add_systems(
             Startup,
-            load_scene_assets::<EnemyAssets>("slime.glb#Scene0"),
+            (
+                load_scene_assets::<EnemyAssets>("slime.glb#Scene0"),
+                load_impact_assets,
+            ),
         )
         .add_systems(
             Update,
@@ -30,11 +33,30 @@ pub fn plugin(app: &mut App) {
         .add_systems(OnExit(GameState::InGame), despawn_all::<Enemy>)
         .add_systems(
             Update,
-            (cast_rays_from_enemies, (on_hit, enemy_fires, enemy_turns))
+            (
+                cast_rays_from_enemies,
+                (
+                    enemy_turns,
+                    enemy_fires,
+                    enemy_loose_life_on_hit,
+                    spawn_impact_on_hit,
+                ),
+            )
                 .chain()
                 .in_set(InGameSet::EntityUpdate),
         )
         .add_systems(Update, on_death.in_set(InGameSet::DespawnEntities));
+}
+
+fn load_impact_assets(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    let mesh = meshes.add(Sphere::new(0.1));
+    let material = materials.add(Color::RED);
+    let assets = ImpactAssets { mesh, material };
+    commands.insert_resource(assets);
 }
 
 fn spawn_enemies(
@@ -60,18 +82,15 @@ fn spawn_enemies(
     }
 }
 
-///
-/// Enemy is hit
-///
-fn on_hit(
+fn enemy_loose_life_on_hit(
     mut hit_events: EventReader<EnemyHitEvent>,
     mut enemies: Query<(Entity, &mut Life, &Transform), With<Enemy>>,
     mut death_events: EventWriter<EnemyDeathEvent>,
 ) {
     for event in hit_events.read() {
-        info!("on_enemy_hit");
         for (entity, mut life, transform) in enemies.iter_mut() {
             if entity == event.entity {
+                info!("enemy_loose_life_on_hit : {entity:?}");
                 life.hit(event.damage);
                 if life.is_dead() {
                     death_events.send(EnemyDeathEvent {
@@ -81,6 +100,25 @@ fn on_hit(
                 }
             }
         }
+    }
+}
+
+fn spawn_impact_on_hit(
+    mut commands: Commands,
+    mut hit_events: EventReader<EnemyHitEvent>,
+    assets: Res<ImpactAssets>,
+) {
+    for event in hit_events.read() {
+        info!("spawn_impact_on_hit");
+        commands.spawn((
+            PbrBundle {
+                transform: Transform::from_translation(event.pos),
+                mesh: assets.mesh.clone(),
+                material: assets.material.clone(),
+                ..default()
+            },
+            LifeTime::new(1.0),
+        ));
     }
 }
 
@@ -167,10 +205,13 @@ fn enemy_turns(
     for &enemy_entity in enemies_seeing_player.iter() {
         let mut enemy_transform = enemies.get_mut(enemy_entity).expect("Enemy");
         let angle = enemy_transform.signed_angle_with(*player_transform);
-        info!("enemy_turns() {enemy_entity:?}: {angle}");
 
         // DEBUG
         {
+            if angle < f32::EPSILON {
+                info!("enemy_turns() {enemy_entity:?}: {angle}");
+            }
+
             gizmos.ray(
                 enemy_transform.translation,
                 *enemy_transform.forward(),

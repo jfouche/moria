@@ -45,8 +45,9 @@ fn enemy_hit_by_bullet(
     mut collisions: EventReader<CollisionEvent>,
     enemies: Query<(), With<Enemy>>,
     enemy_colliders: Query<&Parent, With<EnemyCollider>>,
-    bullets: Query<(&Bullet, &FireEmitter)>,
+    bullets: Query<(&Bullet, &FireEmitter, &Transform)>,
     mut enemy_hit_events: EventWriter<EnemyHitEvent>,
+    names: Query<DebugName>,
 ) {
     let mut enemies_hit = HashMap::new();
     collisions
@@ -54,28 +55,34 @@ fn enemy_hit_by_bullet(
         // filter start event only
         .filter_map(start_event_filter)
         // filter Bullet collision ...
-        .filter_map(|(&e1, &e2)| bullet_filter(&bullets, e1, e2))
-        // ... with enemy emitter ...
-        .filter(|(_bullet, emitter, _other_entity)| emitter == &FireEmitter::Player)
-        .map(|(bullet, _emitter, other_entity)| (bullet, other_entity))
-        // ... colliding with player
-        .filter_map(|(bullet, other_entity)| {
+        .filter_map(|(&e1, &e2)| filter_either(&bullets, e1, e2))
+        // ... with player emitter ...
+        .filter(|(bullet_data, _bullet_entity, _other_entity)| {
+            bullet_data.1 == &FireEmitter::Player
+        })
+        // ... colliding with enemy
+        .filter_map(|(bullet_data, _bullet_entity, other_entity)| {
+            warn!("bullet colling with {:?}", names.get(other_entity));
             enemy_colliders
                 .get(other_entity)
-                .map(|parent| (parent.get(), bullet))
+                .map(|parent| (bullet_data, parent.get()))
                 .ok()
         })
         // Manage enemy hit
-        .for_each(|(enemy_entity, bullet)| {
+        .for_each(|(bullet_data, enemy_entity)| {
             if enemies.get(enemy_entity).is_ok() {
                 info!("enemy_hit_by_bullet {enemy_entity:?}");
-                *enemies_hit.entry(enemy_entity).or_insert(0) += bullet.damage;
+                enemies_hit
+                    .entry(enemy_entity)
+                    .or_insert((bullet_data.2.translation, 0))
+                    .1 += bullet_data.0.damage;
             }
         });
 
-    for (entity, damage) in enemies_hit.iter() {
+    for (entity, (pos, damage)) in enemies_hit.iter() {
         enemy_hit_events.send(EnemyHitEvent {
             entity: *entity,
+            pos: *pos,
             damage: *damage,
         });
     }
@@ -97,13 +104,12 @@ fn player_hit_by_bullet(
         // filter start event only
         .filter_map(start_event_filter)
         // filter Bullet collision ...
-        .filter_map(|(&e1, &e2)| bullet_filter(&bullets, e1, e2))
-        // ... with enemy emitter ...
-        .filter(|(_bullet, emitter, _other_entity)| emitter == &FireEmitter::Enemy)
-        .map(|(bullet, _emitter, other_entity)| (bullet, other_entity))
-        // ... colliding with player
-        .filter(|(_bullet, other_entity)| *other_entity == player_entity)
-        .map(|(bullet, _player_entity)| bullet)
+        .filter_map(|(&e1, &e2)| filter_either(&bullets, e1, e2))
+        // ... From enemy, colliding with player ...
+        .filter(|(bullet_data, _bullet_entity, other_entity)| {
+            bullet_data.1 == &FireEmitter::Enemy && *other_entity == player_entity
+        })
+        .map(|(bullet_data, _bullet_entity, _player_entity)| bullet_data.0)
         // Manage Player hits
         .for_each(|bullet| {
             info!("player_hit_by_bullet");
@@ -113,20 +119,4 @@ fn player_hit_by_bullet(
     if damage != 0 {
         player_hit_events.send(PlayerHitEvent { damage });
     }
-}
-
-/// Filter Bullet collision, returning a `([Bullet], [FireEmitter], [Entity])`
-/// where Entity is the other collided Entity
-fn bullet_filter(
-    bullets: &Query<(&Bullet, &FireEmitter)>,
-    e1: Entity,
-    e2: Entity,
-) -> Option<(Bullet, FireEmitter, Entity)> {
-    bullets
-        .get(e1)
-        .map(|(&bullet, &emitter)| (bullet, emitter, e2))
-        .or(bullets
-            .get(e2)
-            .map(|(&bullet, &emitter)| (bullet, emitter, e1)))
-        .ok()
 }

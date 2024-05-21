@@ -91,6 +91,7 @@ impl EnemyColliderBundle {
 #[derive(Event)]
 pub struct EnemyHitEvent {
     pub entity: Entity,
+    pub pos: Vec3,
     pub damage: u16,
 }
 
@@ -99,4 +100,10 @@ pub struct EnemyHitEvent {
 pub struct EnemyDeathEvent {
     pub entity: Entity,
     pub _pos: Vec3,
+}
+
+#[derive(Resource)]
+pub struct ImpactAssets {
+    pub mesh: Handle<Mesh>,
+    pub material: Handle<StandardMaterial>,
 }
