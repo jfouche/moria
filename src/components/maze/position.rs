@@ -5,7 +5,7 @@ use std::{fmt, ops::Deref};
 /// .0 : x
 ///
 /// .1 : y
-#[derive(Clone, Copy, PartialEq, Eq, Debug, Reflect, Component)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Reflect, Component, Hash)]
 pub struct Position(pub u32, pub u32);
 
 impl Position {

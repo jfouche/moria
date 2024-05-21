@@ -15,15 +15,12 @@ pub use position::*;
 pub use room::*;
 pub use wall::*;
 
-use bevy::prelude::*;
-
 /// ```text
 /// ^ (0, h)     (w, h)
 /// |  
 /// | (0, 0)     (w, 0)
 /// + ----------------->
 /// ```
-#[derive(Resource)]
 pub struct Maze {
     width: u32,
     height: u32,

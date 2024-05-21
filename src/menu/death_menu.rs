@@ -1,6 +1,7 @@
 use super::*;
 use crate::components::*;
 use crate::cursor::*;
+use crate::schedule::InGameSet;
 use crate::ui::*;
 use bevy::prelude::*;
 
@@ -11,7 +12,7 @@ struct DeathMenu;
 /// Plugin
 ///
 pub fn plugin(app: &mut App) {
-    app.add_systems(Update, on_player_death.run_if(game_is_running))
+    app.add_systems(Update, on_player_death.in_set(InGameSet::EntityUpdate))
         .add_systems(
             OnEnter(InGameState::PlayerDied),
             (ungrab_cursor, spawn_death_menu),

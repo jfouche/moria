@@ -1,4 +1,8 @@
-use crate::{components::*, math::IntoHorizontalVec, schedule::InGameSet};
+use crate::{
+    components::*,
+    math::IntoHorizontalVec,
+    schedule::{InGameLoadingSet, InGameSet},
+};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
@@ -18,7 +22,10 @@ pub fn plugin(app: &mut App) {
         //     Update,
         //     load_scene_colliders::<PlayerAssets>.run_if(assets_loading),
         // )
-        .add_systems(OnEnter(GameState::InGame), spawn_player)
+        .add_systems(
+            OnEnter(GameState::InGame),
+            spawn_player.in_set(InGameLoadingSet::SpawnLevelEntities),
+        )
         .add_systems(OnExit(GameState::InGame), despawn_all::<Player>)
         .add_systems(
             Update,
@@ -32,12 +39,16 @@ pub fn plugin(app: &mut App) {
         );
 }
 
-fn spawn_player(mut commands: Commands, /*assets: Res<PlayerAssets>,*/ weapons: Res<Weapons>) {
+fn spawn_player(
+    mut commands: Commands,
+    /*assets: Res<PlayerAssets>,*/
+    weapons: Res<Weapons>,
+    level: Res<Level>,
+) {
     info!("spawn_player()");
-    let pos = Position(0, 0);
     let weapon = weapons.get(WeaponType::Shotgun);
     commands.spawn(
-        PlayerBundle::new(weapon).at(pos), /*.with_assets(&assets)*/
+        PlayerBundle::new(weapon).at(level.start_position()), /*.with_assets(&assets)*/
     );
 }
 

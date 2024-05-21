@@ -4,6 +4,7 @@ mod camera;
 mod end_level;
 mod enemy;
 mod hud;
+mod level;
 mod maze;
 mod minimap;
 mod player;
@@ -12,6 +13,7 @@ mod weapon;
 
 use crate::components::*;
 use crate::cursor::*;
+use crate::schedule::InGameSet;
 use bevy::{app::PluginGroupBuilder, prelude::*};
 use bevy_rapier3d::prelude::*;
 
@@ -20,6 +22,7 @@ pub struct InGamePlugins;
 impl PluginGroup for InGamePlugins {
     fn build(self) -> bevy::app::PluginGroupBuilder {
         PluginGroupBuilder::start::<Self>()
+            .add(level::plugin)
             .add(maze::plugin)
             .add(player::plugin)
             .add(minimap::plugin)
@@ -43,8 +46,11 @@ fn in_game_plugin(app: &mut App) {
     .add_systems(OnExit(GameState::InGame), (end_game, ungrab_cursor))
     .add_systems(OnEnter(InGameState::Running), (grab_cursor, start_physics))
     .add_systems(OnExit(InGameState::Running), (ungrab_cursor, stop_physics))
-    .add_systems(Update, switch_to_pause.run_if(game_is_running))
-    .add_systems(Update, despawn_if_too_old);
+    .add_systems(Update, switch_to_pause.in_set(InGameSet::UserInput))
+    .add_systems(
+        Update,
+        despawn_if_too_old.in_set(InGameSet::DespawnEntities),
+    );
 }
 
 fn init_game(mut in_game_state: ResMut<NextState<InGameState>>) {

@@ -1,12 +1,18 @@
-use crate::{components::*, config::MazeConfig, schedule::InGameSet};
+use crate::{
+    components::*,
+    schedule::{InGameLoadingSet, InGameSet},
+};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
 pub fn plugin(app: &mut App) {
     app.add_systems(Startup, load_assets)
-        .add_systems(OnEnter(GameState::InGame), (spawn_maze,))
-        .add_systems(Update, add_light.in_set(InGameSet::EntityUpdate))
-        .add_systems(OnExit(GameState::InGame), despawn_all::<MazeComponent>);
+        .add_systems(
+            OnEnter(GameState::InGame),
+            spawn_maze.in_set(InGameLoadingSet::SpawnLevelEntities),
+        )
+        .add_systems(OnExit(GameState::InGame), despawn_all::<MazeComponent>)
+        .add_systems(Update, add_light.in_set(InGameSet::EntityUpdate));
 }
 
 #[derive(Component)]
@@ -100,9 +106,8 @@ fn spawn_wall(commands: &mut Commands, wall: Wall, pos: Position, assets: &MazeA
         .id()
 }
 
-fn spawn_maze(mut commands: Commands, assets: Res<MazeAssets>, config: Res<MazeConfig>) {
-    // create the maze
-    let maze = MazeBuilder::new(config.cols, config.rows).create_maze();
+fn spawn_maze(mut commands: Commands, assets: Res<MazeAssets>, level: Res<Level>) {
+    let maze = level.maze();
 
     // Spawn Maze
     let maze_id = commands
@@ -177,20 +182,18 @@ fn spawn_maze(mut commands: Commands, assets: Res<MazeAssets>, config: Res<MazeC
 
     // Organize children
     commands.entity(maze_id).push_children(&children);
-
-    // insert maze as resource
-    commands.insert_resource(maze);
 }
 
 fn add_light(
     mut commands: Commands,
     player: Query<&Transform, With<Player>>,
-    mut maze: ResMut<Maze>,
+    mut level: ResMut<Level>,
     maze_components: Query<Entity, With<MazeComponent>>,
 ) {
     let player_transform = player.get_single().expect("Player");
     let maze_entity = maze_components.get_single().expect("MazeComponent");
     let player_pos: WorldPosition = player_transform.translation.into();
+    let maze = level.maze_mut();
     if let Some(room) = maze.get_room(&player_pos) {
         if !room.visited() {
             maze.visit(&player_pos);

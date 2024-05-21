@@ -1,11 +1,17 @@
 use super::*;
-use crate::{components::*, schedule::InGameSet};
+use crate::{
+    components::*,
+    schedule::{InGameLoadingSet, InGameSet},
+};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
 pub fn plugin(app: &mut App) {
     app.add_systems(Startup, load_assets)
-        .add_systems(OnEnter(GameState::InGame), spawn_end_level)
+        .add_systems(
+            OnEnter(GameState::InGame),
+            spawn_end_level.in_set(InGameLoadingSet::SpawnLevelEntities),
+        )
         .add_systems(OnExit(GameState::InGame), despawn_all::<EndLevel>)
         .add_systems(
             Update,
@@ -22,9 +28,12 @@ fn load_assets(
     commands.insert_resource(assets);
 }
 
-fn spawn_end_level(mut commands: Commands, maze: Res<Maze>, assets: Res<EndLevelAssets>) {
-    let pos = Position(maze.width() - 1, maze.height() - 1);
-    commands.spawn(EndLevelBundle::new().at(pos).with_assets(&assets));
+fn spawn_end_level(mut commands: Commands, level: Res<Level>, assets: Res<EndLevelAssets>) {
+    commands.spawn(
+        EndLevelBundle::new()
+            .at(level.end_position())
+            .with_assets(&assets),
+    );
 }
 
 fn player_ends_level(

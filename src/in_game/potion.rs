@@ -1,4 +1,8 @@
-use crate::{assets_loader::assets_loading, components::*, schedule::InGameSet};
+use crate::{
+    assets_loader::assets_loading,
+    components::*,
+    schedule::{InGameLoadingSet, InGameSet},
+};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
@@ -11,7 +15,10 @@ pub fn plugin(app: &mut App) {
         Update,
         load_scene_colliders::<PotionAssets>.run_if(assets_loading),
     )
-    .add_systems(OnEnter(GameState::InGame), spawn_potions)
+    .add_systems(
+        OnEnter(GameState::InGame),
+        spawn_potions.in_set(InGameLoadingSet::SpawnLevelEntities),
+    )
     .add_systems(OnExit(GameState::InGame), despawn_all::<Potion>)
     .add_systems(
         Update,

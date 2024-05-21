@@ -1,4 +1,7 @@
-use crate::{components::*, schedule::InGameSet};
+use crate::{
+    components::*,
+    schedule::{InGameLoadingSet, InGameSet},
+};
 use bevy::prelude::*;
 
 const MINIMAP_ATLAS_FILENAME: &str = "textures/minimap_atlas.png";
@@ -73,7 +76,10 @@ impl ImgIndex for Room {
 pub fn plugin(app: &mut App) {
     app.insert_state(MinimapState::Hide)
         .add_systems(Startup, load_minimap_atlas)
-        .add_systems(OnEnter(GameState::InGame), init_minimap)
+        .add_systems(
+            OnEnter(GameState::InGame),
+            init_minimap.in_set(InGameLoadingSet::SpawnLevelEntities),
+        )
         .add_systems(OnExit(GameState::InGame), despawn_all::<Minimap>)
         .add_systems(OnEnter(MinimapState::Show), spawn_minimap)
         .add_systems(OnExit(MinimapState::Show), despawn_all::<Minimap>)
@@ -123,7 +129,7 @@ fn toggle_minimap(
 
 fn spawn_minimap(
     mut commands: Commands,
-    maze: Res<Maze>,
+    level: Res<Level>,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlasLayout>>,
 ) {
@@ -142,6 +148,8 @@ fn spawn_minimap(
             ..default()
         },
     ));
+
+    let maze = level.maze();
 
     commands
         .spawn((
@@ -219,9 +227,9 @@ fn show_player(
         });
 }
 
-fn update_visibility(mut rooms: Query<(&RoomComponent, &mut Visibility)>, maze: Res<Maze>) {
+fn update_visibility(mut rooms: Query<(&RoomComponent, &mut Visibility)>, level: Res<Level>) {
     for (room_comp, mut visibility) in rooms.iter_mut() {
-        if let Some(room) = maze.get_room(&room_comp.pos) {
+        if let Some(room) = level.maze().get_room(&room_comp.pos) {
             if room.visited() {
                 *visibility = Visibility::Visible;
             }

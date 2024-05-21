@@ -1,4 +1,9 @@
-use crate::{assets_loader::assets_loading, components::*, math::SignedAngle, schedule::InGameSet};
+use crate::{
+    assets_loader::assets_loading,
+    components::*,
+    math::SignedAngle,
+    schedule::{InGameLoadingSet, InGameSet},
+};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
@@ -18,7 +23,10 @@ pub fn plugin(app: &mut App) {
             Update,
             load_scene_colliders::<EnemyAssets>.run_if(assets_loading),
         )
-        .add_systems(OnEnter(GameState::InGame), spawn_enemy)
+        .add_systems(
+            OnEnter(GameState::InGame),
+            spawn_enemies.in_set(InGameLoadingSet::SpawnLevelEntities),
+        )
         .add_systems(OnExit(GameState::InGame), despawn_all::<Enemy>)
         .add_systems(
             Update,
@@ -29,17 +37,27 @@ pub fn plugin(app: &mut App) {
         .add_systems(Update, on_death.in_set(InGameSet::DespawnEntities));
 }
 
-fn spawn_enemy(mut commands: Commands, assets: Res<EnemyAssets>, weapons: Res<Weapons>) {
-    info!("spawn_enemy()");
-    let pos = Position(3, 3);
+fn spawn_enemies(
+    mut commands: Commands,
+    assets: Res<EnemyAssets>,
+    weapons: Res<Weapons>,
+    level: Res<Level>,
+) {
+    info!("spawn_enemies()");
     let weapon = weapons.get(WeaponType::Gun);
-    commands
-        .spawn(EnemyBundle::new(weapon).at(pos).with_assets(&assets))
-        .with_children(|parent| {
-            for (collider, transform) in assets.colliders() {
-                parent.spawn(EnemyColliderBundle::new(collider.clone(), *transform));
-            }
-        });
+    for &pos in level.enemies_start_pos() {
+        commands
+            .spawn(
+                EnemyBundle::new(weapon.clone())
+                    .at(pos)
+                    .with_assets(&assets),
+            )
+            .with_children(|parent| {
+                for (collider, transform) in assets.colliders() {
+                    parent.spawn(EnemyColliderBundle::new(collider.clone(), *transform));
+                }
+            });
+    }
 }
 
 ///
