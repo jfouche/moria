@@ -1,4 +1,4 @@
-use crate::{components::*, schedule::InGameSet};
+use crate::{components::*, math::IntoHorizontalVec, schedule::InGameSet};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
@@ -48,10 +48,8 @@ fn player_move(
     time: Res<Time>,
 ) {
     let (transform, mut velocity) = players.get_single_mut().expect("Player");
-    let mut forward = *transform.forward();
-    forward.y = 0.0;
-    let mut right = *transform.right();
-    right.y = 0.0;
+    let forward: Vec3 = transform.forward().horizontal().into();
+    let right: Vec3 = transform.right().horizontal().into();
     let mut delta = Vec3::ZERO;
     for key in keys.get_pressed() {
         match *key {
@@ -82,12 +80,12 @@ fn player_fires(
             let event = weapon
                 .fire()
                 .from(origin, FireEmitter::Player)
-                .direction(direction)
+                .to(direction)
                 .event();
             ev_fire.send(event);
 
             // Reload
-            commands.entity(entity).insert(Reload::new(weapon));
+            commands.entity(entity).insert(Reload::from(weapon));
         }
     }
 }

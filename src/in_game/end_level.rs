@@ -1,3 +1,4 @@
+use super::*;
 use crate::{components::*, schedule::InGameSet};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
@@ -21,8 +22,8 @@ fn load_assets(
     commands.insert_resource(assets);
 }
 
-fn spawn_end_level(mut commands: Commands, assets: Res<EndLevelAssets>) {
-    let pos = Position(3, 3);
+fn spawn_end_level(mut commands: Commands, maze: Res<Maze>, assets: Res<EndLevelAssets>) {
+    let pos = Position(maze.width() - 1, maze.height() - 1);
     commands.spawn(EndLevelBundle::new().at(pos).with_assets(&assets));
 }
 
@@ -33,22 +34,15 @@ fn player_ends_level(
     mut in_game_next_state: ResMut<NextState<InGameState>>,
 ) {
     let player_entity = player.get_single().expect("Player");
+    let end_level_entity = end_level.get_single().expect("EndLevel");
     events
         .read()
-        .filter_map(|e| match e {
-            CollisionEvent::Started(e1, e2, _) => Some((e1, e2)),
-            _ => None,
+        .filter_map(start_event_filter)
+        .filter(|(&e1, &e2)| {
+            (e1 == player_entity && e2 == end_level_entity)
+                || (e2 == player_entity && e1 == end_level_entity)
         })
-        .for_each(|(&e1, &e2)| {
-            let player_finished = if e1 == player_entity {
-                end_level.get(e2).is_ok()
-            } else if e2 == player_entity {
-                end_level.get(e1).is_ok()
-            } else {
-                false
-            };
-            if player_finished {
-                in_game_next_state.set(InGameState::PlayerFinished);
-            }
+        .for_each(|(_, _)| {
+            in_game_next_state.set(InGameState::PlayerFinished);
         });
 }

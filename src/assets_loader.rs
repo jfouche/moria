@@ -8,6 +8,7 @@ pub fn plugin(app: &mut App) {
         .add_systems(Update, on_assets_loaded.run_if(assets_loading));
 }
 
+/// Run condition that return `false` once all registered assets are loaded
 pub fn assets_loading(state: Res<State<AssetsLoadingState>>) -> bool {
     *state == AssetsLoadingState::Loading
 }

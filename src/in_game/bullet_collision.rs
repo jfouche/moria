@@ -1,3 +1,4 @@
+use super::*;
 use crate::{components::*, schedule::InGameSet};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
@@ -111,14 +112,6 @@ fn player_hit_by_bullet(
 
     if damage != 0 {
         player_hit_events.send(PlayerHitEvent { damage });
-    }
-}
-
-/// Filter CollisionEvent::Started events
-fn start_event_filter(event: &CollisionEvent) -> Option<(&Entity, &Entity)> {
-    match event {
-        CollisionEvent::Started(e1, e2, _) => Some((e1, e2)),
-        _ => None,
     }
 }
 

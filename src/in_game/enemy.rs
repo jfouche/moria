@@ -20,13 +20,13 @@ pub fn plugin(app: &mut App) {
         )
         .add_systems(OnEnter(GameState::InGame), spawn_enemy)
         .add_systems(OnExit(GameState::InGame), despawn_all::<Enemy>)
-        .add_systems(Update, on_death.in_set(InGameSet::DespawnEntities))
         .add_systems(
             Update,
             (cast_rays_from_enemies, (on_hit, enemy_fires, enemy_turns))
                 .chain()
                 .in_set(InGameSet::EntityUpdate),
-        );
+        )
+        .add_systems(Update, on_death.in_set(InGameSet::DespawnEntities));
 }
 
 fn spawn_enemy(mut commands: Commands, assets: Res<EnemyAssets>, weapons: Res<Weapons>) {
@@ -130,12 +130,12 @@ fn enemy_fires(
             let event = weapon
                 .fire()
                 .from(fire_origin, FireEmitter::Enemy)
-                .direction(Direction3d::new(fire_direction).unwrap())
+                .to(Direction3d::new(fire_direction).unwrap())
                 .event();
             ev_fire.send(event);
 
             // Weapon reload
-            commands.entity(enemy_entity).insert(Reload::new(weapon));
+            commands.entity(enemy_entity).insert(Reload::from(weapon));
         }
     }
 }

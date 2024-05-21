@@ -16,14 +16,6 @@ impl Position {
         (dx * dx + dy * dy) as u32
     }
 
-    // pub fn x(&self) -> u32 {
-    //     self.0
-    // }
-
-    // pub fn y(&self) -> u32 {
-    //     self.1
-    // }
-
     pub fn fx(&self) -> f32 {
         self.0 as f32
     }

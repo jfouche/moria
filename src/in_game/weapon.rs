@@ -75,7 +75,7 @@ fn weapon_reloaded(
     mut reloads: Query<(Entity, &mut Reload)>,
 ) {
     for (entity, mut reload) in reloads.iter_mut() {
-        if reload.tick(time.delta()).finished() {
+        if reload.finished(&time) {
             commands.entity(entity).remove::<Reload>();
         }
     }

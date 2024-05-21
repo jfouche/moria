@@ -45,7 +45,7 @@ impl<D> FireEventBuilder<NoFrom, D> {
 }
 
 impl<F> FireEventBuilder<F, NoDirection> {
-    pub fn direction(self, direction: Direction3d) -> FireEventBuilder<F, WithDirection> {
+    pub fn to(self, direction: Direction3d) -> FireEventBuilder<F, WithDirection> {
         FireEventBuilder {
             weapon: self.weapon,
             from: self.from,
@@ -199,7 +199,11 @@ impl BulletBundle {
 pub struct Reload(Timer);
 
 impl Reload {
-    pub fn new(weapon: &Weapon) -> Self {
+    pub fn from(weapon: &Weapon) -> Self {
         Reload(Timer::from_seconds(weapon.reload_delay, TimerMode::Once))
+    }
+
+    pub fn finished(&mut self, time: &Time) -> bool {
+        self.0.tick(time.delta()).finished()
     }
 }

@@ -80,13 +80,7 @@ pub fn plugin(app: &mut App) {
 }
 
 fn spawn_camera(mut commands: Commands) {
-    commands.spawn((
-        Name::new("PlayerCamera"),
-        Camera3dBundle::default(),
-        PlayerCamera,
-        RigidBody::Dynamic, // TODO: remove use of rapier
-        Velocity::zero(),
-    ));
+    commands.spawn(PlayerCameraBundle::default());
 }
 
 fn load_config(config: Res<CameraConfig>, mut exposure: Query<&mut Exposure>) {

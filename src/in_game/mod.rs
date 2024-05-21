@@ -13,7 +13,7 @@ mod weapon;
 use crate::components::*;
 use crate::cursor::*;
 use bevy::{app::PluginGroupBuilder, prelude::*};
-use bevy_rapier3d::plugin::RapierConfiguration;
+use bevy_rapier3d::prelude::*;
 
 pub struct InGamePlugins;
 
@@ -71,4 +71,12 @@ fn start_physics(mut physics: ResMut<RapierConfiguration>) {
 
 fn stop_physics(mut physics: ResMut<RapierConfiguration>) {
     physics.physics_pipeline_active = false;
+}
+
+/// Filter CollisionEvent::Started events
+fn start_event_filter(event: &CollisionEvent) -> Option<(&Entity, &Entity)> {
+    match event {
+        CollisionEvent::Started(e1, e2, _) => Some((e1, e2)),
+        _ => None,
+    }
 }

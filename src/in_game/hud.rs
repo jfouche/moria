@@ -4,31 +4,6 @@ use bevy::{
     prelude::*,
 };
 
-#[derive(Component)]
-struct Hud;
-
-#[derive(Component)]
-struct HudCompass;
-
-#[derive(Component)]
-struct HudFps;
-
-#[derive(Component)]
-struct HudFpsText;
-
-#[derive(Component)]
-struct HudAim;
-
-#[derive(Component)]
-struct HudLife;
-
-#[derive(Resource)]
-struct HudAssets {
-    font: Handle<Font>,
-    aim: Handle<Image>,
-    compass: Handle<Image>,
-}
-
 pub fn plugin(app: &mut App) {
     app.add_plugins(FrameTimeDiagnosticsPlugin)
         .add_systems(Startup, load_assets)
@@ -60,10 +35,7 @@ pub fn plugin(app: &mut App) {
 }
 
 fn load_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let font = asset_server.load("fonts/FiraSans-Bold.ttf");
-    let aim = asset_server.load("aim.png");
-    let compass = asset_server.load("compass.png");
-    let assets = HudAssets { font, aim, compass };
+    let assets = HudAssets::from_asset_server(&asset_server);
     commands.insert_resource(assets);
 }
 
