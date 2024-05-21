@@ -7,12 +7,6 @@ use bevy::prelude::*;
 #[derive(Component)]
 struct PauseMenu;
 
-#[derive(Component)]
-struct OnDisplaySettingsMenuScreen;
-
-#[derive(Component)]
-struct OnSoundSettingsMenuScreen;
-
 // State used for the pause menu screen
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
 pub enum PauseMenuState {

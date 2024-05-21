@@ -6,6 +6,8 @@ use crate::{
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
+use super::start_event_filter;
+
 pub fn plugin(app: &mut App) {
     app.add_systems(
         Startup,
@@ -17,7 +19,7 @@ pub fn plugin(app: &mut App) {
     )
     .add_systems(
         OnEnter(GameState::InGame),
-        spawn_potions.in_set(InGameLoadingSet::SpawnLevelEntities),
+        spawn_items.in_set(InGameLoadingSet::SpawnLevelEntities),
     )
     .add_systems(OnExit(GameState::InGame), despawn_all::<Potion>)
     .add_systems(
@@ -26,19 +28,25 @@ pub fn plugin(app: &mut App) {
     );
 }
 
-fn spawn_potions(mut commands: Commands, assets: Res<PotionAssets>) {
-    let pos = Position(1, 1);
-    commands
-        .spawn(
-            PotionBundle::new(Potion::Life(30))
-                .at(pos)
-                .with_assets(&assets),
-        )
-        .with_children(|parent| {
-            for (collider, transform) in assets.colliders() {
-                parent.spawn(PotionColliderBundle::new(collider.clone(), *transform));
+fn spawn_items(mut commands: Commands, assets: Res<PotionAssets>, level: Res<Level>) {
+    info!("spawn_items()");
+    for (&pos, item) in level.items() {
+        match item {
+            Item::Potion(potion) => {
+                commands
+                    .spawn(
+                        PotionBundle::new(potion.clone())
+                            .at(pos)
+                            .with_assets(&assets),
+                    )
+                    .with_children(|parent| {
+                        for (collider, transform) in assets.colliders() {
+                            parent.spawn(PotionColliderBundle::new(collider.clone(), *transform));
+                        }
+                    });
             }
-        });
+        }
+    }
 }
 
 fn player_take_potion(
@@ -52,10 +60,7 @@ fn player_take_potion(
     events
         .read()
         // Only accept Starting collision
-        .filter_map(|e| match e {
-            CollisionEvent::Started(e1, e2, _) => Some((e1, e2)),
-            _ => None,
-        })
+        .filter_map(start_event_filter)
         // Filter Player / PotionCollider collision, return parent entity, ie. Potion
         .filter_map(|(&e1, &e2)| {
             if e1 == player_entity {

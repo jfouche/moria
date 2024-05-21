@@ -4,11 +4,11 @@ mod camera;
 mod end_level;
 mod enemy;
 mod hud;
+mod item;
 mod level;
 mod maze;
 mod minimap;
 mod player;
-mod potion;
 mod weapon;
 
 use crate::components::*;
@@ -32,25 +32,22 @@ impl PluginGroup for InGamePlugins {
             .add(enemy::plugin)
             .add(bullet_collision::plugin)
             .add(audio::plugin)
-            .add(potion::plugin)
+            .add(item::plugin)
             .add(end_level::plugin)
             .add(in_game_plugin)
     }
 }
 
 fn in_game_plugin(app: &mut App) {
-    app.add_systems(
-        OnEnter(GameState::InGame),
-        (init_game, grab_cursor, set_background),
-    )
-    .add_systems(OnExit(GameState::InGame), (end_game, ungrab_cursor))
-    .add_systems(OnEnter(InGameState::Running), (grab_cursor, start_physics))
-    .add_systems(OnExit(InGameState::Running), (ungrab_cursor, stop_physics))
-    .add_systems(Update, switch_to_pause.in_set(InGameSet::UserInput))
-    .add_systems(
-        Update,
-        despawn_if_too_old.in_set(InGameSet::DespawnEntities),
-    );
+    app.add_systems(OnEnter(GameState::InGame), (init_game, set_background))
+        .add_systems(OnExit(GameState::InGame), (end_game, ungrab_cursor))
+        .add_systems(OnEnter(InGameState::Running), (grab_cursor, start_physics))
+        .add_systems(OnExit(InGameState::Running), (ungrab_cursor, stop_physics))
+        .add_systems(Update, switch_to_pause.in_set(InGameSet::UserInput))
+        .add_systems(
+            Update,
+            despawn_if_too_old.in_set(InGameSet::DespawnEntities),
+        );
 }
 
 fn init_game(mut in_game_state: ResMut<NextState<InGameState>>) {

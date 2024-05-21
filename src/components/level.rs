@@ -1,7 +1,7 @@
 use super::*;
 use bevy::prelude::*;
 use rand::Rng;
-use std::collections::{hash_set, HashSet};
+use std::collections::{hash_map, hash_set, HashMap, HashSet};
 
 #[derive(Resource)]
 pub struct Level {
@@ -9,6 +9,7 @@ pub struct Level {
     start: Position,
     end: Position,
     enemies: HashSet<Position>,
+    items: HashMap<Position, Item>,
 }
 
 impl Level {
@@ -16,10 +17,21 @@ impl Level {
         let maze = MazeBuilder::new(width, height).create_maze();
 
         let mut rng = rand::thread_rng();
+        let mut rnd_pos = || Position(rng.gen_range(2..width), rng.gen_range(2..height));
+
+        // Add enemies
         let mut enemies = HashSet::new();
         while enemies.len() < 5 {
-            let (x, y) = (rng.gen_range(2..width), rng.gen_range(2..height));
-            enemies.insert(Position(x, y));
+            enemies.insert(rnd_pos());
+        }
+
+        // Add items
+        let mut items = HashMap::new();
+        while items.len() < 2 {
+            let pos = rnd_pos();
+            if !enemies.contains(&pos) {
+                items.insert(pos, Item::Potion(Potion::Life(20)));
+            }
         }
 
         Level {
@@ -27,6 +39,7 @@ impl Level {
             start: Position(0, 0),
             end: Position(width - 1, height - 1),
             enemies,
+            items,
         }
     }
 
@@ -48,5 +61,9 @@ impl Level {
 
     pub fn enemies_start_pos(&self) -> hash_set::Iter<Position> {
         self.enemies.iter()
+    }
+
+    pub fn items(&self) -> hash_map::Iter<Position, Item> {
+        self.items.iter()
     }
 }

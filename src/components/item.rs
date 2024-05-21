@@ -11,7 +11,11 @@ impl From<SceneWithCollidersAssets> for PotionAssets {
     }
 }
 
-#[derive(Component)]
+pub enum Item {
+    Potion(Potion),
+}
+
+#[derive(Component, Clone)]
 pub enum Potion {
     Life(u16),
 }

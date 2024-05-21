@@ -19,12 +19,6 @@ pub enum MainMenuState {
 #[derive(Component)]
 struct MainMenu;
 
-#[derive(Component)]
-struct OnDisplaySettingsMenuScreen;
-
-#[derive(Component)]
-struct OnSoundSettingsMenuScreen;
-
 ///
 /// Plugin
 ///

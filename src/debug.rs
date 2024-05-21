@@ -1,4 +1,4 @@
-use crate::{components::*, config::GameConfig, cursor::*, schedule::InGameSet};
+use crate::{components::*, config::GameConfig, cursor::*, math::Angle, schedule::InGameSet};
 use bevy::{
     prelude::*,
     window::{CursorGrabMode, PrimaryWindow},
@@ -60,7 +60,7 @@ fn debug_player_view(transform: Query<&Transform, With<Player>>) {
         let pos: WorldPosition = translation.into();
         let mut forward = *transform.forward();
         forward.y = 0.0;
-        let angle = forward.angle_between(Vec3::Z).to_degrees();
+        let angle = forward.angle_between(Vec3::Z).angle().to_degrees();
         let forward = forward.xz();
         debug!(
             "Player translation: {translation}, pos: {pos:?}, forward: {forward:?}, angle: {angle}"

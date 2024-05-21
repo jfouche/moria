@@ -75,7 +75,7 @@ impl SignedAngle<HorizontalVec> for Transform {
     }
 }
 
-trait Angle {
+pub trait Angle {
     /// return the number in [0; 2*PI [
     fn angle(&self) -> Self;
 }

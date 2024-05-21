@@ -131,7 +131,6 @@ fn cast_rays_from_enemies(
     }
 }
 
-///
 fn enemy_fires(
     mut commands: Commands,
     enemies_seeing_player: Res<EnemiesSeingPlayer>,
