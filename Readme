@@ -8,6 +8,9 @@
 - life potion : https://poly.pizza/m/5DvOJDIgDYu
 - slime : https://poly.pizza/m/SW5h0gbCtq
 
+## Audio : https://itch.io/
+- Music : https://leohpaz.itch.io/minifantasy-dungeon-sfx-pack
+
 # External lib
 - Copy of bevy_gltf_collider (https://github.com/Defernus/bevy_gltf_collider) in order to manage **my** bevy_rapier3d version
 
@@ -15,6 +18,6 @@
 You can set RUST_LOG env var to what you want
 
 ex : PowerShell
-```
+```powershell
 $Env:RUST_LOG = "wgpu=error,naga=warn,moria=debug"
 ```
