@@ -44,7 +44,7 @@ fn spawn_enemies(
     level: Res<Level>,
 ) {
     info!("spawn_enemies()");
-    let weapon = weapons.get(WeaponType::Gun);
+    let weapon = weapons.get(WeaponType::EnemyGun);
     for &pos in level.enemies_start_pos() {
         commands
             .spawn(

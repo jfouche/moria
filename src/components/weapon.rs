@@ -99,6 +99,7 @@ impl From<&WeaponConfig> for Weapon {
 pub enum WeaponType {
     Gun,
     Shotgun,
+    EnemyGun,
 }
 
 impl TryFrom<&str> for WeaponType {
@@ -108,6 +109,7 @@ impl TryFrom<&str> for WeaponType {
         match value {
             "Gun" => Ok(Self::Gun),
             "Shotgun" => Ok(Self::Shotgun),
+            "Enemy" => Ok(Self::EnemyGun),
             _ => Err("Unknown weapon type"),
         }
     }
