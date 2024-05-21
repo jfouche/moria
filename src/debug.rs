@@ -62,7 +62,7 @@ fn debug_player_view(transform: Query<&Transform, With<Player>>) {
         forward.y = 0.0;
         let angle = forward.angle_between(Vec3::Z).to_degrees();
         let forward = forward.xz();
-        info!(
+        debug!(
             "Player translation: {translation}, pos: {pos:?}, forward: {forward:?}, angle: {angle}"
         );
     }
@@ -87,12 +87,12 @@ fn display_collision_events(
         };
         let name1 = names.get(e1);
         let name2 = names.get(e2);
-        info!("Received collision event: {collision_type}, {name1:?}, {name2:?}");
+        debug!("Received collision event: {collision_type}, {name1:?}, {name2:?}");
     }
 }
 
 fn display_states(game_state: Res<State<GameState>>, in_game_state: Res<State<InGameState>>) {
-    info!(
+    debug!(
         "GameState::{:?} - InGameState::{:?}",
         **game_state, **in_game_state
     );
@@ -101,6 +101,6 @@ fn display_states(game_state: Res<State<GameState>>, in_game_state: Res<State<In
 fn state_transition<S: States>(mut events: EventReader<StateTransitionEvent<S>>) {
     for event in events.read() {
         let name = std::any::type_name::<S>();
-        info!("{name} : {:?} => {:?}", event.before, event.after);
+        debug!("{name} : {:?} => {:?}", event.before, event.after);
     }
 }

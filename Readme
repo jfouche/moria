@@ -10,3 +10,11 @@
 
 # External lib
 - Copy of bevy_gltf_collider (https://github.com/Defernus/bevy_gltf_collider) in order to manage **my** bevy_rapier3d version
+
+# Debug
+You can set RUST_LOG env var to what you want
+
+ex : PowerShell
+```
+$Env:RUST_LOG = "wgpu=error,naga=warn,moria=debug"
+```
