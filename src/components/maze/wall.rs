@@ -118,6 +118,13 @@ impl WallColliderBundle {
             Wall::Left => (Wall::COLLIDER_WIDTH, 0.0),
             Wall::Right => (-Wall::COLLIDER_WIDTH, 0.0),
         };
-        Transform::from_xyz(x, 0.0, z)
+        let rotation = match wall_pos.wall {
+            Wall::Top => Quat::IDENTITY,
+            Wall::Bottom => Quat::IDENTITY,
+            Wall::Left => Quat::from_rotation_x(FRAC_PI_2),
+            Wall::Right => Quat::from_rotation_x(FRAC_PI_2),
+        };
+
+        Transform::from_xyz(x, 0.0, z).with_rotation(rotation)
     }
 }
