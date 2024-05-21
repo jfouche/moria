@@ -13,7 +13,7 @@ pub enum Wall {
 
 impl Wall {
     pub const HEIGHT: f32 = 2.0;
-    pub const WIDTH: f32 = 2.0;
+    pub const WIDTH: f32 = 5.0;
 
     pub const COLLIDER_WIDTH: f32 = 0.02;
 
