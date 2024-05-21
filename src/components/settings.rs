@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::{fs, io::ErrorKind, ops::Range, path::PathBuf};
+use std::{fs, io::ErrorKind, ops::RangeInclusive, path::PathBuf};
 
 /// Audio volume
 #[derive(Resource, Debug, Component, PartialEq, Eq, Clone, Copy, Deserialize, Serialize)]
@@ -9,12 +9,12 @@ pub struct AudioVolume(pub u8);
 impl AudioVolume {
     const MAX: u8 = 7;
 
-    pub const fn range() -> Range<u8> {
-        0..Self::MAX + 1
+    pub const fn range() -> RangeInclusive<u8> {
+        0..=Self::MAX
     }
 
     pub fn db(&self) -> f32 {
-        const DECIBELS: [f32; 8] = [0.0, 0.04, 0.08, 0.1, 0.3, 0.6, 1.0, 2.0];
+        const DECIBELS: [f32; 8] = [0.0, 0.07, 0.1, 0.25, 0.4, 0.7, 1.0, 2.0];
         *DECIBELS
             .get(self.0 as usize)
             .unwrap_or(&DECIBELS[Self::MAX as usize])
@@ -85,6 +85,7 @@ impl From<ExposureSettings> for bevy::render::camera::PhysicalCameraParameters {
 struct Settings {
     audio: AudioVolume,
     display: DisplaySettings,
+    exposure: ExposureSettings,
 }
 
 const MORIA_SETTINGS_DIR: &str = "Moria";
@@ -104,13 +105,18 @@ fn settings_path() -> PathBuf {
     dir.join(MORIA_SETTINGS_FILE)
 }
 
-pub fn load_settings(mut audio: ResMut<AudioVolume>, mut display: ResMut<DisplaySettings>) {
+pub fn load_settings(
+    mut audio: ResMut<AudioVolume>,
+    mut display: ResMut<DisplaySettings>,
+    mut exposure: ResMut<ExposureSettings>,
+) {
     let path = settings_path();
     match fs::read_to_string(&path) {
         Ok(content) => match toml::from_str::<Settings>(&content) {
             Ok(settings) => {
                 *audio = settings.audio;
                 *display = settings.display;
+                *exposure = settings.exposure;
             }
             Err(e) => error!("Can't load config from file {path:?}: {e:?}"),
         },
@@ -121,10 +127,15 @@ pub fn load_settings(mut audio: ResMut<AudioVolume>, mut display: ResMut<Display
     }
 }
 
-pub fn save_settings(audio: Res<AudioVolume>, display: Res<DisplaySettings>) {
+pub fn save_settings(
+    audio: Res<AudioVolume>,
+    display: Res<DisplaySettings>,
+    exposure: Res<ExposureSettings>,
+) {
     let settings = Settings {
         audio: *audio,
         display: *display,
+        exposure: *exposure,
     };
     match toml::to_string_pretty(&settings) {
         Ok(content) => {
