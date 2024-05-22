@@ -86,7 +86,7 @@ fn start_event_filter(event: &CollisionEvent) -> Option<(&Entity, &Entity)> {
 }
 
 /// Filter a iterator with either `e1` or `e2`, returning a `([QueryData], [Entity from query], [other Entity])`
-fn filter_either<'w, D, F>(
+fn query_either<'w, D, F>(
     query: &'w Query<'w, '_, D, F>,
     e1: Entity,
     e2: Entity,

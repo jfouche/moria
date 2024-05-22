@@ -19,18 +19,15 @@ pub fn plugin(app: &mut App) {
 fn despawn_bullet_after_collision(
     mut commands: Commands,
     mut collisions: EventReader<CollisionEvent>,
-    bullets: Query<Entity, With<Bullet>>,
+    bullets: Query<(), With<Bullet>>,
 ) {
     let mut bullets_hit = HashSet::new();
     collisions
         .read()
         .filter_map(start_event_filter)
-        .for_each(|(&e1, &e2)| {
-            for bullet_entity in bullets.iter() {
-                if (e1 == bullet_entity) || (e2 == bullet_entity) {
-                    bullets_hit.insert(bullet_entity);
-                }
-            }
+        .filter_map(|(&e1, &e2)| query_either(&bullets, e1, e2))
+        .for_each(|(_data, bullet_entity, _other_entity)| {
+            bullets_hit.insert(bullet_entity);
         });
 
     for bullet in bullets_hit {
@@ -55,14 +52,17 @@ fn enemy_hit_by_bullet(
         // filter start event only
         .filter_map(start_event_filter)
         // filter Bullet collision ...
-        .filter_map(|(&e1, &e2)| filter_either(&bullets, e1, e2))
+        .filter_map(|(&e1, &e2)| query_either(&bullets, e1, e2))
         // ... with player emitter ...
         .filter(|(bullet_data, _bullet_entity, _other_entity)| {
             bullet_data.1 == &FireEmitter::Player
         })
         // ... colliding with enemy
         .filter_map(|(bullet_data, _bullet_entity, other_entity)| {
-            warn!("bullet colling with {:?}", names.get(other_entity));
+            warn!(
+                "enemy_hit_by_bullet() bullet colliding with {:?}",
+                names.get(other_entity)
+            );
             enemy_colliders
                 .get(other_entity)
                 .map(|parent| (bullet_data, parent.get()))
@@ -104,7 +104,7 @@ fn player_hit_by_bullet(
         // filter start event only
         .filter_map(start_event_filter)
         // filter Bullet collision ...
-        .filter_map(|(&e1, &e2)| filter_either(&bullets, e1, e2))
+        .filter_map(|(&e1, &e2)| query_either(&bullets, e1, e2))
         // ... From enemy, colliding with player ...
         .filter(|(bullet_data, _bullet_entity, other_entity)| {
             bullet_data.1 == &FireEmitter::Enemy && *other_entity == player_entity

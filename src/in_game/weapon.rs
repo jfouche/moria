@@ -53,6 +53,7 @@ fn spawn_bullet(
     assets: Res<WeaponAssets>,
 ) {
     for fire_ev in events.read() {
+        info!("spawn_bullet from {:?}", fire_ev.from);
         let mesh = assets.mesh.clone();
         let material = assets.material.clone();
         commands.spawn(BulletBundle::new(fire_ev).with_pbr(mesh, material));
