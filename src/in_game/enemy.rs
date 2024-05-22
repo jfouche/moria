@@ -84,21 +84,18 @@ fn spawn_enemies(
 
 fn enemy_loose_life_on_hit(
     mut hit_events: EventReader<EnemyHitEvent>,
-    mut enemies: Query<(Entity, &mut Life, &Transform), With<Enemy>>,
+    mut enemies: Query<(&mut Life, &Transform), With<Enemy>>,
     mut death_events: EventWriter<EnemyDeathEvent>,
 ) {
     for event in hit_events.read() {
-        // TODO: use enemies.get(event.entity)
-        for (entity, mut life, transform) in enemies.iter_mut() {
-            if entity == event.entity {
-                info!("enemy_loose_life_on_hit : {entity:?}");
-                life.hit(event.damage);
-                if life.is_dead() {
-                    death_events.send(EnemyDeathEvent {
-                        entity,
-                        _pos: transform.translation,
-                    });
-                }
+        if let Ok((mut life, transform)) = enemies.get_mut(event.entity) {
+            info!("enemy_loose_life_on_hit : {:?}", event.entity);
+            life.hit(event.damage);
+            if life.is_dead() {
+                death_events.send(EnemyDeathEvent {
+                    entity: event.entity,
+                    _pos: transform.translation,
+                });
             }
         }
     }
