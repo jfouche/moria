@@ -20,5 +20,4 @@ fn create_level(
     let level = Level::new(config.cols, config.rows);
     commands.insert_resource(level);
     in_game_state.set(InGameState::Running);
-    info!("create_level finished");
 }
