@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::GameState;
+use crate::{GameState, InGameState};
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy, SystemSet)]
 pub enum InGameLoadingSet {
@@ -36,7 +36,7 @@ pub fn plugin(app: &mut App) {
             InGameSet::CollisionDetection,
         )
             .chain()
-            .run_if(in_state(GameState::InGame)),
+            .run_if(game_is_running),
     )
     .add_systems(
         OnEnter(GameState::InGame),
@@ -50,4 +50,11 @@ pub fn plugin(app: &mut App) {
             .after(InGameSet::DespawnEntities)
             .before(InGameSet::UserInput),
     );
+}
+
+fn game_is_running(
+    game_state: Res<State<GameState>>,
+    in_game_state: Res<State<InGameState>>,
+) -> bool {
+    *game_state == GameState::InGame && *in_game_state == InGameState::Running
 }
