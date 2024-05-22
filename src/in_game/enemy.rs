@@ -88,6 +88,7 @@ fn enemy_loose_life_on_hit(
     mut death_events: EventWriter<EnemyDeathEvent>,
 ) {
     for event in hit_events.read() {
+        // TODO: use enemies.get(event.entity)
         for (entity, mut life, transform) in enemies.iter_mut() {
             if entity == event.entity {
                 info!("enemy_loose_life_on_hit : {entity:?}");
