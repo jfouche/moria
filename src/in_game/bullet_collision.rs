@@ -25,7 +25,7 @@ fn despawn_bullet_after_collision(
     collisions
         .read()
         .filter_map(start_event_filter)
-        .filter_map(|(&e1, &e2)| query_either(&bullets, e1, e2))
+        .filter_map(|(&e1, &e2)| bullets.get_either(e1, e2))
         .for_each(|(_data, bullet_entity, _other_entity)| {
             bullets_hit.insert(bullet_entity);
         });
@@ -44,7 +44,6 @@ fn enemy_hit_by_bullet(
     enemy_colliders: Query<&Parent, With<EnemyCollider>>,
     bullets: Query<(&Bullet, &FireEmitter, &Transform)>,
     mut enemy_hit_events: EventWriter<EnemyHitEvent>,
-    names: Query<DebugName>,
 ) {
     let mut enemies_hit = HashMap::new();
     collisions
@@ -52,17 +51,13 @@ fn enemy_hit_by_bullet(
         // filter start event only
         .filter_map(start_event_filter)
         // filter Bullet collision ...
-        .filter_map(|(&e1, &e2)| query_either(&bullets, e1, e2))
+        .filter_map(|(&e1, &e2)| bullets.get_either(e1, e2))
         // ... with player emitter ...
         .filter(|(bullet_data, _bullet_entity, _other_entity)| {
             bullet_data.1 == &FireEmitter::Player
         })
         // ... colliding with enemy
         .filter_map(|(bullet_data, _bullet_entity, other_entity)| {
-            warn!(
-                "enemy_hit_by_bullet() bullet colliding with {:?}",
-                names.get(other_entity)
-            );
             enemy_colliders
                 .get(other_entity)
                 .map(|parent| (bullet_data, parent.get()))
@@ -71,7 +66,7 @@ fn enemy_hit_by_bullet(
         // Manage enemy hit
         .for_each(|(bullet_data, enemy_entity)| {
             if enemies.get(enemy_entity).is_ok() {
-                info!("enemy_hit_by_bullet {enemy_entity:?}");
+                info!("enemy_hit_by_bullet");
                 enemies_hit
                     .entry(enemy_entity)
                     .or_insert((bullet_data.2.translation, 0))
@@ -104,7 +99,7 @@ fn player_hit_by_bullet(
         // filter start event only
         .filter_map(start_event_filter)
         // filter Bullet collision ...
-        .filter_map(|(&e1, &e2)| query_either(&bullets, e1, e2))
+        .filter_map(|(&e1, &e2)| bullets.get_either(e1, e2))
         // ... From enemy, colliding with player ...
         .filter(|(bullet_data, _bullet_entity, other_entity)| {
             bullet_data.1 == &FireEmitter::Enemy && *other_entity == player_entity

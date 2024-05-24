@@ -85,19 +85,31 @@ fn start_event_filter(event: &CollisionEvent) -> Option<(&Entity, &Entity)> {
     }
 }
 
-/// Filter a iterator with either `e1` or `e2`, returning a `([QueryData], [Entity from query], [other Entity])`
-fn query_either<'w, D, F>(
-    query: &'w Query<'w, '_, D, F>,
-    e1: Entity,
-    e2: Entity,
-) -> Option<(<D as WorldQuery>::Item<'w>, Entity, Entity)>
+trait QueryEither<'w, D>
+where
+    D: QueryData<ReadOnly = D>,
+{
+    /// get either `e1` or `e2`, returning a `([QueryData], [Entity from query], [other Entity])`
+    fn get_either(
+        &'w self,
+        e1: Entity,
+        e2: Entity,
+    ) -> Option<(<D as WorldQuery>::Item<'w>, Entity, Entity)>;
+}
+
+impl<'w, D, F> QueryEither<'w, D> for Query<'w, '_, D, F>
 where
     D: QueryData<ReadOnly = D>,
     F: QueryFilter,
 {
-    query
-        .get(e1)
-        .map(|data| (data, e1, e2))
-        .or(query.get(e2).map(|data| (data, e2, e1)))
-        .ok()
+    fn get_either(
+        &'w self,
+        e1: Entity,
+        e2: Entity,
+    ) -> Option<(<D as WorldQuery>::Item<'w>, Entity, Entity)> {
+        self.get(e1)
+            .map(|data| (data, e1, e2))
+            .or(self.get(e2).map(|data| (data, e2, e1)))
+            .ok()
+    }
 }
