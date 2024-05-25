@@ -141,7 +141,7 @@ fn cast_rays_from_enemies(
     player_colliders: Query<Entity, With<PlayerCollider>>,
     rapier_context: Res<RapierContext>,
     mut enemies_seeing_player: ResMut<EnemiesSeingPlayer>,
-    mut gizmos: Gizmos,
+    #[cfg(debug_assertions)] mut gizmos: Gizmos,
 ) {
     enemies_seeing_player.clear();
     let player_transform = players.get_single().expect("Player");
@@ -164,6 +164,7 @@ fn cast_rays_from_enemies(
 
                 {
                     // DEBUG
+                    #[cfg(debug_assertions)]
                     gizmos.ray(ray_pos, ray_dir, Color::WHITE);
                 }
 
@@ -222,6 +223,7 @@ fn enemy_turns(
         let angle = enemy_transform.signed_angle_with(*player_transform);
 
         // DEBUG
+        #[cfg(debug_assertions)]
         {
             if angle > f32::EPSILON {
                 info!("enemy_turns() {enemy_entity:?}: {angle}");
