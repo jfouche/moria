@@ -135,7 +135,7 @@ fn on_death(mut commands: Commands, mut death_events: EventReader<EnemyDeathEven
 /// It stores the enemies seeing player in [EnemiesSeingPlayer]
 ///
 fn cast_rays_from_enemies(
-    enemies: Query<(Entity, &Transform, &Children), (With<Enemy>, Without<Reload>)>,
+    enemies: Query<(Entity, &Transform, &Children), With<Enemy>>,
     enemy_colliders: Query<&Parent, With<EnemyCollider>>,
     players: Query<&Transform, With<Player>>,
     player_colliders: Query<Entity, With<PlayerCollider>>,
