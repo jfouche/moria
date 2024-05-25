@@ -94,11 +94,12 @@ fn player_move(
 fn player_fires(
     mut commands: Commands,
     keys: Res<ButtonInput<KeyCode>>,
+    mouse: Res<ButtonInput<MouseButton>>,
     player: Query<(Entity, &Transform, &Weapon), (With<Player>, Without<Reload>)>,
     cameras: Query<&Transform, (With<PlayerCamera>, Without<Player>)>,
     mut ev_fire: EventWriter<FireEvent>,
 ) {
-    if keys.pressed(KeyCode::Space) {
+    if keys.pressed(KeyCode::Space) || mouse.just_pressed(MouseButton::Left) {
         // The query doesn't return if the weapon is reloading (eg. if it contains the [Reload] component)
         if let Ok((player_entity, player_transform, weapon)) = player.get_single() {
             // Use the camera to manage vertical view
