@@ -1,5 +1,5 @@
 [game]
-debug = false
+debug = true
 
 [maze]
 rows = 8
@@ -14,17 +14,20 @@ sensitivity_iso  = 100.0
 [[weapons]]
 name = "Gun"
 damage = 10
-bullet_speed = 20.0
 reload_delay = 0.4
+bullet_speed = 20.0
+bullet_distance = 15.0
 
 [[weapons]]
 name = "Shotgun"
 damage = 35
-bullet_speed = 30.0
 reload_delay = 0.9
+bullet_speed = 30.0
+bullet_distance = 50.0
 
 [[weapons]]
 name = "Enemy"
 damage = 8
-bullet_speed = 12.0
 reload_delay = 2.5
+bullet_speed = 12.0
+bullet_distance = 25.0

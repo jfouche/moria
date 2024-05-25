@@ -3,7 +3,6 @@ use serde::Deserialize;
 use std::fs;
 
 // MoriaConfig
-
 #[derive(Default, Debug, Deserialize)]
 struct MoriaConfig {
     game: GameConfig,
@@ -18,7 +17,6 @@ pub struct GameConfig {
 }
 
 // MazeConfig
-
 #[derive(Debug, Deserialize, Resource)]
 pub struct MazeConfig {
     pub rows: u32,
@@ -32,7 +30,6 @@ impl Default for MazeConfig {
 }
 
 // CameraConfig
-
 #[derive(Debug, Deserialize, Resource)]
 pub struct CameraConfig {
     pub aperture_f_stops: f32,
@@ -52,20 +49,19 @@ impl Default for CameraConfig {
 }
 
 // WeaponConfig
-
 #[derive(Debug, Deserialize, Default)]
 pub struct WeaponConfig {
     pub name: String,
     pub damage: u16,
-    pub bullet_speed: f32,
     pub reload_delay: f32,
+    pub bullet_speed: f32,
+    pub bullet_distance: f32,
 }
 
 #[derive(Resource)]
 pub struct WeaponsConfig(pub Vec<WeaponConfig>);
 
 // plugin
-
 pub fn plugin(app: &mut App) {
     app.add_systems(PreStartup, load_config);
 }

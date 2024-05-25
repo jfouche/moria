@@ -74,14 +74,19 @@ pub enum FireEmitter {
 #[derive(Component, Clone)]
 pub struct Weapon {
     pub damage: u16,
-    pub bullet_speed: f32,
     /// in secs
     pub reload_delay: f32,
+    pub bullet_speed: f32,
+    pub bullet_distance: f32,
 }
 
 impl Weapon {
     pub fn fire(&self) -> FireEventBuilder<NoFrom, NoDirection> {
         FireEventBuilder::<NoFrom, NoDirection>::new(self)
+    }
+
+    fn bullet_lifetime(&self) -> LifeTime {
+        LifeTime::new(self.bullet_distance / self.bullet_speed)
     }
 }
 
@@ -90,6 +95,7 @@ impl From<&WeaponConfig> for Weapon {
         Weapon {
             damage: config.damage,
             bullet_speed: config.bullet_speed,
+            bullet_distance: config.bullet_distance,
             reload_delay: config.reload_delay,
         }
     }
@@ -173,7 +179,7 @@ impl BulletBundle {
                 damage: fire_ev.weapon.damage,
             },
             name: Name::new("BULLET"),
-            lifetime: LifeTime::new(1.0),
+            lifetime: fire_ev.weapon.bullet_lifetime(),
             emiter: fire_ev.from,
             pbr: PbrBundle {
                 transform,
