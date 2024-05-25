@@ -18,12 +18,12 @@ impl Enemy {
     const SIZE: Vec3 = Vec3::new(2.0, 2.0, 1.1);
     const SCALE: Vec3 = Vec3::splat(0.3);
 
-    pub fn center(transform: &Transform) -> Vec3 {
-        transform.translation + Vec3::new(0.0, Self::SIZE.y / 2.0, 0.0) * Self::SCALE
+    pub fn center_offset() -> Vec3 {
+        Vec3::new(0.0, Self::SIZE.y / 2.0, 0.0) * Self::SCALE
     }
 
-    pub fn weapon_offset(transform: &Transform) -> Vec3 {
-        Self::center(transform)
+    pub fn weapon_offset() -> Vec3 {
+        Self::center_offset()
     }
 }
 

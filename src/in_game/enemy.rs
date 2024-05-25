@@ -129,23 +129,31 @@ fn on_death(mut commands: Commands, mut death_events: EventReader<EnemyDeathEven
     });
 }
 
+///
+/// Ray cast from all enemies to Player
+///
+/// It stores the enemies seeing player in [EnemiesSeingPlayer]
+///
 fn cast_rays_from_enemies(
     enemies: Query<(Entity, &Transform, &Children), (With<Enemy>, Without<Reload>)>,
     enemy_colliders: Query<&Parent, With<EnemyCollider>>,
-    players: Query<(Entity, &Transform), With<Player>>,
+    players: Query<&Transform, With<Player>>,
+    player_colliders: Query<Entity, With<PlayerCollider>>,
     rapier_context: Res<RapierContext>,
     mut enemies_seeing_player: ResMut<EnemiesSeingPlayer>,
+    mut gizmos: Gizmos,
 ) {
     enemies_seeing_player.clear();
-    let (player_entity, player_transform) = players.get_single().expect("Player");
-    let player_center = Player::center(player_transform);
+    let player_transform = players.get_single().expect("Player");
+    let player_collider_entity = player_colliders.get_single().expect("PlayerCollider");
+    let player_center = player_transform.translation + Player::center_offset();
     for (enemy_entity, enemy_transform, children) in enemies.iter() {
         match children
             .iter()
             .find(|&child_entity| enemy_colliders.get(*child_entity).is_ok())
         {
             Some(enemy_collider_entity) => {
-                let ray_pos = Enemy::center(enemy_transform);
+                let ray_pos = enemy_transform.translation + Enemy::center_offset();
                 let ray_dir = player_center - ray_pos;
 
                 let max_toi = ray_dir.length();
@@ -154,11 +162,19 @@ fn cast_rays_from_enemies(
                     .exclude_sensors()
                     .exclude_collider(*enemy_collider_entity);
 
+                {
+                    // DEBUG
+                    gizmos.ray(ray_pos, ray_dir, Color::WHITE);
+                }
+
                 if let Some((entity, _toi)) =
                     rapier_context.cast_ray(ray_pos, ray_dir, max_toi, solid, filter)
                 {
-                    if entity == player_entity {
+                    if entity == player_collider_entity {
+                        debug!("{enemy_entity:?} sees player");
                         enemies_seeing_player.push(enemy_entity);
+                    } else {
+                        debug!("{enemy_entity:?} sees {entity:?}");
                     }
                 }
             }
@@ -177,8 +193,9 @@ fn enemy_fires(
     let player_transform = player.get_single().expect("Player");
     for &enemy_entity in enemies_seeing_player.iter() {
         if let Ok((enemy_transform, weapon)) = enemies.get(enemy_entity) {
-            let fire_origin = Enemy::weapon_offset(enemy_transform);
-            let fire_direction = Player::center(player_transform) - fire_origin;
+            let fire_origin = enemy_transform.translation + Enemy::weapon_offset();
+            let fire_direction =
+                player_transform.translation + Player::center_offset() - fire_origin;
 
             let event = weapon
                 .fire()
@@ -206,7 +223,7 @@ fn enemy_turns(
 
         // DEBUG
         {
-            if angle < f32::EPSILON {
+            if angle > f32::EPSILON {
                 info!("enemy_turns() {enemy_entity:?}: {angle}");
             }
 

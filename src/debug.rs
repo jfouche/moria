@@ -16,7 +16,7 @@ pub fn plugin(app: &mut App) {
         .add_systems(
             Update,
             (
-                debug_player_view.run_if(bevy::time::common_conditions::on_timer(std::time::Duration::from_secs(1))),
+                // debug_player_view.run_if(bevy::time::common_conditions::on_timer(std::time::Duration::from_secs(1))),
                 display_collision_events,
             )
             .after(InGameSet::EntityUpdate),
@@ -68,6 +68,7 @@ fn debug_player_view(transform: Query<&Transform, With<Player>>) {
     }
 }
 
+#[allow(dead_code)]
 fn show_axes(mut gizmos: Gizmos, config: Res<GameConfig>) {
     if config.debug {
         gizmos.ray(Vec3::ZERO, Vec3::new(1.0, 0.0, 0.0), Color::RED);

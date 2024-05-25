@@ -14,6 +14,7 @@ const PLAYER_SPEED: f32 = 200.0;
 pub fn plugin(app: &mut App) {
     app.add_event::<PlayerHitEvent>()
         .add_event::<PlayerDeathEvent>()
+        .add_systems(Startup, load_assets)
         // .add_systems(
         //     Startup,
         //     load_scene_assets::<PlayerAssets>("player.glb#Scene0"),
@@ -39,17 +40,32 @@ pub fn plugin(app: &mut App) {
         );
 }
 
+fn load_assets(
+    mut commands: Commands,
+    meshes: ResMut<Assets<Mesh>>,
+    materials: ResMut<Assets<StandardMaterial>>,
+) {
+    let assets = PlayerAssets::new(meshes, materials);
+    commands.insert_resource(assets);
+}
+
 fn spawn_player(
     mut commands: Commands,
-    /*assets: Res<PlayerAssets>,*/
+    assets: Res<PlayerAssets>,
     weapons: Res<Weapons>,
     level: Res<Level>,
 ) {
     info!("spawn_player()");
     let weapon = weapons.get(WeaponType::Shotgun);
-    commands.spawn(
-        PlayerBundle::new(weapon).at(level.start_position()), /*.with_assets(&assets)*/
-    );
+    commands
+        .spawn(
+            PlayerBundle::new(weapon)
+                .at(level.start_position())
+                .with_assets(&assets),
+        )
+        .with_children(|parent| {
+            parent.spawn(PlayerColliderBundle::default());
+        });
 }
 
 // https://github.com/sburris0/bevy_flycam/blob/master/src/lib.rs
@@ -82,12 +98,13 @@ fn player_fires(
     cameras: Query<&Transform, (With<PlayerCamera>, Without<Player>)>,
     mut ev_fire: EventWriter<FireEvent>,
 ) {
-    // The query doesn't return if the weapon is reloading (eg. if it contains the [Reload] component)
-    if let Ok((entity, transform, weapon)) = player.get_single() {
-        let cam_transform = cameras.get_single().expect("PlayerCamera");
-        if keys.pressed(KeyCode::Space) {
+    if keys.pressed(KeyCode::Space) {
+        // The query doesn't return if the weapon is reloading (eg. if it contains the [Reload] component)
+        if let Ok((player_entity, player_transform, weapon)) = player.get_single() {
+            // Use the camera to manage vertical view
+            let cam_transform = cameras.get_single().expect("PlayerCamera");
             let direction = cam_transform.forward();
-            let origin = Player::fire_origin(transform);
+            let origin = player_transform.translation + Player::fire_origin_offset();
             let event = weapon
                 .fire()
                 .from(origin, FireEmitter::Player)
@@ -96,7 +113,7 @@ fn player_fires(
             ev_fire.send(event);
 
             // Reload
-            commands.entity(entity).insert(Reload::from(weapon));
+            commands.entity(player_entity).insert(Reload::from(weapon));
         }
     }
 }
