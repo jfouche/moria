@@ -54,18 +54,20 @@ fn player_take_potion(
     mut events: EventReader<CollisionEvent>,
     potions: Query<&Potion>,
     potion_colliders: Query<&Parent, With<PotionCollider>>,
-    mut player: Query<(Entity, &mut Life), With<Player>>,
+    mut players: Query<&mut Life, With<Player>>,
+    player_colliders: Query<Entity, With<PlayerCollider>>,
 ) {
-    let (player_entity, mut player_life) = player.get_single_mut().expect("Player");
+    let mut player_life = players.get_single_mut().expect("Player");
+    let player_collider_entity = player_colliders.get_single().expect("PlayerCollider");
     events
         .read()
         // Only accept Starting collision
         .filter_map(start_event_filter)
-        // Filter Player / PotionCollider collision, return parent entity, ie. Potion
+        // Filter PlayerCollider / PotionCollider collision, return parent entity, ie. Potion
         .filter_map(|(&e1, &e2)| {
-            if e1 == player_entity {
+            if e1 == player_collider_entity {
                 potion_colliders.get(e2).map(|parent| parent.get()).ok()
-            } else if e2 == player_entity {
+            } else if e2 == player_collider_entity {
                 potion_colliders.get(e1).map(|parent| parent.get()).ok()
             } else {
                 None
