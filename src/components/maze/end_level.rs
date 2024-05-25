@@ -10,14 +10,14 @@ pub struct EndLevelAssets {
 
 impl EndLevelAssets {
     pub const RADIUS: f32 = Wall::WIDTH / 4.0;
-    pub const HEIGHT: f32 = Wall::HEIGHT / 8.0;
+    pub const HEIGHT: f32 = Wall::HEIGHT / 3.0;
 
     pub fn load(
         mut meshes: ResMut<Assets<Mesh>>,
         mut materials: ResMut<Assets<StandardMaterial>>,
     ) -> Self {
         EndLevelAssets {
-            mesh: meshes.add(Cylinder::new(Self::RADIUS / 2.0, Self::HEIGHT / 2.0)),
+            mesh: meshes.add(Cylinder::new(Self::RADIUS, Self::HEIGHT)),
             material: materials.add(Color::rgba(0.0, 0.0, 0.8, 0.5)),
         }
     }

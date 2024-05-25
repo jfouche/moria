@@ -39,17 +39,17 @@ fn spawn_end_level(mut commands: Commands, level: Res<Level>, assets: Res<EndLev
 fn player_ends_level(
     mut events: EventReader<CollisionEvent>,
     end_level: Query<Entity, With<EndLevel>>,
-    player: Query<Entity, With<Player>>,
+    player: Query<Entity, With<PlayerCollider>>,
     mut in_game_next_state: ResMut<NextState<InGameState>>,
 ) {
-    let player_entity = player.get_single().expect("Player");
+    let player_collider_entity = player.get_single().expect("PlayerCollider");
     let end_level_entity = end_level.get_single().expect("EndLevel");
     events
         .read()
         .filter_map(start_event_filter)
         .filter(|(&e1, &e2)| {
-            (e1 == player_entity && e2 == end_level_entity)
-                || (e2 == player_entity && e1 == end_level_entity)
+            (e1 == player_collider_entity && e2 == end_level_entity)
+                || (e2 == player_collider_entity && e1 == end_level_entity)
         })
         .for_each(|(_, _)| {
             in_game_next_state.set(InGameState::PlayerFinished);
