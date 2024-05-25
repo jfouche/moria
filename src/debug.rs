@@ -9,7 +9,7 @@ use bevy_rapier3d::prelude::*;
 pub fn plugin(app: &mut App) {
     app.add_systems(Startup, apply_config)
         .add_plugins((
-            WorldInspectorPlugin::new(),
+            WorldInspectorPlugin::new().run_if(is_debug_enabled),
             RapierDebugRenderPlugin::default().disabled(),
         ))
         .add_systems(Update, toggle_grab.in_set(InGameSet::UserInput))
@@ -30,6 +30,10 @@ pub fn plugin(app: &mut App) {
         .add_systems(OnExit(InGameState::Pause), display_states)
         // END
         ;
+}
+
+fn is_debug_enabled(config: Res<GameConfig>) -> bool {
+    config.debug
 }
 
 fn apply_config(config: Res<GameConfig>, mut rapier: ResMut<DebugRenderContext>) {

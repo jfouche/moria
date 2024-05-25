@@ -9,31 +9,32 @@ pub struct EndLevelAssets {
 }
 
 impl EndLevelAssets {
-    pub const RADIUS: f32 = Wall::WIDTH / 4.0;
-    pub const HEIGHT: f32 = Wall::HEIGHT / 3.0;
-
-    pub fn load(
+    pub fn new(
         mut meshes: ResMut<Assets<Mesh>>,
         mut materials: ResMut<Assets<StandardMaterial>>,
     ) -> Self {
-        EndLevelAssets {
-            mesh: meshes.add(Cylinder::new(Self::RADIUS, Self::HEIGHT)),
-            material: materials.add(Color::rgba(0.0, 0.0, 0.8, 0.5)),
-        }
+        let mesh = meshes.add(Cylinder::new(EndLevel::RADIUS, EndLevel::HEIGHT));
+        let material = materials.add(Color::rgba(0.0, 0.0, 0.8, 0.3));
+        EndLevelAssets { mesh, material }
     }
 }
 
 #[derive(Component)]
 pub struct EndLevel;
 
+impl EndLevel {
+    const RADIUS: f32 = Wall::WIDTH / 4.0;
+    const HEIGHT: f32 = Wall::HEIGHT / 3.0;
+}
+
+///
+/// EndLevel Bundle
+///
 #[derive(Bundle)]
 pub struct EndLevelBundle {
     tag: EndLevel,
     name: Name,
     pbr: PbrBundle,
-    collider: Collider,
-    sensor: Sensor,
-    collider_events: ActiveEvents,
 }
 
 impl EndLevelBundle {
@@ -42,17 +43,12 @@ impl EndLevelBundle {
             tag: EndLevel,
             name: Name::new("EndLevel"),
             pbr: PbrBundle::default(),
-            collider: Collider::cylinder(
-                EndLevelAssets::HEIGHT / 2.0,
-                EndLevelAssets::RADIUS / 2.0,
-            ),
-            sensor: Sensor,
-            collider_events: ActiveEvents::COLLISION_EVENTS,
         }
     }
 
     pub fn at(mut self, pos: Position) -> Self {
-        self.pbr.transform = Transform::from_translation(pos.to_world().translation());
+        self.pbr.transform =
+            Transform::from_translation(pos.to_world().translation_with_y(EndLevel::HEIGHT / 2.0));
         self
     }
 
@@ -60,5 +56,34 @@ impl EndLevelBundle {
         self.pbr.mesh = assets.mesh.clone();
         self.pbr.material = assets.material.clone();
         self
+    }
+}
+
+#[derive(Component)]
+pub struct EndLevelCollider;
+
+///
+///
+///
+#[derive(Bundle)]
+pub struct EndLevelColliderBundle {
+    tag: EndLevelCollider,
+    name: Name,
+    transform: TransformBundle,
+    collider: Collider,
+    sensor: Sensor,
+    collider_events: ActiveEvents,
+}
+
+impl Default for EndLevelColliderBundle {
+    fn default() -> Self {
+        EndLevelColliderBundle {
+            tag: EndLevelCollider,
+            name: Name::new("EndLevelCollider"),
+            transform: TransformBundle::default(),
+            collider: Collider::cylinder(EndLevel::HEIGHT / 2.0, EndLevel::RADIUS / 8.0),
+            sensor: Sensor,
+            collider_events: ActiveEvents::COLLISION_EVENTS,
+        }
     }
 }

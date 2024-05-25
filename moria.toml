@@ -1,5 +1,5 @@
 [game]
-debug = true
+debug = false
 
 [maze]
 rows = 8
