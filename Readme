@@ -21,3 +21,14 @@ ex : PowerShell
 ```powershell
 $Env:RUST_LOG = "wgpu=error,naga=warn,moria=debug"
 ```
+
+# Profiling
+```shell
+cargo run --release --features "bevy/trace_chrome bevy/trace"
+```
+Open the `trace-*.json` file with https://ui.perfetto.dev/
+
+# dynamic linking
+```shell
+cargo run --features bevy/dynamic_linking
+```
