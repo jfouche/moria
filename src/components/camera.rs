@@ -33,27 +33,37 @@ pub struct InputState {
     pub reader_motion: ManualEventReader<MouseMotion>,
 }
 
-/// Current View rotation
+/// Current camera view rotation and mouse motion events
 #[derive(Resource, Default)]
-pub struct ViewRotation {
+pub struct CameraView {
     rotation: Quat,
+    yaw: f32,
+    pitch: f32,
 }
 
-impl ViewRotation {
-    pub fn init(&mut self, rotation: Quat) {
+impl CameraView {
+    pub fn init_rotation(&mut self, rotation: Quat) {
         self.rotation = rotation;
+        self.update_yaw_and_pitch();
     }
 
-    /// `yaw`: Left / Right
-    ///
-    /// `pitch`: Up / Down
-    pub fn yaw_and_pitch(&self) -> (f32, f32) {
-        let (yaw, pitch, _) = self.rotation.to_euler(EulerRot::YXZ);
-        (yaw, pitch)
+    fn update_yaw_and_pitch(&mut self) {
+        (self.yaw, self.pitch, _) = self.rotation.to_euler(EulerRot::YXZ);
+    }
+
+    /// `yaw`: Left / Right rotation
+    pub fn yaw(&self) -> f32 {
+        self.yaw
+    }
+
+    /// `pitch`: Up / Down rotation
+    pub fn pitch(&self) -> f32 {
+        self.pitch
     }
 
     pub fn rotate(&mut self, yaw: f32, pitch: f32) {
         let pitch = pitch.clamp(-1.54, 1.54);
         self.rotation = Quat::from_axis_angle(Vec3::Y, yaw) * Quat::from_axis_angle(Vec3::X, pitch);
+        self.update_yaw_and_pitch();
     }
 }

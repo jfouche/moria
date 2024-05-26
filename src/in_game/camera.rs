@@ -18,7 +18,7 @@ const CAMERA_SPEED: f32 = 8.0;
 pub fn plugin(app: &mut App) {
     app.init_state::<CameraState>()
         .init_resource::<InputState>()
-        .init_resource::<ViewRotation>()
+        .init_resource::<CameraView>()
         .add_systems(PreStartup, spawn_camera)
         .add_systems(Startup, load_config)
         .add_systems(
@@ -71,14 +71,10 @@ fn change_camera(
     }
 }
 
-fn rotate_player(
-    mut players: Query<&mut Transform, With<Player>>,
-    view_rotation: Res<ViewRotation>,
-) {
+fn rotate_player(mut players: Query<&mut Transform, With<Player>>, camera_view: Res<CameraView>) {
     let mut player_transform = players.get_single_mut().expect("Player");
-    let (yaw, _pitch) = view_rotation.yaw_and_pitch();
+    let yaw = camera_view.yaw();
     let target_dir = HorizontalVec::from_angle(yaw);
-    info!("{target_dir:?} from angle {yaw}");
     let delta_angle = PI - player_transform.signed_angle_with(target_dir);
     player_transform.rotate_y(-delta_angle);
 }
@@ -96,19 +92,19 @@ fn camera_follows_player(
 
 fn update_camera_yaw(
     mut cameras: Query<&mut Transform, (With<PlayerCamera>, Without<Player>)>,
-    view_rotation: Res<ViewRotation>,
+    camera_view: Res<CameraView>,
 ) {
     let mut cam_transform = cameras.get_single_mut().expect("PlayerCamera");
-    let (yaw, _pitch) = view_rotation.yaw_and_pitch();
+    let yaw = camera_view.yaw();
     cam_transform.rotation = Quat::from_axis_angle(Vec3::Y, yaw);
 }
 
 fn update_camera_pitch(
     mut cameras: Query<&mut Transform, (With<PlayerCamera>, Without<Player>)>,
-    view_rotation: Res<ViewRotation>,
+    camera_view: Res<CameraView>,
 ) {
     let mut cam_transform = cameras.get_single_mut().expect("PlayerCamera");
-    let (_yaw, pitch) = view_rotation.yaw_and_pitch();
+    let pitch = camera_view.pitch();
     cam_transform.rotation *= Quat::from_axis_angle(Vec3::X, pitch);
 }
 
@@ -116,7 +112,7 @@ fn update_camera_pitch(
 fn handle_player_look(
     primary_window: Query<&Window, With<PrimaryWindow>>,
     mut state: ResMut<InputState>,
-    mut view_rotation: ResMut<ViewRotation>,
+    mut camera_view: ResMut<CameraView>,
     motion: Res<Events<MouseMotion>>,
     cameras: Query<&Transform, (With<PlayerCamera>, Without<Player>)>,
 ) {
@@ -127,14 +123,14 @@ fn handle_player_look(
     let window_scale = window.height().min(window.width());
 
     let camera_transform = cameras.get_single().expect("PlayerCamera");
-    view_rotation.init(camera_transform.rotation);
+    camera_view.init_rotation(camera_transform.rotation);
 
     for ev in state.reader_motion.read(&motion) {
-        let (mut yaw, mut pitch) = view_rotation.yaw_and_pitch();
+        let (mut yaw, mut pitch) = (camera_view.yaw(), camera_view.pitch());
         // Using smallest of height or width ensures equal vertical and horizontal sensitivity
         pitch -= (MOUSE_SENSITIVITY * ev.delta.y * window_scale).to_radians();
         yaw -= (MOUSE_SENSITIVITY * ev.delta.x * window_scale).to_radians();
-        view_rotation.rotate(yaw, pitch);
+        camera_view.rotate(yaw, pitch);
     }
 }
 
