@@ -1,5 +1,4 @@
-use bevy::prelude::*;
-use bevy_rapier3d::prelude::*;
+use bevy::{ecs::event::ManualEventReader, input::mouse::MouseMotion, prelude::*};
 
 #[derive(Component)]
 pub struct PlayerCamera;
@@ -16,8 +15,6 @@ pub struct PlayerCameraBundle {
     tag: PlayerCamera,
     name: Name,
     camera: Camera3dBundle,
-    body: RigidBody,
-    velocity: Velocity,
 }
 
 impl Default for PlayerCameraBundle {
@@ -26,8 +23,37 @@ impl Default for PlayerCameraBundle {
             tag: PlayerCamera,
             name: Name::new("PlayerCamera"),
             camera: Camera3dBundle::default(),
-            body: RigidBody::Dynamic, // TODO: remove use of rapier
-            velocity: Velocity::zero(),
         }
+    }
+}
+
+/// Keeps track of mouse motion events
+#[derive(Resource, Default)]
+pub struct InputState {
+    pub reader_motion: ManualEventReader<MouseMotion>,
+}
+
+/// Current View rotation
+#[derive(Resource, Default)]
+pub struct ViewRotation {
+    rotation: Quat,
+}
+
+impl ViewRotation {
+    pub fn init(&mut self, rotation: Quat) {
+        self.rotation = rotation;
+    }
+
+    /// `yaw`: Left / Right
+    ///
+    /// `pitch`: Up / Down
+    pub fn yaw_and_pitch(&self) -> (f32, f32) {
+        let (yaw, pitch, _) = self.rotation.to_euler(EulerRot::YXZ);
+        (yaw, pitch)
+    }
+
+    pub fn rotate(&mut self, yaw: f32, pitch: f32) {
+        let pitch = pitch.clamp(-1.54, 1.54);
+        self.rotation = Quat::from_axis_angle(Vec3::Y, yaw) * Quat::from_axis_angle(Vec3::X, pitch);
     }
 }

@@ -5,48 +5,15 @@ use crate::{
     schedule::InGameSet,
 };
 use bevy::{
-    ecs::event::ManualEventReader,
     input::mouse::MouseMotion,
     prelude::*,
     render::camera::*,
     window::{CursorGrabMode, PrimaryWindow},
 };
-use bevy_rapier3d::prelude::*;
 use std::f32::consts::PI;
 
 const MOUSE_SENSITIVITY: f32 = 0.00012;
-const CAMERA_SPEED: f32 = 500.0;
-
-/// Keeps track of mouse motion events
-#[derive(Resource, Default)]
-struct InputState {
-    reader_motion: ManualEventReader<MouseMotion>,
-}
-
-/// Current View rotation
-#[derive(Resource, Default)]
-struct ViewRotation {
-    rotation: Quat,
-}
-
-impl ViewRotation {
-    fn init(&mut self, rotation: Quat) {
-        self.rotation = rotation;
-    }
-
-    /// `yaw`: Left / Right
-    ///
-    /// `pitch`: Up / Down
-    fn yaw_and_pitch(&self) -> (f32, f32) {
-        let (yaw, pitch, _) = self.rotation.to_euler(EulerRot::YXZ);
-        (yaw, pitch)
-    }
-
-    fn rotate(&mut self, pitch: f32, yaw: f32) {
-        let pitch = pitch.clamp(-1.54, 1.54);
-        self.rotation = Quat::from_axis_angle(Vec3::Y, yaw) * Quat::from_axis_angle(Vec3::X, pitch);
-    }
-}
+const CAMERA_SPEED: f32 = 8.0;
 
 pub fn plugin(app: &mut App) {
     app.init_state::<CameraState>()
@@ -105,25 +72,15 @@ fn change_camera(
 }
 
 fn rotate_player(
-    // TODO: use Velocity
-    // mut players: Query<(&Transform, &mut Velocity), With<Player>>,
     mut players: Query<&mut Transform, With<Player>>,
     view_rotation: Res<ViewRotation>,
 ) {
-    // let (player_transform, mut player_velocity) = players.get_single_mut().expect("Player");
     let mut player_transform = players.get_single_mut().expect("Player");
     let (yaw, _pitch) = view_rotation.yaw_and_pitch();
     let target_dir = HorizontalVec::from_angle(yaw);
+    info!("{target_dir:?} from angle {yaw}");
     let delta_angle = PI - player_transform.signed_angle_with(target_dir);
     player_transform.rotate_y(-delta_angle);
-    // let angvel = if delta_angle < f32::EPSILON {
-    //     Vec3::ZERO
-    // } else if delta_angle > 0.0 {
-    //     Vec3::NEG_Y
-    // } else {
-    //     Vec3::Y
-    // };
-    // player_velocity.angvel = angvel;
 }
 
 fn camera_follows_player(
@@ -177,17 +134,17 @@ fn handle_player_look(
         // Using smallest of height or width ensures equal vertical and horizontal sensitivity
         pitch -= (MOUSE_SENSITIVITY * ev.delta.y * window_scale).to_radians();
         yaw -= (MOUSE_SENSITIVITY * ev.delta.x * window_scale).to_radians();
-        view_rotation.rotate(pitch, yaw);
+        view_rotation.rotate(yaw, pitch);
     }
 }
 
 /// Handle camera movements, using WASD (or ZQSD in FR)
 fn handle_camera_moves(
-    mut cameras: Query<(&Transform, &mut Velocity), With<PlayerCamera>>,
+    mut cameras: Query<&mut Transform, With<PlayerCamera>>,
     keys: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
 ) {
-    let (transform, mut velocity) = cameras.get_single_mut().expect("PlayerCamera");
+    let mut transform = cameras.get_single_mut().expect("PlayerCamera");
     let forward = *transform.forward();
     let right = *transform.right();
     let mut delta = Vec3::ZERO;
@@ -201,5 +158,5 @@ fn handle_camera_moves(
         }
     }
     delta = delta.normalize_or_zero();
-    velocity.linvel = delta * time.delta_seconds() * CAMERA_SPEED;
+    transform.translation += delta * time.delta_seconds() * CAMERA_SPEED;
 }
