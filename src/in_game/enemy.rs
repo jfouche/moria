@@ -215,7 +215,7 @@ fn enemy_turns(
     enemies_seeing_player: Res<EnemiesSeingPlayer>,
     mut enemies: Query<&mut Transform, With<Enemy>>,
     player: Query<&Transform, (With<Player>, Without<Enemy>)>,
-    mut gizmos: Gizmos,
+    #[cfg(debug_assertions)] mut gizmos: Gizmos,
 ) {
     let player_transform = player.get_single().expect("Player");
     for &enemy_entity in enemies_seeing_player.iter() {
