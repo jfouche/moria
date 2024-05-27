@@ -1,6 +1,7 @@
 mod asset_loader;
 mod camera;
 mod character;
+mod config;
 mod enemy;
 mod hud;
 mod item;
@@ -14,6 +15,7 @@ mod weapon;
 pub use asset_loader::*;
 pub use camera::*;
 pub use character::*;
+pub use config::*;
 pub use enemy::*;
 pub use hud::*;
 pub use item::*;

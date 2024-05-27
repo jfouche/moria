@@ -7,6 +7,12 @@ pub struct Hud;
 pub struct HudCompass;
 
 #[derive(Component)]
+pub struct HudLevel;
+
+#[derive(Component)]
+pub struct HudLevelText;
+
+#[derive(Component)]
 pub struct HudFps;
 
 #[derive(Component)]

@@ -1,6 +1,5 @@
 use crate::{
     components::*,
-    config::*,
     math::{HorizontalVec, IntoHorizontalVec, SignedAngle},
     schedule::InGameSet,
 };

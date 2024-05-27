@@ -1,5 +1,4 @@
 use super::*;
-use crate::config::WeaponConfig;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 use std::{collections::HashMap, f32::consts::FRAC_PI_2};

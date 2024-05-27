@@ -1,4 +1,4 @@
-use crate::{components::*, config::WeaponsConfig, schedule::InGameSet};
+use crate::{components::*, schedule::InGameSet};
 use bevy::prelude::*;
 
 #[derive(Resource)]
@@ -36,7 +36,7 @@ fn load_assets(
 
 fn load_weapons(mut commands: Commands, config: Res<WeaponsConfig>) {
     let mut weapons = Weapons::new();
-    for conf in config.0.iter() {
+    for conf in config.iter() {
         if let Ok(weapon_type) = WeaponType::try_from(conf.name.as_str()) {
             weapons.insert(weapon_type, conf.into());
         } else {

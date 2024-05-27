@@ -1,4 +1,4 @@
-use crate::{components::*, config::GameConfig, cursor::*, math::Angle, schedule::InGameSet};
+use crate::{components::*, cursor::*, math::Angle, schedule::InGameSet};
 use bevy::{
     prelude::*,
     window::{CursorGrabMode, PrimaryWindow},

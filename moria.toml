@@ -1,15 +1,10 @@
 [game]
-debug = true
-
-[maze]
-rows = 8
-cols = 5
+debug = false
 
 [camera]
 aperture_f_stops = 8.0
 shutter_speed_s  = 0.008
 sensitivity_iso  = 100.0
-
 
 [[weapons]]
 name = "Gun"
@@ -31,3 +26,11 @@ damage = 8
 reload_delay = 2.5
 bullet_speed = 12.0
 bullet_distance = 25.0
+
+[[levels]]
+rows = 10
+cols = 8
+enemy_density = 0.10 # percent
+item_density = 0.02 # percent
+
+

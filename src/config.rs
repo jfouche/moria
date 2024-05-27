@@ -1,4 +1,5 @@
-use bevy::{prelude::*, render::camera::PhysicalCameraParameters};
+use crate::components::*;
+use bevy::prelude::*;
 use serde::Deserialize;
 use std::fs;
 
@@ -6,60 +7,10 @@ use std::fs;
 #[derive(Default, Debug, Deserialize)]
 struct MoriaConfig {
     game: GameConfig,
-    maze: MazeConfig,
     camera: CameraConfig,
     weapons: Vec<WeaponConfig>,
+    levels: Vec<LevelConfig>,
 }
-
-#[derive(Default, Debug, Deserialize, Resource)]
-pub struct GameConfig {
-    pub debug: bool,
-}
-
-// MazeConfig
-#[derive(Debug, Deserialize, Resource)]
-pub struct MazeConfig {
-    pub rows: u32,
-    pub cols: u32,
-}
-
-impl Default for MazeConfig {
-    fn default() -> Self {
-        Self { rows: 5, cols: 5 }
-    }
-}
-
-// CameraConfig
-#[derive(Debug, Deserialize, Resource)]
-pub struct CameraConfig {
-    pub aperture_f_stops: f32,
-    pub shutter_speed_s: f32,
-    pub sensitivity_iso: f32,
-}
-
-impl Default for CameraConfig {
-    fn default() -> Self {
-        let default = PhysicalCameraParameters::default();
-        CameraConfig {
-            aperture_f_stops: default.aperture_f_stops,
-            shutter_speed_s: default.shutter_speed_s,
-            sensitivity_iso: default.sensitivity_iso,
-        }
-    }
-}
-
-// WeaponConfig
-#[derive(Debug, Deserialize, Default)]
-pub struct WeaponConfig {
-    pub name: String,
-    pub damage: u16,
-    pub reload_delay: f32,
-    pub bullet_speed: f32,
-    pub bullet_distance: f32,
-}
-
-#[derive(Resource)]
-pub struct WeaponsConfig(pub Vec<WeaponConfig>);
 
 // plugin
 pub fn plugin(app: &mut App) {
@@ -71,9 +22,9 @@ fn load_config(mut commands: Commands) {
         Ok(content) => match toml::from_str::<MoriaConfig>(&content) {
             Ok(config) => {
                 commands.insert_resource(config.game);
-                commands.insert_resource(config.maze);
                 commands.insert_resource(config.camera);
-                commands.insert_resource(WeaponsConfig(config.weapons));
+                commands.insert_resource(WeaponsConfig::new(config.weapons));
+                commands.insert_resource(LevelsConfig::new(config.levels));
             }
             Err(e) => error!("Can't load config from file : {e:?}"),
         },

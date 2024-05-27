@@ -9,7 +9,7 @@ pub fn plugin(app: &mut App) {
         .add_systems(Startup, load_assets)
         .add_systems(
             OnEnter(GameState::InGame),
-            (spawn_fps, spawn_compass, spawn_aim, spawn_life),
+            (spawn_fps, spawn_compass, spawn_level, spawn_aim, spawn_life),
         )
         .add_systems(OnExit(GameState::InGame), (despawn_all::<Hud>,))
         .add_systems(
@@ -30,7 +30,7 @@ pub fn plugin(app: &mut App) {
         )
         .add_systems(
             Update,
-            (update_fps, update_compass, update_life).in_set(InGameSet::EntityUpdate),
+            (update_fps, update_compass, update_life, update_level).in_set(InGameSet::EntityUpdate),
         );
 }
 
@@ -106,6 +106,42 @@ fn spawn_aim(mut commands: Commands, assets: Res<HudAssets>) {
         });
 }
 
+fn spawn_level(mut commands: Commands, assets: Res<HudAssets>) {
+    commands
+        .spawn((
+            Name::new("HudLevel"),
+            Hud,
+            HudLevel,
+            NodeBundle {
+                style: Style {
+                    position_type: PositionType::Absolute,
+                    top: Val::Px(0.0),
+                    right: Val::Px(120.0),
+                    width: Val::Px(90.0),
+                    height: Val::Px(30.),
+                    ..centered_style()
+                },
+                background_color: Color::rgba(0.8, 0.8, 0.8, 0.3).into(),
+                ..Default::default()
+            },
+        ))
+        .with_children(|cmds| {
+            const FONT_SIZE: f32 = 15.0;
+            let text_style = TextStyle {
+                font: assets.font.clone(),
+                font_size: FONT_SIZE,
+                ..default()
+            };
+            cmds.spawn((
+                HudLevelText,
+                TextBundle::from_sections([
+                    TextSection::new("Level: ", text_style.clone()),
+                    TextSection::from_style(text_style),
+                ]),
+            ));
+        });
+}
+
 fn spawn_life(mut commands: Commands) {
     commands.spawn((
         HudLife,
@@ -136,6 +172,11 @@ fn update_fps(diagnostics: Res<DiagnosticsStore>, mut query: Query<&mut Text, Wi
                 text.sections[1].value = format!("{value:.1}");
             }
         }
+    }
+}
+fn update_level(current_level: Res<CurrentLevel>, mut query: Query<&mut Text, With<HudLevelText>>) {
+    for mut text in &mut query {
+        text.sections[1].value = format!("{}", **current_level);
     }
 }
 
