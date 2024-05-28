@@ -15,9 +15,10 @@ fn change_display(
     mut windows: Query<&mut Window, With<PrimaryWindow>>,
     settings: Res<DisplaySettings>,
 ) {
-    let mut window = windows.get_single_mut().expect("PrimaryWindow");
-    if settings.is_changed() {
-        window.mode = (*settings).into();
+    if let Ok(mut window) = windows.get_single_mut() {
+        if settings.is_changed() {
+            window.mode = (*settings).into();
+        }
     }
 }
 

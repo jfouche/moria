@@ -115,21 +115,22 @@ fn handle_player_look(
     motion: Res<Events<MouseMotion>>,
     cameras: Query<&Transform, (With<PlayerCamera>, Without<Player>)>,
 ) {
-    let window = primary_window.get_single().expect("PrimaryWindow");
-    if window.cursor.grab_mode == CursorGrabMode::None {
-        return;
-    }
-    let window_scale = window.height().min(window.width());
+    if let Ok(window) = primary_window.get_single() {
+        if window.cursor.grab_mode == CursorGrabMode::None {
+            return;
+        }
+        let window_scale = window.height().min(window.width());
 
-    let camera_transform = cameras.get_single().expect("PlayerCamera");
-    camera_view.init_rotation(camera_transform.rotation);
+        let camera_transform = cameras.get_single().expect("PlayerCamera");
+        camera_view.init_rotation(camera_transform.rotation);
 
-    for ev in state.reader_motion.read(&motion) {
-        let (mut yaw, mut pitch) = (camera_view.yaw(), camera_view.pitch());
-        // Using smallest of height or width ensures equal vertical and horizontal sensitivity
-        pitch -= (MOUSE_SENSITIVITY * ev.delta.y * window_scale).to_radians();
-        yaw -= (MOUSE_SENSITIVITY * ev.delta.x * window_scale).to_radians();
-        camera_view.rotate(yaw, pitch);
+        for ev in state.reader_motion.read(&motion) {
+            let (mut yaw, mut pitch) = (camera_view.yaw(), camera_view.pitch());
+            // Using smallest of height or width ensures equal vertical and horizontal sensitivity
+            pitch -= (MOUSE_SENSITIVITY * ev.delta.y * window_scale).to_radians();
+            yaw -= (MOUSE_SENSITIVITY * ev.delta.x * window_scale).to_radians();
+            camera_view.rotate(yaw, pitch);
+        }
     }
 }
 

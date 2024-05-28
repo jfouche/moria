@@ -44,14 +44,15 @@ fn toggle_grab(
     mut primary_window: Query<&mut Window, With<PrimaryWindow>>,
     keys: Res<ButtonInput<KeyCode>>,
 ) {
-    let window = primary_window.get_single_mut().expect("PrimaryWindow");
-    if keys.just_pressed(KeyCode::KeyG) {
-        match window.cursor.grab_mode {
-            CursorGrabMode::None => {
-                set_grab_cursor(window, true);
-            }
-            _ => {
-                set_grab_cursor(window, false);
+    if let Ok(window) = primary_window.get_single_mut() {
+        if keys.just_pressed(KeyCode::KeyG) {
+            match window.cursor.grab_mode {
+                CursorGrabMode::None => {
+                    set_grab_cursor(window, true);
+                }
+                _ => {
+                    set_grab_cursor(window, false);
+                }
             }
         }
     }
