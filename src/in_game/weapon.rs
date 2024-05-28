@@ -1,12 +1,5 @@
 use crate::{components::*, schedule::InGameSet};
-use bevy::{audio::Volume, prelude::*};
-
-#[derive(Resource)]
-struct WeaponAssets {
-    mesh: Handle<Mesh>,
-    material: Handle<StandardMaterial>,
-    sound: Handle<AudioSource>,
-}
+use bevy::prelude::*;
 
 pub fn plugin(app: &mut App) {
     app.add_event::<FireEvent>()
@@ -20,17 +13,10 @@ pub fn plugin(app: &mut App) {
 fn load_assets(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    meshes: ResMut<Assets<Mesh>>,
+    materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let mesh = meshes.add(Cylinder::new(Bullet::RADIUS, Bullet::LENGTH));
-    let material = materials.add(Color::ORANGE);
-    let sound = asset_server.load("audio/556-Single-Isolated.ogg");
-    let assets = WeaponAssets {
-        mesh,
-        material,
-        sound,
-    };
+    let assets = WeaponAssets::load(&asset_server, meshes, materials);
     commands.insert_resource(assets);
 }
 
@@ -42,20 +28,11 @@ fn spawn_bullet(
 ) {
     for fire_ev in events.read() {
         info!("spawn_bullet from {:?}", fire_ev.from);
-        let mesh = assets.mesh.clone();
-        let material = assets.material.clone();
-        commands.spawn(BulletBundle::new(fire_ev).with_pbr(mesh, material));
+        commands.spawn(BulletBundle::new(fire_ev).with_assets(&assets));
 
         // spawn the audio in a different entity to be sure it doesn't stop
         // when the bullet is despawn to early
-        let volume = Volume::new(sound_volume.db());
-        commands.spawn((
-            Name::new("Bullet sound"),
-            AudioBundle {
-                source: assets.sound.clone(),
-                settings: PlaybackSettings::DESPAWN.with_volume(volume),
-            },
-        ));
+        commands.spawn(BulletSoundBundle::new(&assets, &sound_volume));
     }
 }
 

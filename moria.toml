@@ -1,5 +1,5 @@
 [game]
-debug = false
+debug = true
 
 [camera]
 aperture_f_stops = 8.0

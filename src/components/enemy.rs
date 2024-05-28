@@ -68,8 +68,6 @@ pub struct EnemyColliderBundle {
     name: Name,
     collider: Collider,
     transform: TransformBundle,
-    sensor: Sensor,
-    collider_events: ActiveEvents,
     collision_groups: CollisionGroups,
 }
 
@@ -80,8 +78,6 @@ impl EnemyColliderBundle {
             name: Name::new("EnemyCollider"),
             transform: transform.into(),
             collider,
-            sensor: Sensor,
-            collider_events: ActiveEvents::COLLISION_EVENTS,
             collision_groups: CollisionGroups::new(COLLISION_GROUP_ENEMY, Group::all()),
         }
     }

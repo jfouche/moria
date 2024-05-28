@@ -1,7 +1,64 @@
 use super::*;
-use bevy::prelude::*;
+use bevy::{audio::Volume, prelude::*};
 use bevy_rapier3d::prelude::*;
 use std::{collections::HashMap, f32::consts::FRAC_PI_2};
+
+/// WeaponAssets
+#[derive(Resource)]
+pub struct WeaponAssets {
+    bullet_mesh: Handle<Mesh>,
+    bullet_material: Handle<StandardMaterial>,
+    bullet_sound: Handle<AudioSource>,
+}
+
+impl WeaponAssets {
+    pub fn load(
+        asset_server: &AssetServer,
+        mut meshes: ResMut<Assets<Mesh>>,
+        mut materials: ResMut<Assets<StandardMaterial>>,
+    ) -> Self {
+        let bullet_mesh = meshes.add(Cylinder::new(Bullet::RADIUS, Bullet::LENGTH));
+        let bullet_material = materials.add(Color::ORANGE);
+        let bullet_sound = asset_server.load("audio/556-Single-Isolated.ogg");
+        WeaponAssets {
+            bullet_mesh,
+            bullet_material,
+            bullet_sound,
+        }
+    }
+
+    pub fn bullet_mesh(&self) -> Handle<Mesh> {
+        self.bullet_mesh.clone()
+    }
+
+    pub fn bullet_material(&self) -> Handle<StandardMaterial> {
+        self.bullet_material.clone()
+    }
+
+    pub fn bullet_sound(&self) -> Handle<AudioSource> {
+        self.bullet_sound.clone()
+    }
+}
+
+/// BulletSoundBundle
+#[derive(Bundle)]
+pub struct BulletSoundBundle {
+    name: Name,
+    audio: AudioBundle,
+}
+
+impl BulletSoundBundle {
+    pub fn new(assets: &WeaponAssets, sound_volume: &SoundVolume) -> Self {
+        let volume = Volume::new(sound_volume.db());
+        BulletSoundBundle {
+            name: Name::new("Bullet sound"),
+            audio: AudioBundle {
+                source: assets.bullet_sound(),
+                settings: PlaybackSettings::DESPAWN.with_volume(volume),
+            },
+        }
+    }
+}
 
 /// FireEvent
 #[derive(Event)]
@@ -96,6 +153,7 @@ impl FireEventBuilder<WithFrom, WithDirection> {
     }
 }
 
+/// Fire emiter
 #[derive(Component, Clone, Copy, Debug, PartialEq)]
 pub enum FireEmitter {
     Player,
@@ -221,9 +279,9 @@ impl BulletBundle {
         }
     }
 
-    pub fn with_pbr(mut self, mesh: Handle<Mesh>, material: Handle<StandardMaterial>) -> Self {
-        self.pbr.mesh = mesh;
-        self.pbr.material = material;
+    pub fn with_assets(mut self, assets: &WeaponAssets) -> Self {
+        self.pbr.mesh = assets.bullet_mesh();
+        self.pbr.material = assets.bullet_material();
         self
     }
 }
