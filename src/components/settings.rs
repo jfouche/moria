@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::{fs, io::ErrorKind, ops::RangeInclusive, path::PathBuf};
 
 /// Audio volume
-#[derive(Resource, Debug, Component, PartialEq, Eq, Clone, Copy, Deserialize, Serialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Deserialize, Serialize, Deref)]
 pub struct AudioVolume(pub u8);
 
 impl AudioVolume {
@@ -21,6 +21,25 @@ impl AudioVolume {
     }
 }
 
+/// Music volume
+#[derive(Resource, Debug, Component, PartialEq, Eq, Clone, Copy, Deserialize, Serialize, Deref)]
+pub struct MusicVolume(pub AudioVolume);
+
+impl PartialEq<u8> for MusicVolume {
+    fn eq(&self, other: &u8) -> bool {
+        &***self == other
+    }
+}
+
+/// Sound volume (like bullet for ex)
+#[derive(Resource, Debug, Component, PartialEq, Eq, Clone, Copy, Deserialize, Serialize, Deref)]
+pub struct SoundVolume(pub AudioVolume);
+
+impl PartialEq<u8> for SoundVolume {
+    fn eq(&self, other: &u8) -> bool {
+        &***self == other
+    }
+}
 /// Display setting
 #[derive(Resource, Debug, Component, Clone, Copy, PartialEq, Deserialize, Serialize)]
 pub enum DisplaySettings {
@@ -83,7 +102,8 @@ impl From<ExposureSettings> for bevy::render::camera::PhysicalCameraParameters {
 
 #[derive(Deserialize, Serialize)]
 struct Settings {
-    audio: AudioVolume,
+    music_volume: AudioVolume,
+    sound_volume: AudioVolume,
     display: DisplaySettings,
     exposure: ExposureSettings,
 }
@@ -106,7 +126,8 @@ fn settings_path() -> PathBuf {
 }
 
 pub fn load_settings(
-    mut audio: ResMut<AudioVolume>,
+    mut music_volume: ResMut<MusicVolume>,
+    mut sound_volume: ResMut<SoundVolume>,
     mut display: ResMut<DisplaySettings>,
     mut exposure: ResMut<ExposureSettings>,
 ) {
@@ -114,7 +135,8 @@ pub fn load_settings(
     match fs::read_to_string(&path) {
         Ok(content) => match toml::from_str::<Settings>(&content) {
             Ok(settings) => {
-                *audio = settings.audio;
+                *music_volume = MusicVolume(settings.music_volume);
+                *sound_volume = SoundVolume(settings.sound_volume);
                 *display = settings.display;
                 *exposure = settings.exposure;
             }
@@ -128,12 +150,14 @@ pub fn load_settings(
 }
 
 pub fn save_settings(
-    audio: Res<AudioVolume>,
+    music_volume: Res<MusicVolume>,
+    sound_volume: Res<SoundVolume>,
     display: Res<DisplaySettings>,
     exposure: Res<ExposureSettings>,
 ) {
     let settings = Settings {
-        audio: *audio,
+        music_volume: **music_volume,
+        sound_volume: **sound_volume,
         display: *display,
         exposure: *exposure,
     };

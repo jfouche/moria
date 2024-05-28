@@ -6,6 +6,7 @@ use bevy::prelude::*;
 #[derive(Component)]
 struct DisplaySettingsMenu;
 
+/// generic plugin to spawn "Display settings", depending on state `S`
 pub struct DisplaySettingsPlugin<S>(pub S);
 
 impl<S: States + Copy> Plugin for DisplaySettingsPlugin<S> {

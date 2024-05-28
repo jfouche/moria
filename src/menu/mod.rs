@@ -1,15 +1,14 @@
+mod audio_settings_menu;
 mod death_menu;
 mod display_settings_menu;
 mod level_win_menu;
 mod main_menu;
 mod pause_menu;
 mod settings_menu;
-mod volume_settings_menu;
 
 use self::{
-    display_settings_menu::DisplaySettingsPlugin, main_menu::MainMenuState,
-    pause_menu::PauseMenuState, settings_menu::SettingsPlugin,
-    volume_settings_menu::SoundSettingsPlugin,
+    audio_settings_menu::SoundSettingsPlugin, display_settings_menu::DisplaySettingsPlugin,
+    main_menu::MainMenuState, pause_menu::PauseMenuState, settings_menu::SettingsPlugin,
 };
 use crate::components::*;
 use crate::ui::*;

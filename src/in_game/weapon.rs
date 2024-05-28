@@ -1,5 +1,5 @@
 use crate::{components::*, schedule::InGameSet};
-use bevy::prelude::*;
+use bevy::{audio::Volume, prelude::*};
 
 #[derive(Resource)]
 struct WeaponAssets {
@@ -38,6 +38,7 @@ fn spawn_bullet(
     mut commands: Commands,
     mut events: EventReader<FireEvent>,
     assets: Res<WeaponAssets>,
+    sound_volume: Res<SoundVolume>,
 ) {
     for fire_ev in events.read() {
         info!("spawn_bullet from {:?}", fire_ev.from);
@@ -47,11 +48,12 @@ fn spawn_bullet(
 
         // spawn the audio in a different entity to be sure it doesn't stop
         // when the bullet is despawn to early
+        let volume = Volume::new(sound_volume.db());
         commands.spawn((
             Name::new("Bullet sound"),
             AudioBundle {
                 source: assets.sound.clone(),
-                settings: PlaybackSettings::DESPAWN,
+                settings: PlaybackSettings::DESPAWN.with_volume(volume),
             },
         ));
     }
