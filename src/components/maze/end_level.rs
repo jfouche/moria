@@ -63,7 +63,7 @@ impl EndLevelBundle {
 pub struct EndLevelCollider;
 
 ///
-///
+/// EndLevelColliderBundle
 ///
 #[derive(Bundle)]
 pub struct EndLevelColliderBundle {

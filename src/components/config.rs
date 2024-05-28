@@ -37,15 +37,6 @@ pub struct WeaponConfig {
     pub bullet_distance: f32,
 }
 
-#[derive(Resource, Deref)]
-pub struct WeaponsConfig(pub Vec<WeaponConfig>);
-
-impl WeaponsConfig {
-    pub fn new(weapons_config: Vec<WeaponConfig>) -> Self {
-        WeaponsConfig(weapons_config)
-    }
-}
-
 // LevelConfig
 #[derive(Debug, Deserialize, Resource)]
 pub struct LevelConfig {

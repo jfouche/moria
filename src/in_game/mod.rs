@@ -120,18 +120,17 @@ where
     }
 }
 
-///
-///
-///
+/// The [EqEither] trait allow to check if self is equal to either
+/// one value or another
 pub trait EqEither {
-    fn eq_either(&self, v1: &Self, v2: &Self) -> bool;
+    fn eq_either(&self, v1: Self, v2: Self) -> bool;
 }
 
 impl<T> EqEither for T
 where
-    T: PartialEq,
+    T: Copy + PartialEq,
 {
-    fn eq_either(&self, v1: &Self, v2: &Self) -> bool {
-        self == v1 || self == v2
+    fn eq_either(&self, v1: Self, v2: Self) -> bool {
+        self == &v1 || self == &v2
     }
 }

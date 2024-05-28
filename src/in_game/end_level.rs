@@ -52,8 +52,7 @@ fn player_ends_level(
         .read()
         .filter_map(start_event_filter)
         .filter(|(&e1, &e2)| {
-            player_collider_entity.eq_either(&e1, &e2)
-                && end_level_collider_entity.eq_either(&e1, &e2)
+            player_collider_entity.eq_either(e1, e2) && end_level_collider_entity.eq_either(e1, e2)
         })
         .for_each(|_| {
             in_game_next_state.set(InGameState::PlayerFinished);

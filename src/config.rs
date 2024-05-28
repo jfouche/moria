@@ -23,11 +23,24 @@ fn load_config(mut commands: Commands) {
             Ok(config) => {
                 commands.insert_resource(config.game);
                 commands.insert_resource(config.camera);
-                commands.insert_resource(WeaponsConfig::new(config.weapons));
+                load_weapons(commands.reborrow(), &config.weapons);
                 commands.insert_resource(LevelsConfig::new(config.levels));
             }
             Err(e) => error!("Can't load config from file : {e:?}"),
         },
         Err(e) => error!("Can't read config file : {e:?}"),
     }
+}
+
+fn load_weapons(mut commands: Commands, weapons_config: &[WeaponConfig]) {
+    let mut weapons = Weapons::new();
+    for conf in weapons_config.iter() {
+        if let Ok(weapon_type) = WeaponType::try_from(conf.name.as_str()) {
+            weapons.insert(weapon_type, conf.into());
+        } else {
+            error!("Invalid weapon config");
+            panic!();
+        }
+    }
+    commands.insert_resource(weapons);
 }

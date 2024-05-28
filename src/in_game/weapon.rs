@@ -10,7 +10,7 @@ struct WeaponAssets {
 
 pub fn plugin(app: &mut App) {
     app.add_event::<FireEvent>()
-        .add_systems(Startup, (load_assets, load_weapons))
+        .add_systems(Startup, load_assets)
         .add_systems(
             Update,
             (spawn_bullet, weapon_reloaded).in_set(InGameSet::EntityUpdate),
@@ -32,19 +32,6 @@ fn load_assets(
         sound,
     };
     commands.insert_resource(assets);
-}
-
-fn load_weapons(mut commands: Commands, config: Res<WeaponsConfig>) {
-    let mut weapons = Weapons::new();
-    for conf in config.iter() {
-        if let Ok(weapon_type) = WeaponType::try_from(conf.name.as_str()) {
-            weapons.insert(weapon_type, conf.into());
-        } else {
-            error!("Invalid weapon config");
-            panic!();
-        }
-    }
-    commands.insert_resource(weapons);
 }
 
 fn spawn_bullet(
