@@ -132,7 +132,6 @@ pub struct PlayerColliderBundle {
     tag: PlayerCollider,
     name: Name,
     transform: TransformBundle,
-    //    body: RigidBody,
     collider: Collider,
     locked_axes: LockedAxes,
     collision_groups: CollisionGroups,
@@ -144,7 +143,6 @@ impl Default for PlayerColliderBundle {
             tag: PlayerCollider,
             name: Name::new("PlayerCollider"),
             transform: TransformBundle::default(),
-            // body: RigidBody::Dynamic,
             collider: Collider::cuboid(
                 Player::SIZE.x / 2.0,
                 Player::SIZE.y / 2.0,

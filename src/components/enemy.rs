@@ -78,7 +78,7 @@ impl EnemyColliderBundle {
         EnemyColliderBundle {
             tag: EnemyCollider,
             name: Name::new("EnemyCollider"),
-            transform: TransformBundle::from_transform(transform),
+            transform: transform.into(),
             collider,
             sensor: Sensor,
             collider_events: ActiveEvents::COLLISION_EVENTS,

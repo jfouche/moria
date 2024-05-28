@@ -85,20 +85,15 @@ impl WallBundle {
 
 #[derive(Bundle)]
 pub struct WallColliderBundle {
-    body: RigidBody,
     collider: Collider,
-    spatial: SpatialBundle,
+    transform: TransformBundle,
 }
 
 impl WallColliderBundle {
     pub fn new(wall_pos: WallPosition) -> Self {
         WallColliderBundle {
-            body: RigidBody::Fixed,
             collider: Self::collider(wall_pos),
-            spatial: SpatialBundle {
-                transform: Self::transform(wall_pos),
-                ..default()
-            },
+            transform: Self::transform(wall_pos).into(),
         }
     }
 

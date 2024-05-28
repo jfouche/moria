@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 use std::{collections::HashMap, f32::consts::FRAC_PI_2};
 
+/// FireEvent
 #[derive(Event)]
 pub struct FireEvent {
     pub weapon: Weapon,
@@ -11,6 +12,37 @@ pub struct FireEvent {
     pub direction: Direction3d,
 }
 
+impl From<&FireEvent> for Velocity {
+    fn from(event: &FireEvent) -> Self {
+        Velocity::linear(event.direction * event.weapon.bullet_speed)
+    }
+}
+
+impl From<&FireEvent> for LifeTime {
+    fn from(event: &FireEvent) -> Self {
+        (&event.weapon).into()
+    }
+}
+
+impl From<&FireEvent> for CollisionGroups {
+    fn from(event: &FireEvent) -> Self {
+        let collision_filters = match event.from {
+            FireEmitter::Player => Group::ALL & !COLLISION_GROUP_PLAYER,
+            FireEmitter::Enemy => Group::ALL & !COLLISION_GROUP_ENEMY,
+        };
+        CollisionGroups::new(COLLISION_GROUP_BULLET, collision_filters)
+    }
+}
+
+impl From<&FireEvent> for Bullet {
+    fn from(event: &FireEvent) -> Self {
+        Bullet {
+            damage: event.weapon.damage,
+        }
+    }
+}
+
+/// FireEventBuilder
 pub struct FireEventBuilder<F, D> {
     weapon: Weapon,
     from: F,
@@ -83,9 +115,11 @@ impl Weapon {
     pub fn fire(&self) -> FireEventBuilder<NoFrom, NoDirection> {
         FireEventBuilder::<NoFrom, NoDirection>::new(self)
     }
+}
 
-    fn bullet_lifetime(&self) -> LifeTime {
-        LifeTime::new(self.bullet_distance / self.bullet_speed)
+impl From<&Weapon> for LifeTime {
+    fn from(weapon: &Weapon) -> Self {
+        LifeTime::new(weapon.bullet_distance / weapon.bullet_speed)
     }
 }
 
@@ -168,17 +202,10 @@ impl BulletBundle {
         transform.look_to(*fire_ev.direction, Vec3::Y);
         transform.rotate_local_x(FRAC_PI_2);
 
-        let collision_filters = match fire_ev.from {
-            FireEmitter::Player => Group::ALL & !COLLISION_GROUP_PLAYER,
-            FireEmitter::Enemy => Group::ALL & !COLLISION_GROUP_ENEMY,
-        };
-
         BulletBundle {
-            bullet: Bullet {
-                damage: fire_ev.weapon.damage,
-            },
+            bullet: fire_ev.into(),
             name: Name::new("BULLET"),
-            lifetime: fire_ev.weapon.bullet_lifetime(),
+            lifetime: fire_ev.into(),
             emiter: fire_ev.from,
             pbr: PbrBundle {
                 transform,
@@ -186,11 +213,11 @@ impl BulletBundle {
             },
             body: RigidBody::KinematicVelocityBased,
             collider: Collider::cylinder(Bullet::LENGTH / 2.0, Bullet::RADIUS / 2.0),
-            velocity: Velocity::linear(*fire_ev.direction * fire_ev.weapon.bullet_speed),
+            velocity: fire_ev.into(),
             collider_events: ActiveEvents::COLLISION_EVENTS,
             collision_tpes: ActiveCollisionTypes::default()
                 | ActiveCollisionTypes::KINEMATIC_STATIC,
-            collision_groups: CollisionGroups::new(COLLISION_GROUP_BULLET, collision_filters),
+            collision_groups: fire_ev.into(),
         }
     }
 

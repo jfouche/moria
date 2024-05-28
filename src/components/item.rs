@@ -69,7 +69,7 @@ impl PotionColliderBundle {
         PotionColliderBundle {
             tag: PotionCollider,
             collider,
-            transform: TransformBundle::from_transform(transform),
+            transform: transform.into(),
             sensor: Sensor,
             collider_events: ActiveEvents::COLLISION_EVENTS,
         }
