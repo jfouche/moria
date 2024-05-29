@@ -2,6 +2,7 @@ use super::*;
 use crate::{
     components::*,
     schedule::{InGameLoadingSet, InGameSet},
+    ui::Fader,
 };
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
@@ -14,6 +15,7 @@ pub fn plugin(app: &mut App) {
                 .chain()
                 .in_set(InGameLoadingSet::SpawnLevelEntities),
         )
+        .add_systems(OnEnter(InGameState::PlayerFinished), spawn_fader)
         .add_systems(OnExit(GameState::InGame), despawn_all::<EndLevel>)
         .add_systems(
             Update,
@@ -60,4 +62,10 @@ fn player_ends_level(
             warn!("END LEVEL");
             in_game_next_state.set(InGameState::PlayerEndedLevel);
         });
+}
+
+fn spawn_fader(mut commands: Commands) {
+    let from = Color::NONE;
+    let to = Color::BLACK;
+    commands.spawn(Fader::new(from, to, 3.0));
 }
