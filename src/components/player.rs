@@ -72,6 +72,11 @@ impl Player {
                     z: 0.0,
                 }
     }
+    pub fn tranform(pos: Position) -> Transform {
+        Transform::from_translation(pos.to_world().translation_with_y(Player::SIZE.y / 2.0))
+            .with_scale(Player::SCALE)
+            .looking_to(Vec3::NEG_Z, Vec3::Y)
+    }
 }
 
 ///
@@ -106,10 +111,7 @@ impl PlayerBundle {
     }
 
     pub fn at(mut self, pos: Position) -> Self {
-        self.pbr.transform =
-            Transform::from_translation(pos.to_world().translation_with_y(Player::SIZE.y / 2.0))
-                .with_scale(Player::SCALE)
-                .looking_to(Vec3::NEG_Z, Vec3::Y);
+        self.pbr.transform = Player::tranform(pos);
         self
     }
 

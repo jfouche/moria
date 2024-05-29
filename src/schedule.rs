@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{GameState, InGameState};
+use crate::{CurrentLevel, GameState, InGameState};
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy, SystemSet)]
 pub enum InGameLoadingSet {
@@ -18,7 +18,7 @@ pub enum InGameSet {
 
 pub fn plugin(app: &mut App) {
     app.configure_sets(
-        OnEnter(GameState::InGame),
+        OnEnter(InGameState::LoadLevel),
         (
             InGameLoadingSet::CreateLevel,
             // apply_deffer will be added here
@@ -49,7 +49,9 @@ pub fn plugin(app: &mut App) {
         apply_deferred
             .after(InGameSet::DespawnEntities)
             .before(InGameSet::UserInput),
-    );
+    )
+    .add_systems(OnEnter(GameState::InGame), new_game)
+    .add_systems(OnExit(GameState::InGame), end_game);
 }
 
 fn game_is_running(
@@ -57,4 +59,16 @@ fn game_is_running(
     in_game_state: Res<State<InGameState>>,
 ) -> bool {
     *game_state == GameState::InGame && *in_game_state == InGameState::Running
+}
+
+fn new_game(
+    mut current_level: ResMut<CurrentLevel>,
+    mut in_game_state: ResMut<NextState<InGameState>>,
+) {
+    **current_level = 0;
+    in_game_state.set(InGameState::LoadLevel);
+}
+
+fn end_game(mut in_game_state: ResMut<NextState<InGameState>>) {
+    in_game_state.set(InGameState::Disabled);
 }

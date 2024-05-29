@@ -57,4 +57,8 @@ impl LevelsConfig {
     pub fn get(&self, level: &CurrentLevel) -> Option<&LevelConfig> {
         self.0.get(**level)
     }
+
+    pub fn has_next(&self, level: &CurrentLevel) -> bool {
+        **level < self.0.len() - 1
+    }
 }

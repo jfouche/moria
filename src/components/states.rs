@@ -9,13 +9,15 @@ pub enum GameState {
     InGame,
 }
 
-// Represent the state while in game
+/// Represent the state while in game
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
 pub enum InGameState {
     #[default]
     Disabled,
     Running,
     Pause,
+    PlayerEndedLevel,
     PlayerDied,
     PlayerFinished,
+    LoadLevel,
 }

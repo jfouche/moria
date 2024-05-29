@@ -77,8 +77,10 @@ pub fn plugin(app: &mut App) {
     app.insert_state(MinimapState::Hide)
         .add_systems(Startup, load_minimap_atlas)
         .add_systems(
-            OnEnter(GameState::InGame),
-            init_minimap.in_set(InGameLoadingSet::SpawnLevelEntities),
+            OnEnter(InGameState::LoadLevel),
+            (despawn_all::<Minimap>, init_minimap)
+                .chain()
+                .in_set(InGameLoadingSet::SpawnLevelEntities),
         )
         .add_systems(OnExit(GameState::InGame), despawn_all::<Minimap>)
         .add_systems(OnEnter(MinimapState::Show), spawn_minimap)

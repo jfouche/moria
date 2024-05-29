@@ -98,7 +98,7 @@ fn display_collision_events(
 }
 
 fn display_states(game_state: Res<State<GameState>>, in_game_state: Res<State<InGameState>>) {
-    debug!(
+    info!(
         "GameState::{:?} - InGameState::{:?}",
         **game_state, **in_game_state
     );
@@ -107,6 +107,6 @@ fn display_states(game_state: Res<State<GameState>>, in_game_state: Res<State<In
 fn state_transition<S: States>(mut events: EventReader<StateTransitionEvent<S>>) {
     for event in events.read() {
         let name = std::any::type_name::<S>();
-        debug!("{name} : {:?} => {:?}", event.before, event.after);
+        info!("{name} : {:?} => {:?}", event.before, event.after);
     }
 }

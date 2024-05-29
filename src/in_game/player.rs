@@ -15,16 +15,8 @@ pub fn plugin(app: &mut App) {
     app.add_event::<PlayerHitEvent>()
         .add_event::<PlayerDeathEvent>()
         .add_systems(Startup, load_assets)
-        // .add_systems(
-        //     Startup,
-        //     load_scene_assets::<PlayerAssets>("player.glb#Scene0"),
-        // )
-        // .add_systems(
-        //     Update,
-        //     load_scene_colliders::<PlayerAssets>.run_if(assets_loading),
-        // )
         .add_systems(
-            OnEnter(GameState::InGame),
+            OnEnter(InGameState::LoadLevel),
             spawn_player.in_set(InGameLoadingSet::SpawnLevelEntities),
         )
         .add_systems(OnExit(GameState::InGame), despawn_all::<Player>)
@@ -51,21 +43,25 @@ fn load_assets(
 
 fn spawn_player(
     mut commands: Commands,
+    mut players: Query<&mut Transform, With<Player>>,
     assets: Res<PlayerAssets>,
     weapons: Res<Weapons>,
     level: Res<Level>,
 ) {
-    info!("spawn_player()");
-    let weapon = weapons.get(WeaponType::Shotgun);
-    commands
-        .spawn(
-            PlayerBundle::new(weapon)
-                .at(level.start_position())
-                .with_assets(&assets),
-        )
-        .with_children(|parent| {
-            parent.spawn(PlayerColliderBundle::default());
-        });
+    let pos = level.start_position();
+    if let Ok(mut player_transform) = players.get_single_mut() {
+        // Reset player position
+        *player_transform = Player::tranform(pos);
+    } else {
+        // Spawn a player
+        info!("spawn_player()");
+        let weapon = weapons.get(WeaponType::Shotgun);
+        commands
+            .spawn(PlayerBundle::new(weapon).at(pos).with_assets(&assets))
+            .with_children(|parent| {
+                parent.spawn(PlayerColliderBundle::default());
+            });
+    }
 }
 
 // https://github.com/sburris0/bevy_flycam/blob/master/src/lib.rs

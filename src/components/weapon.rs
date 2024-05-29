@@ -160,7 +160,7 @@ pub enum FireEmitter {
     Enemy,
 }
 
-#[derive(Component, Clone)]
+#[derive(Component, Clone, Debug)]
 pub struct Weapon {
     pub damage: u16,
     /// in secs
@@ -247,8 +247,9 @@ pub struct BulletBundle {
     emiter: FireEmitter,
     pbr: PbrBundle,
     body: RigidBody,
-    collider: Collider,
     velocity: Velocity,
+    collider: Collider,
+    ccd: Ccd,
     collider_events: ActiveEvents,
     collision_tpes: ActiveCollisionTypes,
     collision_groups: CollisionGroups,
@@ -270,8 +271,9 @@ impl BulletBundle {
                 ..default()
             },
             body: RigidBody::KinematicVelocityBased,
-            collider: Collider::cylinder(Bullet::LENGTH / 2.0, Bullet::RADIUS / 2.0),
             velocity: fire_ev.into(),
+            ccd: Ccd::enabled(),
+            collider: Collider::cylinder(Bullet::LENGTH / 2.0, Bullet::RADIUS / 2.0),
             collider_events: ActiveEvents::COLLISION_EVENTS,
             collision_tpes: ActiveCollisionTypes::default()
                 | ActiveCollisionTypes::KINEMATIC_STATIC,

@@ -9,8 +9,10 @@ use bevy_rapier3d::prelude::*;
 pub fn plugin(app: &mut App) {
     app.add_systems(Startup, load_assets)
         .add_systems(
-            OnEnter(GameState::InGame),
-            spawn_end_level.in_set(InGameLoadingSet::SpawnLevelEntities),
+            OnEnter(InGameState::LoadLevel),
+            (despawn_all::<EndLevel>, spawn_end_level)
+                .chain()
+                .in_set(InGameLoadingSet::SpawnLevelEntities),
         )
         .add_systems(OnExit(GameState::InGame), despawn_all::<EndLevel>)
         .add_systems(
@@ -55,6 +57,7 @@ fn player_ends_level(
             player_collider_entity.eq_either(e1, e2) && end_level_collider_entity.eq_either(e1, e2)
         })
         .for_each(|_| {
-            in_game_next_state.set(InGameState::PlayerFinished);
+            warn!("END LEVEL");
+            in_game_next_state.set(InGameState::PlayerEndedLevel);
         });
 }

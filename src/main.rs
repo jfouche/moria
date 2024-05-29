@@ -47,10 +47,16 @@ fn main() {
         settings::plugin,
         in_game::InGamePlugins,
         ui::UiPlugins,
-    ));
+    ))
+    .add_systems(Startup, setup_physics);
 
     #[cfg(debug_assertions)]
     app.add_plugins(debug::plugin);
 
     app.run();
+}
+
+fn setup_physics(mut rapier_context: ResMut<RapierContext>) {
+    const DEFAULT_MIN_CCD_DT: f32 = 1.0 / 60.0 / 100.0;
+    rapier_context.integration_parameters.min_ccd_dt = DEFAULT_MIN_CCD_DT / 200.0;
 }

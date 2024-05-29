@@ -8,8 +8,10 @@ use bevy_rapier3d::prelude::*;
 pub fn plugin(app: &mut App) {
     app.add_systems(Startup, load_assets)
         .add_systems(
-            OnEnter(GameState::InGame),
-            spawn_maze.in_set(InGameLoadingSet::SpawnLevelEntities),
+            OnEnter(InGameState::LoadLevel),
+            (despawn_all::<MazeComponent>, spawn_maze)
+                .chain()
+                .in_set(InGameLoadingSet::SpawnLevelEntities),
         )
         .add_systems(OnExit(GameState::InGame), despawn_all::<MazeComponent>)
         .add_systems(Update, add_light.in_set(InGameSet::EntityUpdate));

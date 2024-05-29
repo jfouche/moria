@@ -18,8 +18,10 @@ pub fn plugin(app: &mut App) {
         load_scene_colliders::<PotionAssets>.run_if(assets_loading),
     )
     .add_systems(
-        OnEnter(GameState::InGame),
-        spawn_items.in_set(InGameLoadingSet::SpawnLevelEntities),
+        OnEnter(InGameState::LoadLevel),
+        (despawn_all::<Potion>, spawn_items)
+            .chain()
+            .in_set(InGameLoadingSet::SpawnLevelEntities),
     )
     .add_systems(OnExit(GameState::InGame), despawn_all::<Potion>)
     .add_systems(

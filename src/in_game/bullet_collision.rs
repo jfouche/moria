@@ -61,7 +61,6 @@ fn enemy_hit_by_bullet(
         })
         // ... colliding with enemy
         .filter_map(|(bullet_data, _bullet_entity, other_entity)| {
-            warn!("bullet from player colliding with {other_entity:?}");
             enemy_colliders
                 .get(other_entity)
                 .map(|parent| (bullet_data, parent.get()))

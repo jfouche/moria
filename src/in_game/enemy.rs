@@ -27,8 +27,10 @@ pub fn plugin(app: &mut App) {
             load_scene_colliders::<EnemyAssets>.run_if(assets_loading),
         )
         .add_systems(
-            OnEnter(GameState::InGame),
-            spawn_enemies.in_set(InGameLoadingSet::SpawnLevelEntities),
+            OnEnter(InGameState::LoadLevel),
+            (despawn_all::<Enemy>, spawn_enemies)
+                .chain()
+                .in_set(InGameLoadingSet::SpawnLevelEntities),
         )
         .add_systems(OnExit(GameState::InGame), despawn_all::<Enemy>)
         .add_systems(
