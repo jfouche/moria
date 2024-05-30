@@ -29,7 +29,7 @@ fn create_level(
         level.add_enemies(level_config.enemy_density);
         level.add_items(level_config.item_density);
         commands.insert_resource(level);
-        in_game_state.set(InGameState::Running);
+        in_game_state.set(InGameState::LoadLevel);
     }
 }
 

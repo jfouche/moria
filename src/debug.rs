@@ -24,10 +24,10 @@ pub fn plugin(app: &mut App) {
         .add_systems(Update, show_axes)
         // States
         .add_systems(Update, (state_transition::<GameState>, state_transition::<InGameState>))
-        .add_systems(OnEnter(GameState::InGame), display_states)
-        .add_systems(OnExit(GameState::InGame), display_states)
-        .add_systems(OnEnter(InGameState::Running), display_states)
-        .add_systems(OnExit(InGameState::Pause), display_states)
+        // .add_systems(OnEnter(GameState::InGame), display_states)
+        // .add_systems(OnExit(GameState::InGame), display_states)
+        // .add_systems(OnEnter(InGameState::Running), display_states)
+        // .add_systems(OnExit(InGameState::Pause), display_states)
         // END
         ;
 }
