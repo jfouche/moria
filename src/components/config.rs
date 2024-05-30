@@ -58,7 +58,12 @@ impl LevelsConfig {
         self.0.get(**level)
     }
 
-    pub fn has_next(&self, level: &CurrentLevel) -> bool {
-        **level < self.0.len() - 1
+    pub fn next_level(&self, level: &CurrentLevel) -> Option<usize> {
+        let level = **level;
+        if level < self.0.len() - 1 {
+            Some(level + 1)
+        } else {
+            None
+        }
     }
 }

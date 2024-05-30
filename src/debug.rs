@@ -97,6 +97,7 @@ fn display_collision_events(
     }
 }
 
+#[allow(dead_code)]
 fn display_states(game_state: Res<State<GameState>>, in_game_state: Res<State<InGameState>>) {
     info!(
         "GameState::{:?} - InGameState::{:?}",

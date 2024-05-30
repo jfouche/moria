@@ -1,20 +1,34 @@
 use crate::components::*;
 use crate::schedule::InGameLoadingSet;
+use crate::ui::{Fader, FaderFinishEvent};
 use bevy::prelude::*;
 
 pub fn plugin(app: &mut App) {
     app.insert_resource(CurrentLevel(0))
+        // LoadLevel
         .add_systems(
             OnEnter(InGameState::LoadLevel),
-            create_level.in_set(InGameLoadingSet::CreateLevel),
+            (show_level, create_level).in_set(InGameLoadingSet::CreateLevel),
         )
         .add_systems(Update, start_level.run_if(in_state(InGameState::LoadLevel)))
+        // PlayerEndedLevel
+        .add_systems(OnEnter(InGameState::PlayerEndedLevel), hide_level)
         .add_systems(
-            OnEnter(InGameState::PlayerEndedLevel),
-            (change_level, create_level)
-                .chain()
-                .in_set(InGameLoadingSet::CreateLevel),
+            Update,
+            change_level.run_if(in_state(InGameState::PlayerEndedLevel)),
         );
+}
+
+const END_LEVEL_FADE_COLOR: Color = Color::rgba(0.0, 0.0, 0.8, 1.0);
+
+fn hide_level(mut commands: Commands) {
+    info!("hide_level()");
+    commands.spawn(Fader::new(Color::NONE, END_LEVEL_FADE_COLOR, 2.0));
+}
+
+fn show_level(mut commands: Commands) {
+    info!("show_level()");
+    commands.spawn(Fader::new(END_LEVEL_FADE_COLOR, Color::NONE, 2.0));
 }
 
 fn create_level(
@@ -33,21 +47,39 @@ fn create_level(
     }
 }
 
-fn start_level(mut in_game_state: ResMut<NextState<InGameState>>) {
-    in_game_state.set(InGameState::Running);
+fn start_level(
+    mut commands: Commands,
+    mut events: EventReader<FaderFinishEvent>,
+    mut in_game_state: ResMut<NextState<InGameState>>,
+) {
+    for event in events.read() {
+        info!("start_level() - despawn({:?})", event.entity);
+        commands.entity(event.entity).despawn();
+        in_game_state.set(InGameState::Running);
+    }
 }
 
 fn change_level(
+    mut commands: Commands,
+    mut events: EventReader<FaderFinishEvent>,
     mut current_level: ResMut<CurrentLevel>,
     levels_config: Res<LevelsConfig>,
     mut in_game_state: ResMut<NextState<InGameState>>,
 ) {
-    if levels_config.has_next(&current_level) {
-        // Go to next level
-        **current_level += 1;
-        in_game_state.set(InGameState::LoadLevel)
-    } else {
-        // It's the end
-        in_game_state.set(InGameState::PlayerFinished);
+    for event in events.read() {
+        info!("change_level() - despawn({:?})", event.entity);
+        commands.entity(event.entity).despawn();
+
+        match levels_config.next_level(&current_level) {
+            Some(next_level) => {
+                // Go to next level
+                *current_level = CurrentLevel(next_level);
+                in_game_state.set(InGameState::LoadLevel);
+            }
+            None => {
+                // It's the end
+                in_game_state.set(InGameState::PlayerFinished);
+            }
+        }
     }
 }
