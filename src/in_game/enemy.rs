@@ -61,18 +61,12 @@ fn load_impact_assets(
     commands.insert_resource(assets);
 }
 
-fn spawn_enemies(
-    mut commands: Commands,
-    assets: Res<EnemyAssets>,
-    weapons: Res<Weapons>,
-    level: Res<Level>,
-) {
+fn spawn_enemies(mut commands: Commands, assets: Res<EnemyAssets>, level: Res<Level>) {
     info!("spawn_enemies()");
-    let weapon = weapons.get(WeaponType::EnemyGun);
     for &pos in level.enemies_start_pos() {
         commands
             .spawn(
-                EnemyBundle::new(weapon.clone())
+                EnemyBundle::new(WeaponType::EnemyGun)
                     .at(pos)
                     .with_assets(&assets),
             )
@@ -189,18 +183,19 @@ fn cast_rays_from_enemies(
 fn enemy_fires(
     mut commands: Commands,
     enemies_seeing_player: Res<EnemiesSeingPlayer>,
-    enemies: Query<(&Transform, &Weapon), (With<Enemy>, Without<Reload>)>,
+    enemies: Query<(&Transform, &WeaponType), (With<Enemy>, Without<Reload>)>,
     player: Query<&Transform, (With<Player>, Without<Enemy>)>,
+    weapons: Res<Weapons>,
     mut ev_fire: EventWriter<FireEvent>,
 ) {
     let player_transform = player.get_single().expect("Player");
     for &enemy_entity in enemies_seeing_player.iter() {
-        if let Ok((enemy_transform, weapon)) = enemies.get(enemy_entity) {
+        if let Ok((enemy_transform, weapon_type)) = enemies.get(enemy_entity) {
             let fire_origin = enemy_transform.translation + Enemy::weapon_offset();
             let fire_direction =
                 player_transform.translation + Player::center_offset() - fire_origin;
 
-            let event = weapon
+            let event = weapon_type
                 .fire()
                 .from(fire_origin, FireEmitter::Enemy)
                 .to(Direction3d::new(fire_direction).unwrap())
@@ -208,6 +203,7 @@ fn enemy_fires(
             ev_fire.send(event);
 
             // Weapon reload
+            let weapon = weapons.get(*weapon_type);
             commands.entity(enemy_entity).insert(Reload::from(weapon));
         }
     }
@@ -217,43 +213,11 @@ fn enemy_turns(
     enemies_seeing_player: Res<EnemiesSeingPlayer>,
     mut enemies: Query<&mut Transform, With<Enemy>>,
     player: Query<&Transform, (With<Player>, Without<Enemy>)>,
-    #[cfg(debug_assertions)] mut gizmos: Gizmos,
 ) {
     let player_transform = player.get_single().expect("Player");
     for &enemy_entity in enemies_seeing_player.iter() {
         let mut enemy_transform = enemies.get_mut(enemy_entity).expect("Enemy");
         let angle = enemy_transform.signed_angle_with(*player_transform);
-
-        // DEBUG
-        #[cfg(debug_assertions)]
-        {
-            if angle > f32::EPSILON {
-                info!("enemy_turns() {enemy_entity:?}: {angle}");
-            }
-
-            gizmos.ray(
-                enemy_transform.translation,
-                *enemy_transform.forward(),
-                Color::WHITE,
-            );
-
-            // let mut test = *enemy_transform;
-            // test.rotate_y(angle);
-            // gizmos.ray(enemy_transform.translation, *test.forward(), Color::YELLOW);
-
-            let mut test = *enemy_transform;
-            test.rotate_y(-angle);
-            gizmos.ray(enemy_transform.translation, *test.forward(), Color::ORANGE);
-
-            // let mut test = *enemy_transform;
-            // test.rotate_y(angle);
-            // gizmos.ray(enemy_transform.translation, -*test.forward(), Color::OLIVE);
-
-            // let mut test = *enemy_transform;
-            // test.rotate_y(-angle);
-            // gizmos.ray(enemy_transform.translation, -*test.forward(), Color::PINK);
-        }
-
         enemy_transform.rotate_y(angle);
     }
 }

@@ -27,14 +27,22 @@ impl Default for CameraConfig {
     }
 }
 
-// WeaponConfig
+/// WeaponConfig
 #[derive(Debug, Deserialize, Default)]
 pub struct WeaponConfig {
     pub name: String,
     pub damage: u16,
     pub reload_delay: f32,
-    pub bullet_speed: f32,
-    pub bullet_distance: f32,
+    pub bullet_config: BulletConfig,
+}
+
+/// BulletConfig
+#[derive(Debug, Deserialize, Default, Clone)]
+pub struct BulletConfig {
+    pub speed: f32,
+    pub distance: f32,
+    pub radius: f32,
+    pub length: f32,
 }
 
 // LevelConfig

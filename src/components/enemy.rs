@@ -32,17 +32,17 @@ pub struct EnemyBundle {
     enemy: Enemy,
     name: Name,
     life: Life,
-    weapon: Weapon,
+    weapon_type: WeaponType,
     scene: SceneBundle,
 }
 
 impl EnemyBundle {
-    pub fn new(weapon: Weapon) -> Self {
+    pub fn new(weapon_type: WeaponType) -> Self {
         EnemyBundle {
             enemy: Enemy,
             name: Name::new("Enemy"),
             life: Life::new(50),
-            weapon,
+            weapon_type,
             scene: SceneBundle::default(),
         }
     }

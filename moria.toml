@@ -10,29 +10,37 @@ sensitivity_iso  = 100.0
 name = "Gun"
 damage = 10
 reload_delay = 0.4
-bullet_speed = 20.0
-bullet_distance = 100.0
+[weapons.bullet_config]
+speed = 20.0
+distance = 100.0
+radius = 0.05 
+length = 0.15 
 
 [[weapons]]
 name = "Shotgun"
 damage = 35
 reload_delay = 0.9
-bullet_speed = 30.0
-bullet_distance = 100.0
+[weapons.bullet_config]
+speed = 30.0
+distance = 100.0
+radius = 0.08 
+length = 0.2 
 
 [[weapons]]
 name = "Enemy"
 damage = 8
 reload_delay = 2.5
-bullet_speed = 12.0
-bullet_distance = 100.0
+[weapons.bullet_config]
+speed = 12.0
+distance = 100.0
+radius = 0.4 
+length = 0.4 
 
 [[levels]]
 rows = 7
 cols = 5
 enemy_density = 0.10 # percent
 item_density = 0.02 # percent
-
 
 [[levels]]
 rows = 10

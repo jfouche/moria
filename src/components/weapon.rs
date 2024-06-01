@@ -3,12 +3,27 @@ use bevy::{audio::Volume, prelude::*};
 use bevy_rapier3d::prelude::*;
 use std::{collections::HashMap, f32::consts::FRAC_PI_2};
 
+/// BulletAssets
+struct BulletAssets {
+    mesh: Handle<Mesh>,
+    material: Handle<StandardMaterial>,
+}
+
+impl BulletAssets {
+    pub fn mesh(&self) -> Handle<Mesh> {
+        self.mesh.clone()
+    }
+
+    pub fn material(&self) -> Handle<StandardMaterial> {
+        self.material.clone()
+    }
+}
+
 /// WeaponAssets
 #[derive(Resource)]
 pub struct WeaponAssets {
-    bullet_mesh: Handle<Mesh>,
-    bullet_material: Handle<StandardMaterial>,
     bullet_sound: Handle<AudioSource>,
+    bullet_assets: HashMap<WeaponType, BulletAssets>,
 }
 
 impl WeaponAssets {
@@ -16,23 +31,27 @@ impl WeaponAssets {
         asset_server: &AssetServer,
         mut meshes: ResMut<Assets<Mesh>>,
         mut materials: ResMut<Assets<StandardMaterial>>,
+        weapons: &Weapons,
     ) -> Self {
-        let bullet_mesh = meshes.add(Cylinder::new(Bullet::RADIUS, Bullet::LENGTH));
-        let bullet_material = materials.add(Color::ORANGE);
         let bullet_sound = asset_server.load("audio/556-Single-Isolated.ogg");
+        let mut bullet_assets = HashMap::new();
+        for (weapon_type, weapon) in weapons.0.iter() {
+            let mesh = meshes.add(Cylinder::new(weapon.bullet.radius, weapon.bullet.length));
+            let material = materials.add(Color::ORANGE);
+            let assets = BulletAssets { mesh, material };
+            bullet_assets.insert(*weapon_type, assets);
+        }
+
         WeaponAssets {
-            bullet_mesh,
-            bullet_material,
             bullet_sound,
+            bullet_assets,
         }
     }
 
-    pub fn bullet_mesh(&self) -> Handle<Mesh> {
-        self.bullet_mesh.clone()
-    }
-
-    pub fn bullet_material(&self) -> Handle<StandardMaterial> {
-        self.bullet_material.clone()
+    fn bullet_assets(&self, weapon_type: &WeaponType) -> &BulletAssets {
+        self.bullet_assets
+            .get(weapon_type)
+            .expect("Unconfigured weapon type")
     }
 
     pub fn bullet_sound(&self) -> Handle<AudioSource> {
@@ -63,23 +82,17 @@ impl BulletSoundBundle {
 /// FireEvent
 #[derive(Event)]
 pub struct FireEvent {
-    pub weapon: Weapon,
+    pub weapon_type: WeaponType,
     pub from: FireEmitter,
     pub origin: Vec3,
     pub direction: Direction3d,
 }
 
-impl From<&FireEvent> for Velocity {
-    fn from(event: &FireEvent) -> Self {
-        Velocity::linear(event.direction * event.weapon.bullet_speed)
-    }
-}
-
-impl From<&FireEvent> for LifeTime {
-    fn from(event: &FireEvent) -> Self {
-        (&event.weapon).into()
-    }
-}
+// impl From<&FireEvent> for Velocity {
+//     fn from(event: &FireEvent) -> Self {
+//         Velocity::linear(event.direction * event.weapon.bullet.speed)
+//     }
+// }
 
 impl From<&FireEvent> for CollisionGroups {
     fn from(event: &FireEvent) -> Self {
@@ -91,17 +104,17 @@ impl From<&FireEvent> for CollisionGroups {
     }
 }
 
-impl From<&FireEvent> for Bullet {
-    fn from(event: &FireEvent) -> Self {
-        Bullet {
-            damage: event.weapon.damage,
-        }
-    }
-}
+// impl From<&FireEvent> for Bullet {
+//     fn from(event: &FireEvent) -> Self {
+//         Bullet {
+//             damage: event.weapon.damage,
+//         }
+//     }
+// }
 
 /// FireEventBuilder
 pub struct FireEventBuilder<F, D> {
-    weapon: Weapon,
+    weapon_type: WeaponType,
     from: F,
     direction: D,
 }
@@ -113,9 +126,9 @@ pub struct NoDirection;
 pub struct WithDirection(Direction3d);
 
 impl FireEventBuilder<NoFrom, NoDirection> {
-    fn new(weapon: &Weapon) -> Self {
+    fn new(weapon_type: WeaponType) -> Self {
         FireEventBuilder {
-            weapon: weapon.clone(),
+            weapon_type,
             from: NoFrom,
             direction: NoDirection,
         }
@@ -125,7 +138,7 @@ impl FireEventBuilder<NoFrom, NoDirection> {
 impl<D> FireEventBuilder<NoFrom, D> {
     pub fn from(self, origin: Vec3, from: FireEmitter) -> FireEventBuilder<WithFrom, D> {
         FireEventBuilder {
-            weapon: self.weapon,
+            weapon_type: self.weapon_type,
             from: WithFrom(origin, from),
             direction: self.direction,
         }
@@ -135,7 +148,7 @@ impl<D> FireEventBuilder<NoFrom, D> {
 impl<F> FireEventBuilder<F, NoDirection> {
     pub fn to(self, direction: Direction3d) -> FireEventBuilder<F, WithDirection> {
         FireEventBuilder {
-            weapon: self.weapon,
+            weapon_type: self.weapon_type,
             from: self.from,
             direction: WithDirection(direction),
         }
@@ -145,7 +158,7 @@ impl<F> FireEventBuilder<F, NoDirection> {
 impl FireEventBuilder<WithFrom, WithDirection> {
     pub fn event(self) -> FireEvent {
         FireEvent {
-            weapon: self.weapon,
+            weapon_type: self.weapon_type,
             from: self.from.1,
             origin: self.from.0,
             direction: self.direction.0,
@@ -160,24 +173,17 @@ pub enum FireEmitter {
     Enemy,
 }
 
-#[derive(Component, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct Weapon {
     pub damage: u16,
     /// in secs
     pub reload_delay: f32,
-    pub bullet_speed: f32,
-    pub bullet_distance: f32,
+    pub bullet: BulletConfig,
 }
 
-impl Weapon {
-    pub fn fire(&self) -> FireEventBuilder<NoFrom, NoDirection> {
-        FireEventBuilder::<NoFrom, NoDirection>::new(self)
-    }
-}
-
-impl From<&Weapon> for LifeTime {
-    fn from(weapon: &Weapon) -> Self {
-        LifeTime::new(weapon.bullet_distance / weapon.bullet_speed)
+impl From<&BulletConfig> for LifeTime {
+    fn from(bullet: &BulletConfig) -> Self {
+        LifeTime::new(bullet.distance / bullet.speed)
     }
 }
 
@@ -185,18 +191,23 @@ impl From<&WeaponConfig> for Weapon {
     fn from(config: &WeaponConfig) -> Self {
         Weapon {
             damage: config.damage,
-            bullet_speed: config.bullet_speed,
-            bullet_distance: config.bullet_distance,
             reload_delay: config.reload_delay,
+            bullet: config.bullet_config.clone(),
         }
     }
 }
 
-#[derive(Clone, Copy, Hash, PartialEq, Eq)]
+#[derive(Component, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum WeaponType {
     Gun,
     Shotgun,
     EnemyGun,
+}
+
+impl WeaponType {
+    pub fn fire(&self) -> FireEventBuilder<NoFrom, NoDirection> {
+        FireEventBuilder::<NoFrom, NoDirection>::new(*self)
+    }
 }
 
 impl TryFrom<&str> for WeaponType {
@@ -224,8 +235,8 @@ impl Weapons {
         self.0.insert(weapon_type, weapon);
     }
 
-    pub fn get(&self, weapon_type: WeaponType) -> Weapon {
-        self.0.get(&weapon_type).expect("Existing weapon").clone()
+    pub fn get(&self, weapon_type: WeaponType) -> &Weapon {
+        self.0.get(&weapon_type).expect("Existing weapon")
     }
 }
 
@@ -256,22 +267,31 @@ pub struct BulletBundle {
 }
 
 impl BulletBundle {
-    pub fn new(fire_ev: &FireEvent) -> Self {
+    pub fn new(fire_ev: &FireEvent, weapons: &Weapons, assets: &WeaponAssets) -> Self {
         let mut transform = Transform::from_translation(fire_ev.origin);
         transform.look_to(*fire_ev.direction, Vec3::Y);
         transform.rotate_local_x(FRAC_PI_2);
 
+        let weapon_type = fire_ev.weapon_type;
+        let weapon = weapons.get(weapon_type);
+        let bullet_assets = assets.bullet_assets(&weapon_type);
+        let bullet_velocity = fire_ev.direction * weapon.bullet.speed;
+
         BulletBundle {
-            bullet: fire_ev.into(),
+            bullet: Bullet {
+                damage: weapon.damage,
+            },
             name: Name::new("BULLET"),
-            lifetime: fire_ev.into(),
+            lifetime: (&weapon.bullet).into(),
             emiter: fire_ev.from,
             pbr: PbrBundle {
                 transform,
+                mesh: bullet_assets.mesh(),
+                material: bullet_assets.material(),
                 ..default()
             },
             body: RigidBody::KinematicVelocityBased,
-            velocity: fire_ev.into(),
+            velocity: Velocity::linear(bullet_velocity),
             ccd: Ccd::enabled(),
             collider: Collider::cylinder(Bullet::LENGTH / 2.0, Bullet::RADIUS / 2.0),
             collider_events: ActiveEvents::COLLISION_EVENTS,
@@ -279,12 +299,6 @@ impl BulletBundle {
                 | ActiveCollisionTypes::KINEMATIC_STATIC,
             collision_groups: fire_ev.into(),
         }
-    }
-
-    pub fn with_assets(mut self, assets: &WeaponAssets) -> Self {
-        self.pbr.mesh = assets.bullet_mesh();
-        self.pbr.material = assets.bullet_material();
-        self
     }
 }
 

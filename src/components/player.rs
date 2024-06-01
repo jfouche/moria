@@ -87,7 +87,7 @@ pub struct PlayerBundle {
     tag: Player,
     name: Name,
     life: Life,
-    weapon: Weapon,
+    weapon_type: WeaponType,
     // scene: SceneBundle,
     pbr: PbrBundle,
     body: RigidBody,
@@ -96,12 +96,12 @@ pub struct PlayerBundle {
 }
 
 impl PlayerBundle {
-    pub fn new(weapon: Weapon) -> Self {
+    pub fn new(weapon_type: WeaponType) -> Self {
         PlayerBundle {
             tag: Player,
             name: Name::new("Player"),
             life: Life::new(100),
-            weapon,
+            weapon_type,
             // scene: SceneBundle::default(),
             pbr: PbrBundle::default(),
             body: RigidBody::Dynamic,

@@ -15,8 +15,9 @@ fn load_assets(
     asset_server: Res<AssetServer>,
     meshes: ResMut<Assets<Mesh>>,
     materials: ResMut<Assets<StandardMaterial>>,
+    weapons: Res<Weapons>,
 ) {
-    let assets = WeaponAssets::load(&asset_server, meshes, materials);
+    let assets = WeaponAssets::load(&asset_server, meshes, materials, &weapons);
     commands.insert_resource(assets);
 }
 
@@ -24,11 +25,12 @@ fn spawn_bullet(
     mut commands: Commands,
     mut events: EventReader<FireEvent>,
     assets: Res<WeaponAssets>,
+    weapons: Res<Weapons>,
     sound_volume: Res<SoundVolume>,
 ) {
     for fire_ev in events.read() {
         info!("spawn_bullet from {:?}", fire_ev.from);
-        commands.spawn(BulletBundle::new(fire_ev).with_assets(&assets));
+        commands.spawn(BulletBundle::new(fire_ev, &weapons, &assets));
 
         // spawn the audio in a different entity to be sure it doesn't stop
         // when the bullet is despawn to early

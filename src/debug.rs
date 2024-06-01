@@ -93,7 +93,7 @@ fn display_collision_events(
         };
         let name1 = names.get(e1);
         let name2 = names.get(e2);
-        debug!("Received collision event: {collision_type}, {name1:?}, {name2:?}");
+        info!("Received collision event: {collision_type}, {name1:?}, {name2:?}");
     }
 }
 

@@ -26,9 +26,9 @@ fn load_config(mut commands: Commands) {
                 load_weapons(commands.reborrow(), &config.weapons);
                 commands.insert_resource(LevelsConfig::new(config.levels));
             }
-            Err(e) => error!("Can't load config from file : {e:?}"),
+            Err(e) => error!("Can't load config from file : {e}"),
         },
-        Err(e) => error!("Can't read config file : {e:?}"),
+        Err(e) => error!("Can't read config file : {e}"),
     }
 }
 

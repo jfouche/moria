@@ -45,7 +45,6 @@ fn spawn_player(
     mut commands: Commands,
     mut players: Query<&mut Transform, With<Player>>,
     assets: Res<PlayerAssets>,
-    weapons: Res<Weapons>,
     level: Res<Level>,
 ) {
     let pos = level.start_position();
@@ -55,9 +54,12 @@ fn spawn_player(
     } else {
         // Spawn a player
         info!("spawn_player()");
-        let weapon = weapons.get(WeaponType::Shotgun);
         commands
-            .spawn(PlayerBundle::new(weapon).at(pos).with_assets(&assets))
+            .spawn(
+                PlayerBundle::new(WeaponType::Shotgun)
+                    .at(pos)
+                    .with_assets(&assets),
+            )
             .with_children(|parent| {
                 parent.spawn(PlayerColliderBundle::default());
             });
@@ -91,18 +93,19 @@ fn player_fires(
     mut commands: Commands,
     keys: Res<ButtonInput<KeyCode>>,
     mouse: Res<ButtonInput<MouseButton>>,
-    player: Query<(Entity, &Transform, &Weapon), (With<Player>, Without<Reload>)>,
+    player: Query<(Entity, &Transform, &WeaponType), (With<Player>, Without<Reload>)>,
     cameras: Query<&Transform, (With<PlayerCamera>, Without<Player>)>,
+    weapons: Res<Weapons>,
     mut ev_fire: EventWriter<FireEvent>,
 ) {
     if keys.pressed(KeyCode::Space) || mouse.just_pressed(MouseButton::Left) {
         // The query doesn't return if the weapon is reloading (eg. if it contains the [Reload] component)
-        if let Ok((player_entity, player_transform, weapon)) = player.get_single() {
+        if let Ok((player_entity, player_transform, weapon_type)) = player.get_single() {
             // Use the camera to manage vertical view
             let cam_transform = cameras.get_single().expect("PlayerCamera");
             let direction = cam_transform.forward();
             let origin = player_transform.translation + Player::fire_origin_offset();
-            let event = weapon
+            let event = weapon_type
                 .fire()
                 .from(origin, FireEmitter::Player)
                 .to(direction)
@@ -110,6 +113,7 @@ fn player_fires(
             ev_fire.send(event);
 
             // Reload
+            let weapon = weapons.get(*weapon_type);
             commands.entity(player_entity).insert(Reload::from(weapon));
         }
     }
