@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{audio::Volume, prelude::*};
 use serde::{Deserialize, Serialize};
 use std::{fs, io::ErrorKind, ops::RangeInclusive, path::PathBuf};
 
@@ -28,6 +28,12 @@ pub struct MusicVolume(pub AudioVolume);
 impl PartialEq<u8> for MusicVolume {
     fn eq(&self, other: &u8) -> bool {
         &***self == other
+    }
+}
+
+impl From<&MusicVolume> for Volume {
+    fn from(volume: &MusicVolume) -> Self {
+        Volume::new(volume.db())
     }
 }
 
