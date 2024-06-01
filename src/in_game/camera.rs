@@ -18,8 +18,11 @@ pub fn plugin(app: &mut App) {
     app.init_state::<CameraState>()
         .init_resource::<InputState>()
         .init_resource::<CameraView>()
-        .add_systems(PreStartup, spawn_camera)
-        .add_systems(Startup, load_config)
+        .add_systems(Startup, (spawn_camera, apply_deferred, load_config).chain())
+        .add_systems(
+            Update,
+            camera_follows_player.run_if(in_state(InGameState::LoadLevel)),
+        )
         .add_systems(
             Update,
             (
