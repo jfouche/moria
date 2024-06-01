@@ -1,6 +1,6 @@
 use super::*;
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::*;
+use bevy_xpbd_3d::prelude::*;
 
 // #[derive(Resource, Deref, DerefMut)]
 // pub struct PlayerAssets(SceneWithCollidersAssets);
@@ -72,7 +72,7 @@ impl Player {
                     z: 0.0,
                 }
     }
-    pub fn tranform(pos: Position) -> Transform {
+    pub fn tranform(pos: RoomPosition) -> Transform {
         Transform::from_translation(pos.to_world().translation_with_y(Player::SIZE.y / 2.0))
             .with_scale(Player::SCALE)
             .looking_to(Vec3::NEG_Z, Vec3::Y)
@@ -91,7 +91,7 @@ pub struct PlayerBundle {
     // scene: SceneBundle,
     pbr: PbrBundle,
     body: RigidBody,
-    velocity: Velocity,
+    velocity: LinearVelocity,
     locked_axes: LockedAxes,
 }
 
@@ -105,12 +105,12 @@ impl PlayerBundle {
             // scene: SceneBundle::default(),
             pbr: PbrBundle::default(),
             body: RigidBody::Dynamic,
-            velocity: Velocity::zero(),
+            velocity: LinearVelocity::ZERO,
             locked_axes: /*LockedAxes::TRANSLATION_LOCKED |*/ LockedAxes::ROTATION_LOCKED,
         }
     }
 
-    pub fn at(mut self, pos: Position) -> Self {
+    pub fn at(mut self, pos: RoomPosition) -> Self {
         self.pbr.transform = Player::tranform(pos);
         self
     }
@@ -136,7 +136,7 @@ pub struct PlayerColliderBundle {
     transform: TransformBundle,
     collider: Collider,
     locked_axes: LockedAxes,
-    collision_groups: CollisionGroups,
+    collision_layers: CollisionLayers,
 }
 
 impl Default for PlayerColliderBundle {
@@ -151,7 +151,7 @@ impl Default for PlayerColliderBundle {
                 Player::SIZE.z / 2.0,
             ),
             locked_axes: /*LockedAxes::TRANSLATION_LOCKED |*/ LockedAxes::ROTATION_LOCKED,
-            collision_groups: CollisionGroups::new(COLLISION_GROUP_PLAYER, Group::all()),
+            collision_layers: CollisionLayers::new(InGameLayers::Player, LayerMask::ALL),
         }
     }
 }

@@ -16,7 +16,7 @@ use crate::cursor::*;
 use crate::schedule::InGameSet;
 use bevy::ecs::query::{QueryData, QueryFilter, WorldQuery};
 use bevy::{app::PluginGroupBuilder, prelude::*};
-use bevy_rapier3d::prelude::*;
+use bevy_xpbd_3d::prelude::*;
 
 pub struct InGamePlugins;
 
@@ -61,20 +61,12 @@ fn switch_to_pause(mut state: ResMut<NextState<InGameState>>, keys: Res<ButtonIn
     }
 }
 
-fn start_physics(mut physics: ResMut<RapierConfiguration>) {
-    physics.physics_pipeline_active = true;
+fn start_physics(mut time: ResMut<Time<Physics>>) {
+    time.unpause();
 }
 
-fn stop_physics(mut physics: ResMut<RapierConfiguration>) {
-    physics.physics_pipeline_active = false;
-}
-
-/// Filter CollisionEvent::Started events
-fn start_event_filter(event: &CollisionEvent) -> Option<(&Entity, &Entity)> {
-    match event {
-        CollisionEvent::Started(e1, e2, _) => Some((e1, e2)),
-        _ => None,
-    }
+fn stop_physics(mut time: ResMut<Time<Physics>>) {
+    time.pause();
 }
 
 /// QueryEither

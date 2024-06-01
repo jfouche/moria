@@ -6,11 +6,11 @@ use std::{fmt, ops::Deref};
 ///
 /// .1 : y
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Reflect, Component, Hash)]
-pub struct Position(pub u32, pub u32);
+pub struct RoomPosition(pub u32, pub u32);
 
-impl Position {
+impl RoomPosition {
     /// Get the square of the distance
-    pub fn sqr_distance(&self, other: &Position) -> u32 {
+    pub fn sqr_distance(&self, other: &RoomPosition) -> u32 {
         let dx = self.0 as i32 - other.0 as i32;
         let dy = self.1 as i32 - other.1 as i32;
         (dx * dx + dy * dy) as u32
@@ -25,16 +25,16 @@ impl Position {
     }
 }
 
-impl fmt::Display for Position {
+impl fmt::Display for RoomPosition {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({}, {})", self.0, self.1)
     }
 }
 
-pub struct WorldPosition(Position);
+pub struct WorldPosition(RoomPosition);
 
 impl Deref for WorldPosition {
-    type Target = Position;
+    type Target = RoomPosition;
     fn deref(&self) -> &Self::Target {
         &self.0
     }
@@ -42,7 +42,7 @@ impl Deref for WorldPosition {
 
 impl WorldPosition {
     pub fn new(x: u32, y: u32) -> Self {
-        WorldPosition(Position(x, y))
+        WorldPosition(RoomPosition(x, y))
     }
 
     pub fn rect(&self) -> Rect {
@@ -84,7 +84,7 @@ pub trait IntoWorldPosition {
     fn to_world(&self) -> WorldPosition;
 }
 
-impl IntoWorldPosition for Position {
+impl IntoWorldPosition for RoomPosition {
     fn to_world(&self) -> WorldPosition {
         WorldPosition(*self)
     }
@@ -100,15 +100,15 @@ mod test {
 
     #[test]
     fn position_to_world() {
-        let pos = Position(0, 0);
+        let pos = RoomPosition(0, 0);
         let translation = pos.to_world().translation();
         assert_eq!(Vec3::new(HRW, 0., -HRW), translation, "Position{pos}");
 
-        let pos = Position(0, 1);
+        let pos = RoomPosition(0, 1);
         let translation = pos.to_world().translation();
         assert_eq!(Vec3::new(HRW, 0., -RW - HRW), translation, "Position{pos}");
 
-        let pos = Position(1, 0);
+        let pos = RoomPosition(1, 0);
         let translation = pos.to_world().translation();
         assert_eq!(Vec3::new(RW + HRW, 0., -HRW), translation, "Position{pos}");
     }
@@ -118,7 +118,7 @@ mod test {
         let world_translation = Vec3::new(0.0, 0.0, 0.0);
         let world_pos: WorldPosition = world_translation.into();
         assert_eq!(
-            Position(0, 0),
+            RoomPosition(0, 0),
             *world_pos,
             "Translation: {world_translation}"
         );
@@ -126,7 +126,7 @@ mod test {
         let world_translation = Vec3::new(RW - 0.1, 0.0, 0.0);
         let world_pos: WorldPosition = world_translation.into();
         assert_eq!(
-            Position(0, 0),
+            RoomPosition(0, 0),
             *world_pos,
             "Translation: {world_translation}"
         );
@@ -134,7 +134,7 @@ mod test {
         let world_translation = Vec3::new(RW, 0.0, 0.0);
         let world_pos: WorldPosition = world_translation.into();
         assert_eq!(
-            Position(1, 0),
+            RoomPosition(1, 0),
             *world_pos,
             "Translation: {world_translation}"
         );
@@ -142,7 +142,7 @@ mod test {
         let world_translation = Vec3::new(0.0, 0.0, -RW);
         let world_pos: WorldPosition = world_translation.into();
         assert_eq!(
-            Position(0, 1),
+            RoomPosition(0, 1),
             *world_pos,
             "Translation: {world_translation}"
         );

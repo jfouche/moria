@@ -1,4 +1,3 @@
-mod asset_loader;
 mod camera;
 mod character;
 mod config;
@@ -12,7 +11,6 @@ mod settings;
 mod states;
 mod weapon;
 
-pub use asset_loader::*;
 pub use camera::*;
 pub use character::*;
 pub use config::*;
@@ -27,11 +25,16 @@ pub use states::*;
 pub use weapon::*;
 
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::*;
+use bevy_xpbd_3d::prelude::*;
 
-const COLLISION_GROUP_PLAYER: Group = Group::GROUP_1;
-const COLLISION_GROUP_ENEMY: Group = Group::GROUP_2;
-const COLLISION_GROUP_BULLET: Group = Group::GROUP_3;
+#[derive(PhysicsLayer)]
+pub enum InGameLayers {
+    Player,
+    Enemy,
+    Item,
+    Bullet,
+    Ground,
+}
 
 /// Generic system that takes a component as a parameter, and will despawn all entities with that component
 pub fn despawn_all<T: Component>(to_despawn: Query<Entity, With<T>>, mut commands: Commands) {

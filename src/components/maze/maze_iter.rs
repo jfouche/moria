@@ -13,7 +13,7 @@ impl<'m> MazeIter<'m> {
 }
 
 impl<'m> Iterator for MazeIter<'m> {
-    type Item = (&'m Room, Position);
+    type Item = (&'m Room, RoomPosition);
 
     fn next(&mut self) -> Option<Self::Item> {
         let pos = self.maze.get_position(self.index);

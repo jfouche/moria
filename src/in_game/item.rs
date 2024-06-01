@@ -1,33 +1,28 @@
 use crate::{
-    assets_loader::assets_loading,
     components::*,
     schedule::{InGameLoadingSet, InGameSet},
 };
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::*;
-
-use super::start_event_filter;
+use bevy_xpbd_3d::prelude::*;
 
 pub fn plugin(app: &mut App) {
-    app.add_systems(
-        Startup,
-        load_scene_assets::<PotionAssets>("potion.glb#Scene0"),
-    )
-    .add_systems(
-        Update,
-        load_scene_colliders::<PotionAssets>.run_if(assets_loading),
-    )
-    .add_systems(
-        OnEnter(InGameState::LoadLevel),
-        (despawn_all::<Potion>, spawn_items)
-            .chain()
-            .in_set(InGameLoadingSet::SpawnLevelEntities),
-    )
-    .add_systems(OnExit(GameState::InGame), despawn_all::<Potion>)
-    .add_systems(
-        Update,
-        player_take_potion.in_set(InGameSet::CollisionDetection),
-    );
+    app.add_systems(Startup, load_potion_assets)
+        .add_systems(
+            OnEnter(InGameState::LoadLevel),
+            (despawn_all::<Potion>, spawn_items)
+                .chain()
+                .in_set(InGameLoadingSet::SpawnLevelEntities),
+        )
+        .add_systems(OnExit(GameState::InGame), despawn_all::<Potion>)
+        .add_systems(
+            Update,
+            player_take_potion.in_set(InGameSet::CollisionDetection),
+        );
+}
+
+fn load_potion_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let potion_assets = PotionAssets::from(asset_server.as_ref());
+    commands.insert_resource(potion_assets)
 }
 
 fn spawn_items(mut commands: Commands, assets: Res<PotionAssets>, level: Res<Level>) {
@@ -35,17 +30,16 @@ fn spawn_items(mut commands: Commands, assets: Res<PotionAssets>, level: Res<Lev
     for (&pos, item) in level.items() {
         match item {
             Item::Potion(potion) => {
-                commands
-                    .spawn(
-                        PotionBundle::new(potion.clone())
-                            .at(pos)
-                            .with_assets(&assets),
-                    )
-                    .with_children(|parent| {
-                        for (collider, transform) in assets.colliders() {
-                            parent.spawn(PotionColliderBundle::new(collider.clone(), *transform));
-                        }
-                    });
+                commands.spawn(
+                    PotionBundle::new(potion.clone())
+                        .at(pos)
+                        .with_assets(&assets),
+                );
+                // .with_children(|parent| {
+                //     for (collider, transform) in assets.colliders() {
+                //         parent.spawn(PotionColliderBundle::new(collider.clone(), *transform));
+                //     }
+                // });
             }
         }
     }
@@ -53,7 +47,7 @@ fn spawn_items(mut commands: Commands, assets: Res<PotionAssets>, level: Res<Lev
 
 fn player_take_potion(
     mut commands: Commands,
-    mut events: EventReader<CollisionEvent>,
+    mut events: EventReader<CollisionStarted>,
     potions: Query<&Potion>,
     potion_colliders: Query<&Parent, With<PotionCollider>>,
     mut players: Query<&mut Life, With<Player>>,
@@ -63,14 +57,12 @@ fn player_take_potion(
     let player_collider_entity = player_colliders.get_single().expect("PlayerCollider");
     events
         .read()
-        // Only accept Starting collision
-        .filter_map(start_event_filter)
         // Filter PlayerCollider / PotionCollider collision, return parent entity, ie. Potion
-        .filter_map(|(&e1, &e2)| {
-            if e1 == player_collider_entity {
-                potion_colliders.get(e2).map(|parent| parent.get()).ok()
-            } else if e2 == player_collider_entity {
-                potion_colliders.get(e1).map(|parent| parent.get()).ok()
+        .filter_map(|CollisionStarted(e1, e2)| {
+            if *e1 == player_collider_entity {
+                potion_colliders.get(*e2).map(|parent| parent.get()).ok()
+            } else if *e2 == player_collider_entity {
+                potion_colliders.get(*e1).map(|parent| parent.get()).ok()
             } else {
                 None
             }

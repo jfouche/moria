@@ -44,58 +44,58 @@ impl Maze {
         self.height
     }
 
-    pub(crate) fn room_index(&self, pos: &Position) -> usize {
+    pub(crate) fn room_index(&self, pos: &RoomPosition) -> usize {
         (pos.1 * self.width + pos.0) as usize
     }
 
-    fn get_position(&self, index: usize) -> Position {
+    fn get_position(&self, index: usize) -> RoomPosition {
         let x = index as u32 % self.width;
         let y = index as u32 / self.width;
-        Position(x, y)
+        RoomPosition(x, y)
     }
 
-    pub fn get_room(&self, pos: &Position) -> Option<&Room> {
+    pub fn get_room(&self, pos: &RoomPosition) -> Option<&Room> {
         self.rooms.get(self.room_index(pos))
     }
 
-    fn get_room_mut(&mut self, pos: &Position) -> Option<&mut Room> {
+    fn get_room_mut(&mut self, pos: &RoomPosition) -> Option<&mut Room> {
         let index = self.room_index(pos);
         self.rooms.get_mut(index)
     }
 
-    pub fn visit(&mut self, pos: &Position) {
+    pub fn visit(&mut self, pos: &RoomPosition) {
         if let Some(room) = self.get_room_mut(pos) {
             room.visit();
         }
     }
 
-    pub(crate) fn left_position(&self, pos: &Position) -> Option<Position> {
+    pub(crate) fn left_position(&self, pos: &RoomPosition) -> Option<RoomPosition> {
         if pos.0 > 0 {
-            Some(Position(pos.0 - 1, pos.1))
+            Some(RoomPosition(pos.0 - 1, pos.1))
         } else {
             None
         }
     }
 
-    pub(crate) fn right_position(&self, pos: &Position) -> Option<Position> {
+    pub(crate) fn right_position(&self, pos: &RoomPosition) -> Option<RoomPosition> {
         if pos.0 < self.width - 1 {
-            Some(Position(pos.0 + 1, pos.1))
+            Some(RoomPosition(pos.0 + 1, pos.1))
         } else {
             None
         }
     }
 
-    pub(crate) fn up_position(&self, pos: &Position) -> Option<Position> {
+    pub(crate) fn up_position(&self, pos: &RoomPosition) -> Option<RoomPosition> {
         if pos.1 < self.height - 1 {
-            Some(Position(pos.0, pos.1 + 1))
+            Some(RoomPosition(pos.0, pos.1 + 1))
         } else {
             None
         }
     }
 
-    pub(crate) fn down_position(&self, pos: &Position) -> Option<Position> {
+    pub(crate) fn down_position(&self, pos: &RoomPosition) -> Option<RoomPosition> {
         if pos.1 > 0 {
-            Some(Position(pos.0, pos.1 - 1))
+            Some(RoomPosition(pos.0, pos.1 - 1))
         } else {
             None
         }

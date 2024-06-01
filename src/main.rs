@@ -1,5 +1,3 @@
-mod assets_loader;
-mod bevy_gltf_collider;
 mod components;
 mod config;
 mod cursor;
@@ -15,7 +13,7 @@ mod ui;
 mod debug;
 
 use bevy::{prelude::*, window::WindowResolution};
-use bevy_rapier3d::prelude::*;
+use bevy_xpbd_3d::prelude::*;
 use components::*;
 
 fn main() {
@@ -37,10 +35,9 @@ fn main() {
     .insert_resource(ClearColor(Color::BLACK))
     .init_state::<GameState>()
     .init_state::<InGameState>()
-    .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
+    .add_plugins(PhysicsPlugins::default())
     .add_plugins((
         schedule::plugin,
-        assets_loader::plugin,
         config::plugin,
         splash::plugin,
         menu::plugin,
@@ -56,7 +53,4 @@ fn main() {
     app.run();
 }
 
-fn setup_physics(mut rapier_context: ResMut<RapierContext>) {
-    const DEFAULT_MIN_CCD_DT: f32 = 1.0 / 60.0 / 100.0;
-    rapier_context.integration_parameters.min_ccd_dt = DEFAULT_MIN_CCD_DT / 200.0;
-}
+fn setup_physics() {}

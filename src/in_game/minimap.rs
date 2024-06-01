@@ -15,7 +15,7 @@ struct MMPlayer;
 
 #[derive(Component, Reflect)]
 struct RoomComponent {
-    pos: Position,
+    pos: RoomPosition,
 }
 
 #[derive(States, Debug, Clone, PartialEq, Eq, Hash)]
@@ -30,11 +30,11 @@ trait IntoGridPlacement {
     /// .0 : col
     ///
     /// .1 : row
-    fn to_grid_pos(&self, pos: &Position) -> (GridPlacement, GridPlacement);
+    fn to_grid_pos(&self, pos: &RoomPosition) -> (GridPlacement, GridPlacement);
 }
 
 impl IntoGridPlacement for Maze {
-    fn to_grid_pos(&self, pos: &Position) -> (GridPlacement, GridPlacement) {
+    fn to_grid_pos(&self, pos: &RoomPosition) -> (GridPlacement, GridPlacement) {
         let grid_row = self.height() - pos.1 + 1;
         let grid_col = pos.0 + 1;
         (
@@ -174,7 +174,7 @@ fn spawn_minimap(
             let texture_atlas_handle = texture_atlases.add(texture_atlas);
             for x in 0..maze.width() {
                 for y in 00..maze.height() {
-                    let pos = Position(x, y);
+                    let pos = RoomPosition(x, y);
                     if let Some(room) = maze.get_room(&pos) {
                         let (grid_column, grid_row) = maze.to_grid_pos(&pos);
                         let visibiliy = if room.visited() {

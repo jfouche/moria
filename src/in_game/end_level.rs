@@ -5,7 +5,7 @@ use crate::{
     ui::Fader,
 };
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::*;
+use bevy_xpbd_3d::plugins::collision::contact_reporting::CollisionStarted;
 
 pub fn plugin(app: &mut App) {
     app.add_systems(Startup, load_assets)
@@ -45,7 +45,7 @@ fn spawn_end_level(mut commands: Commands, level: Res<Level>, assets: Res<EndLev
 }
 
 fn player_ends_level(
-    mut events: EventReader<CollisionEvent>,
+    mut events: EventReader<CollisionStarted>,
     end_level_colliders: Query<Entity, With<EndLevelCollider>>,
     player_colliders: Query<Entity, With<PlayerCollider>>,
     mut in_game_next_state: ResMut<NextState<InGameState>>,
@@ -54,9 +54,9 @@ fn player_ends_level(
     let end_level_collider_entity = end_level_colliders.get_single().expect("EndLevelCollider");
     events
         .read()
-        .filter_map(start_event_filter)
-        .filter(|(&e1, &e2)| {
-            player_collider_entity.eq_either(e1, e2) && end_level_collider_entity.eq_either(e1, e2)
+        .filter(|CollisionStarted(e1, e2)| {
+            player_collider_entity.eq_either(*e1, *e2)
+                && end_level_collider_entity.eq_either(*e1, *e2)
         })
         .for_each(|_| {
             warn!("END LEVEL");

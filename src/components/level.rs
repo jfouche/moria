@@ -9,10 +9,10 @@ pub struct CurrentLevel(pub usize);
 #[derive(Resource)]
 pub struct Level {
     maze: Maze,
-    start: Position,
-    end: Position,
-    enemies: HashSet<Position>,
-    items: HashMap<Position, Item>,
+    start: RoomPosition,
+    end: RoomPosition,
+    enemies: HashSet<RoomPosition>,
+    items: HashMap<RoomPosition, Item>,
 }
 
 impl Level {
@@ -21,16 +21,16 @@ impl Level {
 
         Level {
             maze,
-            start: Position(0, 0),
-            end: Position(width - 1, height - 1),
+            start: RoomPosition(0, 0),
+            end: RoomPosition(width - 1, height - 1),
             enemies: HashSet::new(),
             items: HashMap::new(),
         }
     }
 
-    fn rnd_pos(&self) -> Position {
+    fn rnd_pos(&self) -> RoomPosition {
         let mut rng = rand::thread_rng();
-        Position(
+        RoomPosition(
             rng.gen_range(2..self.maze.width()),
             rng.gen_range(2..self.maze.height()),
         )
@@ -72,19 +72,19 @@ impl Level {
         &mut self.maze
     }
 
-    pub fn start_position(&self) -> Position {
+    pub fn start_position(&self) -> RoomPosition {
         self.start
     }
 
-    pub fn end_position(&self) -> Position {
+    pub fn end_position(&self) -> RoomPosition {
         self.end
     }
 
-    pub fn enemies_start_pos(&self) -> hash_set::Iter<Position> {
+    pub fn enemies_start_pos(&self) -> hash_set::Iter<RoomPosition> {
         self.enemies.iter()
     }
 
-    pub fn items(&self) -> hash_map::Iter<Position, Item> {
+    pub fn items(&self) -> hash_map::Iter<RoomPosition, Item> {
         self.items.iter()
     }
 }

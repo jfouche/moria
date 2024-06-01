@@ -22,7 +22,7 @@ impl MazeBuilder {
     pub fn create_maze(&mut self) -> Maze {
         let mut backtracking = vec![];
         let mut maze = Maze::new(self.width, self.height);
-        let mut current_position = Position(0, 0);
+        let mut current_position = RoomPosition(0, 0);
         let mut finished = false;
         maze.visit(&current_position);
         while !finished {
@@ -54,7 +54,7 @@ impl MazeBuilder {
     }
 
     /// Return a random position of an unvisited room next to the `pos`
-    fn get_next_neighboor(&mut self, maze: &Maze, pos: &Position) -> Option<Position> {
+    fn get_next_neighboor(&mut self, maze: &Maze, pos: &RoomPosition) -> Option<RoomPosition> {
         let mut neighbors = vec![];
 
         if let Some(left) = maze.left_position(pos) {
@@ -89,7 +89,12 @@ impl MazeBuilder {
         neighbors.choose(&mut self.rng).copied()
     }
 
-    pub(crate) fn remove_walls_between(&self, maze: &mut Maze, p1: &Position, p2: &Position) {
+    pub(crate) fn remove_walls_between(
+        &self,
+        maze: &mut Maze,
+        p1: &RoomPosition,
+        p2: &RoomPosition,
+    ) {
         assert_eq!(p1.sqr_distance(p2), 1);
         // eprintln!(" - remove_walls_between({}, {}", p1, p2);
         if p1.0 > p2.0 {
@@ -131,7 +136,7 @@ impl MazeBuilder {
         while modifications < n {
             let x = self.rng.gen_range(1..self.width - 1);
             let y = self.rng.gen_range(1..self.height - 1);
-            let pos = Position(x, y);
+            let pos = RoomPosition(x, y);
             let room = maze.get_room(&pos).unwrap();
             match self.rng.gen_range(0..4) {
                 0 if room.borders.top => {

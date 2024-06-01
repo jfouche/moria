@@ -1,13 +1,17 @@
 use super::*;
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::*;
+use bevy_xpbd_3d::prelude::*;
 
-#[derive(Resource, Deref, DerefMut)]
-pub struct EnemyAssets(SceneWithCollidersAssets);
+#[derive(Resource)]
+pub struct EnemyAssets {
+    scene: Handle<Scene>,
+}
 
-impl From<SceneWithCollidersAssets> for EnemyAssets {
-    fn from(value: SceneWithCollidersAssets) -> Self {
-        EnemyAssets(value)
+impl From<&AssetServer> for EnemyAssets {
+    fn from(asset_server: &AssetServer) -> Self {
+        EnemyAssets {
+            scene: asset_server.load("slime.glb#Scene0"),
+        }
     }
 }
 
@@ -34,6 +38,8 @@ pub struct EnemyBundle {
     life: Life,
     weapon: Weapon,
     scene: SceneBundle,
+    collider: AsyncSceneCollider,
+    collision_layers: CollisionLayers,
 }
 
 impl EnemyBundle {
@@ -44,21 +50,25 @@ impl EnemyBundle {
             life: Life::new(50),
             weapon,
             scene: SceneBundle::default(),
+            collider: AsyncSceneCollider::new(None)
+                .with_shape_for_name("collider_slime", ComputedCollider::ConvexHull),
+            collision_layers: CollisionLayers::new(InGameLayers::Enemy, LayerMask::ALL),
         }
     }
 
-    pub fn at(mut self, pos: Position) -> Self {
+    pub fn at(mut self, pos: RoomPosition) -> Self {
         self.scene.transform =
             Transform::from_translation(pos.to_world().translation()).with_scale(Enemy::SCALE);
         self
     }
 
     pub fn with_assets(mut self, assets: &EnemyAssets) -> Self {
-        self.scene.scene = assets.scene();
+        self.scene.scene = assets.scene.clone();
         self
     }
 }
 
+// TODO: Remove this
 #[derive(Component)]
 pub struct EnemyCollider;
 
@@ -66,9 +76,9 @@ pub struct EnemyCollider;
 pub struct EnemyColliderBundle {
     tag: EnemyCollider,
     name: Name,
-    collider: Collider,
+    collider: AsyncSceneCollider,
     transform: TransformBundle,
-    collision_groups: CollisionGroups,
+    collision_layers: CollisionLayers,
 }
 
 impl EnemyColliderBundle {
@@ -77,8 +87,8 @@ impl EnemyColliderBundle {
             tag: EnemyCollider,
             name: Name::new("EnemyCollider"),
             transform: transform.into(),
-            collider,
-            collision_groups: CollisionGroups::new(COLLISION_GROUP_ENEMY, Group::all()),
+            collider: AsyncSceneCollider::default(),
+            collision_layers: CollisionLayers::new(InGameLayers::Enemy, LayerMask::ALL),
         }
     }
 }

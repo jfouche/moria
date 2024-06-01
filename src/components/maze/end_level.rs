@@ -1,6 +1,6 @@
 use super::*;
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::*;
+use bevy_xpbd_3d::prelude::*;
 
 #[derive(Resource)]
 pub struct EndLevelAssets {
@@ -46,7 +46,7 @@ impl EndLevelBundle {
         }
     }
 
-    pub fn at(mut self, pos: Position) -> Self {
+    pub fn at(mut self, pos: RoomPosition) -> Self {
         self.pbr.transform =
             Transform::from_translation(pos.to_world().translation_with_y(EndLevel::HEIGHT / 2.0));
         self
@@ -72,7 +72,7 @@ pub struct EndLevelColliderBundle {
     transform: TransformBundle,
     collider: Collider,
     sensor: Sensor,
-    collider_events: ActiveEvents,
+    // collider_events: ActiveEvents,
 }
 
 impl Default for EndLevelColliderBundle {
@@ -83,7 +83,7 @@ impl Default for EndLevelColliderBundle {
             transform: TransformBundle::default(),
             collider: Collider::cylinder(EndLevel::HEIGHT / 2.0, EndLevel::RADIUS / 8.0),
             sensor: Sensor,
-            collider_events: ActiveEvents::COLLISION_EVENTS,
+            // collider_events: ActiveEvents::COLLISION_EVENTS,
         }
     }
 }

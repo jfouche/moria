@@ -1,13 +1,17 @@
 use super::*;
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::*;
+use bevy_xpbd_3d::prelude::*;
 
-#[derive(Resource, Deref, DerefMut)]
-pub struct PotionAssets(SceneWithCollidersAssets);
+#[derive(Resource)]
+pub struct PotionAssets {
+    scene: Handle<Scene>,
+}
 
-impl From<SceneWithCollidersAssets> for PotionAssets {
-    fn from(value: SceneWithCollidersAssets) -> Self {
-        PotionAssets(value)
+impl From<&AssetServer> for PotionAssets {
+    fn from(asset_server: &AssetServer) -> Self {
+        PotionAssets {
+            scene: asset_server.load("potion.glb#Scene0"),
+        }
     }
 }
 
@@ -29,6 +33,8 @@ pub struct PotionBundle {
     potion: Potion,
     name: Name,
     scene: SceneBundle,
+    collider: AsyncSceneCollider,
+    collision_layers: CollisionLayers,
 }
 
 impl PotionBundle {
@@ -37,17 +43,20 @@ impl PotionBundle {
             potion,
             name: Name::new("Potion"),
             scene: SceneBundle::default(),
+            collider: AsyncSceneCollider::new(None)
+                .with_shape_for_name("collider_potion", ComputedCollider::ConvexHull),
+            collision_layers: CollisionLayers::new(InGameLayers::Item, [InGameLayers::Player]),
         }
     }
 
-    pub fn at(mut self, pos: Position) -> Self {
+    pub fn at(mut self, pos: RoomPosition) -> Self {
         self.scene.transform =
             Transform::from_translation(pos.to_world().translation()).with_scale(Potion::SCALE);
         self
     }
 
     pub fn with_assets(mut self, assets: &PotionAssets) -> Self {
-        self.scene.scene = assets.scene();
+        self.scene.scene = assets.scene.clone();
         self
     }
 }
@@ -61,7 +70,7 @@ pub struct PotionColliderBundle {
     collider: Collider,
     transform: TransformBundle,
     sensor: Sensor,
-    collider_events: ActiveEvents,
+    // collider_events: ActiveEvents,
 }
 
 impl PotionColliderBundle {
@@ -71,7 +80,7 @@ impl PotionColliderBundle {
             collider,
             transform: transform.into(),
             sensor: Sensor,
-            collider_events: ActiveEvents::COLLISION_EVENTS,
+            // collider_events: ActiveEvents::COLLISION_EVENTS,
         }
     }
 }

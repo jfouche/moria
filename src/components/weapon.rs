@@ -1,6 +1,6 @@
 use super::*;
 use bevy::{audio::Volume, prelude::*};
-use bevy_rapier3d::prelude::*;
+use bevy_xpbd_3d::prelude::*;
 use std::{collections::HashMap, f32::consts::FRAC_PI_2};
 
 /// WeaponAssets
@@ -69,9 +69,9 @@ pub struct FireEvent {
     pub direction: Direction3d,
 }
 
-impl From<&FireEvent> for Velocity {
+impl From<&FireEvent> for LinearVelocity {
     fn from(event: &FireEvent) -> Self {
-        Velocity::linear(event.direction * event.weapon.bullet_speed)
+        LinearVelocity(event.direction * event.weapon.bullet_speed)
     }
 }
 
@@ -81,13 +81,17 @@ impl From<&FireEvent> for LifeTime {
     }
 }
 
-impl From<&FireEvent> for CollisionGroups {
+impl From<&FireEvent> for CollisionLayers {
     fn from(event: &FireEvent) -> Self {
-        let collision_filters = match event.from {
-            FireEmitter::Player => Group::ALL & !COLLISION_GROUP_PLAYER,
-            FireEmitter::Enemy => Group::ALL & !COLLISION_GROUP_ENEMY,
+        let collision_filter = match event.from {
+            FireEmitter::Player => InGameLayers::Enemy,
+
+            FireEmitter::Enemy => InGameLayers::Player,
         };
-        CollisionGroups::new(COLLISION_GROUP_BULLET, collision_filters)
+        CollisionLayers::new(
+            InGameLayers::Bullet,
+            [InGameLayers::Ground, collision_filter],
+        )
     }
 }
 
@@ -247,12 +251,11 @@ pub struct BulletBundle {
     emiter: FireEmitter,
     pbr: PbrBundle,
     body: RigidBody,
-    velocity: Velocity,
+    velocity: LinearVelocity,
     collider: Collider,
-    ccd: Ccd,
-    collider_events: ActiveEvents,
-    collision_tpes: ActiveCollisionTypes,
-    collision_groups: CollisionGroups,
+    // collider_events: ActiveEvents,
+    // collision_tpes: ActiveCollisionTypes,
+    collision_layers: CollisionLayers,
 }
 
 impl BulletBundle {
@@ -270,14 +273,13 @@ impl BulletBundle {
                 transform,
                 ..default()
             },
-            body: RigidBody::KinematicVelocityBased,
+            body: RigidBody::Kinematic,
             velocity: fire_ev.into(),
-            ccd: Ccd::enabled(),
             collider: Collider::cylinder(Bullet::LENGTH / 2.0, Bullet::RADIUS / 2.0),
-            collider_events: ActiveEvents::COLLISION_EVENTS,
-            collision_tpes: ActiveCollisionTypes::default()
-                | ActiveCollisionTypes::KINEMATIC_STATIC,
-            collision_groups: fire_ev.into(),
+            // collider_events: ActiveEvents::COLLISION_EVENTS,
+            // collision_tpes: ActiveCollisionTypes::default()
+            //     | ActiveCollisionTypes::KINEMATIC_STATIC,
+            collision_layers: fire_ev.into(),
         }
     }
 

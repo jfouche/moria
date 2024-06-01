@@ -3,7 +3,7 @@ use crate::{
     schedule::{InGameLoadingSet, InGameSet},
 };
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::*;
+use bevy_xpbd_3d::prelude::*;
 
 pub fn plugin(app: &mut App) {
     app.add_systems(Startup, load_assets)
@@ -96,7 +96,12 @@ fn load_assets(
     commands.insert_resource(maze_assets);
 }
 
-fn spawn_wall(commands: &mut Commands, wall: Wall, pos: Position, assets: &MazeAssets) -> Entity {
+fn spawn_wall(
+    commands: &mut Commands,
+    wall: Wall,
+    pos: RoomPosition,
+    assets: &MazeAssets,
+) -> Entity {
     let mesh = assets.mesh(wall);
     let material = assets.wall_material.clone();
     let wall_pos = WallPosition { wall, pos };
@@ -138,8 +143,8 @@ fn spawn_maze(mut commands: Commands, assets: Res<MazeAssets>, level: Res<Level>
         let floor_collider_id = commands
             .spawn((
                 Name::new("Floor collider"),
-                RigidBody::Fixed,
-                Collider::halfspace(Vec3::Y).unwrap(),
+                RigidBody::Static,
+                Collider::halfspace(Vec3::Y),
             ))
             .id();
         children.push(floor_collider_id);

@@ -1,11 +1,10 @@
 use crate::{
-    assets_loader::assets_loading,
     components::*,
     math::SignedAngle,
     schedule::{InGameLoadingSet, InGameSet},
 };
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::*;
+use bevy_xpbd_3d::prelude::*;
 
 /// Resource to store ray castings between Enemy and Player
 #[derive(Resource, Default, Deref, DerefMut)]
@@ -15,17 +14,7 @@ pub fn plugin(app: &mut App) {
     app.add_event::<EnemyHitEvent>()
         .add_event::<EnemyDeathEvent>()
         .init_resource::<EnemiesSeingPlayer>()
-        .add_systems(
-            Startup,
-            (
-                load_scene_assets::<EnemyAssets>("slime.glb#Scene0"),
-                load_impact_assets,
-            ),
-        )
-        .add_systems(
-            Update,
-            load_scene_colliders::<EnemyAssets>.run_if(assets_loading),
-        )
+        .add_systems(Startup, (load_enemy_assets, load_impact_assets))
         .add_systems(
             OnEnter(InGameState::LoadLevel),
             (despawn_all::<Enemy>, spawn_enemies)
@@ -50,6 +39,11 @@ pub fn plugin(app: &mut App) {
         .add_systems(Update, on_death.in_set(InGameSet::DespawnEntities));
 }
 
+fn load_enemy_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let enemy_assets = EnemyAssets::from(asset_server.as_ref());
+    commands.insert_resource(enemy_assets)
+}
+
 fn load_impact_assets(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -70,17 +64,16 @@ fn spawn_enemies(
     info!("spawn_enemies()");
     let weapon = weapons.get(WeaponType::EnemyGun);
     for &pos in level.enemies_start_pos() {
-        commands
-            .spawn(
-                EnemyBundle::new(weapon.clone())
-                    .at(pos)
-                    .with_assets(&assets),
-            )
-            .with_children(|parent| {
-                for (collider, transform) in assets.colliders() {
-                    parent.spawn(EnemyColliderBundle::new(collider.clone(), *transform));
-                }
-            });
+        commands.spawn(
+            EnemyBundle::new(weapon.clone())
+                .at(pos)
+                .with_assets(&assets),
+        );
+        // .with_children(|parent| {
+        //     for (collider, transform) in assets.colliders() {
+        //         parent.spawn(EnemyColliderBundle::new(collider.clone(), *transform));
+        //     }
+        // });
     }
 }
 
@@ -141,7 +134,7 @@ fn cast_rays_from_enemies(
     enemy_colliders: Query<&Parent, With<EnemyCollider>>,
     players: Query<&Transform, With<Player>>,
     player_colliders: Query<Entity, With<PlayerCollider>>,
-    rapier_context: Res<RapierContext>,
+    spatial_query: SpatialQuery,
     mut enemies_seeing_player: ResMut<EnemiesSeingPlayer>,
     #[cfg(debug_assertions)] mut gizmos: Gizmos,
 ) {
@@ -156,28 +149,24 @@ fn cast_rays_from_enemies(
         {
             Some(enemy_collider_entity) => {
                 let ray_pos = enemy_transform.translation + Enemy::center_offset();
-                let ray_dir = player_center - ray_pos;
+                if let Ok(ray_dir) = Direction3d::new(player_center - ray_pos) {
+                    let max_toi = ray_dir.length();
+                    let solid = false;
+                    let filter = SpatialQueryFilter::default(); // TODO: exclude items and enemies ?
 
-                let max_toi = ray_dir.length();
-                let solid = false;
-                let filter = QueryFilter::new()
-                    .exclude_sensors()
-                    .exclude_collider(*enemy_collider_entity);
+                    {
+                        // DEBUG
+                        #[cfg(debug_assertions)]
+                        gizmos.ray(ray_pos, *ray_dir, Color::WHITE);
+                    }
 
-                {
-                    // DEBUG
-                    #[cfg(debug_assertions)]
-                    gizmos.ray(ray_pos, ray_dir, Color::WHITE);
-                }
-
-                if let Some((entity, _toi)) =
-                    rapier_context.cast_ray(ray_pos, ray_dir, max_toi, solid, filter)
-                {
-                    if entity == player_collider_entity {
-                        debug!("{enemy_entity:?} sees player");
-                        enemies_seeing_player.push(enemy_entity);
-                    } else {
-                        debug!("{enemy_entity:?} sees {entity:?}");
+                    if let Some(ray_hit_data) =
+                        spatial_query.cast_ray(ray_pos, ray_dir, max_toi, solid, filter)
+                    {
+                        if ray_hit_data.entity == player_collider_entity {
+                            debug!("{enemy_entity:?} sees player");
+                            enemies_seeing_player.push(enemy_entity);
+                        }
                     }
                 }
             }

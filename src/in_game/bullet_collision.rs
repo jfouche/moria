@@ -1,7 +1,7 @@
 use super::*;
 use crate::{components::*, schedule::InGameSet};
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::*;
+use bevy_xpbd_3d::prelude::*;
 use std::collections::{HashMap, HashSet};
 
 pub fn plugin(app: &mut App) {
@@ -21,14 +21,13 @@ pub fn plugin(app: &mut App) {
 ///
 fn despawn_bullet_after_collision(
     mut commands: Commands,
-    mut collisions: EventReader<CollisionEvent>,
+    mut collisions: EventReader<CollisionStarted>,
     bullets: Query<(), With<Bullet>>,
 ) {
     let mut bullets_hit = HashSet::new();
     collisions
         .read()
-        .filter_map(start_event_filter)
-        .filter_map(|(&e1, &e2)| bullets.get_either(e1, e2))
+        .filter_map(|CollisionStarted(e1, e2)| bullets.get_either(*e1, *e2))
         .for_each(|(_data, bullet_entity, _other_entity)| {
             bullets_hit.insert(bullet_entity);
         });
@@ -42,7 +41,7 @@ fn despawn_bullet_after_collision(
 /// Enemy hit by a bullet
 ///
 fn enemy_hit_by_bullet(
-    mut collisions: EventReader<CollisionEvent>,
+    mut collisions: EventReader<CollisionStarted>,
     enemies: Query<(), With<Enemy>>,
     enemy_colliders: Query<&Parent, With<EnemyCollider>>,
     bullets: Query<(&Bullet, &FireEmitter, &Transform)>,
@@ -51,10 +50,8 @@ fn enemy_hit_by_bullet(
     let mut enemies_hit = HashMap::new();
     collisions
         .read()
-        // filter start event only
-        .filter_map(start_event_filter)
         // filter Bullet collision ...
-        .filter_map(|(&e1, &e2)| bullets.get_either(e1, e2))
+        .filter_map(|CollisionStarted(e1, e2)| bullets.get_either(*e1, *e2))
         // ... with player emitter ...
         .filter(|(bullet_data, _bullet_entity, _other_entity)| {
             bullet_data.1 == &FireEmitter::Player
@@ -90,7 +87,7 @@ fn enemy_hit_by_bullet(
 /// Player hit by a bullet
 ///
 fn player_hit_by_bullet(
-    mut collisions: EventReader<CollisionEvent>,
+    mut collisions: EventReader<CollisionStarted>,
     players: Query<Entity, With<Player>>,
     player_colliders: Query<&Parent, With<PlayerCollider>>,
     bullets: Query<(&Bullet, &FireEmitter)>,
@@ -99,10 +96,8 @@ fn player_hit_by_bullet(
     let mut damage = 0;
     collisions
         .read()
-        // filter start event only
-        .filter_map(start_event_filter)
         // filter Bullet collision ...
-        .filter_map(|(&e1, &e2)| bullets.get_either(e1, e2))
+        .filter_map(|CollisionStarted(e1, e2)| bullets.get_either(*e1, *e2))
         // ... with enemy emitter ...
         .filter(|(bullet_data, _bullet_entity, _other_entity)| bullet_data.1 == &FireEmitter::Enemy) // ... colliding with player ...
         // ... colliding with player

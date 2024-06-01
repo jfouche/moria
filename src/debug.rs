@@ -4,13 +4,13 @@ use bevy::{
     window::{CursorGrabMode, PrimaryWindow},
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use bevy_rapier3d::prelude::*;
+use bevy_xpbd_3d::prelude::*;
 
 pub fn plugin(app: &mut App) {
     app.add_systems(Startup, apply_config)
         .add_plugins((
             WorldInspectorPlugin::new().run_if(is_debug_enabled),
-            RapierDebugRenderPlugin::default().disabled(),
+            PhysicsDebugPlugin::default()
         ))
         .add_systems(Update, toggle_grab.in_set(InGameSet::UserInput))
         .add_systems(
@@ -36,8 +36,9 @@ fn is_debug_enabled(config: Res<GameConfig>) -> bool {
     config.debug
 }
 
-fn apply_config(config: Res<GameConfig>, mut rapier: ResMut<DebugRenderContext>) {
-    rapier.enabled = config.debug;
+fn apply_config(config: Res<GameConfig>, // , mut rapier: ResMut<DebugRenderContext>
+) {
+    // rapier.enabled = config.debug;
 }
 
 fn toggle_grab(
@@ -83,17 +84,15 @@ fn show_axes(mut gizmos: Gizmos, config: Res<GameConfig>) {
 }
 
 fn display_collision_events(
-    mut collision_events: EventReader<CollisionEvent>,
+    mut collision_events: EventReader<CollisionStarted>,
     names: Query<DebugName>,
 ) {
     for event in collision_events.read() {
-        let (collision_type, &e1, &e2) = match event {
-            CollisionEvent::Started(e1, e2, _) => ("Started", e1, e2),
-            CollisionEvent::Stopped(e1, e2, _) => ("Stopped", e1, e2),
-        };
+        let e1 = event.0;
+        let e2 = event.1;
         let name1 = names.get(e1);
         let name2 = names.get(e2);
-        debug!("Received collision event: {collision_type}, {name1:?}, {name2:?}");
+        debug!("Collision between {name1:?} & {name2:?}");
     }
 }
 

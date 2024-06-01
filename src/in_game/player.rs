@@ -4,7 +4,7 @@ use crate::{
     schedule::{InGameLoadingSet, InGameSet},
 };
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::*;
+use bevy_xpbd_3d::prelude::*;
 
 const PLAYER_SPEED: f32 = 200.0;
 
@@ -66,7 +66,7 @@ fn spawn_player(
 
 // https://github.com/sburris0/bevy_flycam/blob/master/src/lib.rs
 fn player_move(
-    mut players: Query<(&Transform, &mut Velocity), With<Player>>,
+    mut players: Query<(&Transform, &mut LinearVelocity), With<Player>>,
     keys: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
 ) {
@@ -84,7 +84,7 @@ fn player_move(
         }
     }
     delta = delta.normalize_or_zero();
-    velocity.linvel = delta * time.delta_seconds() * PLAYER_SPEED;
+    velocity.0 = delta * time.delta_seconds() * PLAYER_SPEED;
 }
 
 fn player_fires(
