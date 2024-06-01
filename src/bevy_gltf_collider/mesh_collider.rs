@@ -48,13 +48,13 @@ pub fn get_collider_from_mesh(mesh: &Mesh) -> Result<Collider, ColliderFromMeshE
         return Err(ColliderFromMeshError::InvalidIndicesCount(indices.len()));
     }
 
-    let triple_indices = indices.chunks(3).map(|v| [v[0], v[1], v[2]]).collect();
-    let vertices = positions
+    let triple_indices: Vec<_> = indices.chunks(3).map(|v| [v[0], v[1], v[2]]).collect();
+    let vertices: Vec<_> = positions
         .iter()
         .map(|v| Vec3::new(v[0], v[1], v[2]))
         .collect();
 
-    let collider = Collider::trimesh(vertices, triple_indices);
+    let collider = Collider::convex_decomposition(&vertices, &triple_indices);
 
     Ok(collider)
 }
