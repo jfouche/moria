@@ -109,8 +109,6 @@ fn spawn_wall(commands: &mut Commands, wall: Wall, pos: Position, assets: &MazeA
 }
 
 fn spawn_maze(mut commands: Commands, assets: Res<MazeAssets>, level: Res<Level>) {
-    let maze = level.maze();
-
     // Spawn Maze
     let maze_id = commands
         .spawn((Name::new("MAZE"), MazeComponent, SpatialBundle::default()))
@@ -119,7 +117,7 @@ fn spawn_maze(mut commands: Commands, assets: Res<MazeAssets>, level: Res<Level>
     // a vec to store children
     let mut children = vec![];
 
-    maze.iter().for_each(|(room, pos)| {
+    level.maze.iter().for_each(|(room, pos)| {
         // Spawn floor
         let floor_id = commands
             .spawn((
@@ -195,10 +193,9 @@ fn add_light(
     let player_transform = player.get_single().expect("Player");
     let maze_entity = maze_components.get_single().expect("MazeComponent");
     let player_pos: WorldPosition = player_transform.translation.into();
-    let maze = level.maze_mut();
-    if let Some(room) = maze.get_room(&player_pos) {
+    if let Some(room) = level.maze.get_room(&player_pos) {
         if !room.visited() {
-            maze.visit(&player_pos);
+            level.maze.visit(&player_pos);
             // TODO: RoomLightBundle
             let light_entity = commands
                 .spawn((

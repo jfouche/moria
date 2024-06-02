@@ -2,18 +2,18 @@ use super::fullscreen_style;
 use bevy::prelude::*;
 
 #[derive(Bundle)]
-pub struct Fader {
+pub struct FaderBundle {
     name: Name,
-    fade: Fade,
+    fader: Fader,
     node: NodeBundle,
     timer: FadeTimer,
 }
 
-impl Fader {
+impl FaderBundle {
     pub fn new(from: Color, to: Color, duration_secs: f32) -> Self {
-        Fader {
+        FaderBundle {
             name: Name::new("Fade"),
-            fade: Fade { from, to },
+            fader: Fader { from, to },
             node: NodeBundle {
                 style: fullscreen_style(),
                 background_color: from.into(),
@@ -31,12 +31,12 @@ pub struct FaderFinishEvent {
 }
 
 #[derive(Component)]
-struct Fade {
+struct Fader {
     from: Color,
     to: Color,
 }
 
-impl Fade {
+impl Fader {
     fn color(&self, percent: f32) -> Color {
         let from = self.from.as_rgba_f32();
         let to = self.to.as_rgba_f32();
@@ -45,7 +45,6 @@ impl Fade {
         let g = cx(1);
         let b = cx(2);
         let a = cx(3);
-        //info!("{r}, {g}, {b}, {a}");
         Color::rgba(r, g, b, a)
     }
 }
@@ -65,14 +64,14 @@ pub fn plugin(app: &mut App) {
 }
 
 fn fade(
-    mut fades: Query<(Entity, &Fade, &mut FadeTimer, &mut BackgroundColor)>,
+    mut faders: Query<(Entity, &Fader, &mut FadeTimer, &mut BackgroundColor)>,
     time: Res<Time>,
     mut events: EventWriter<FaderFinishEvent>,
 ) {
-    for (entity, fade, mut timer, mut bgcolor) in &mut fades {
+    for (entity, fader, mut timer, mut bgcolor) in &mut faders {
         timer.tick(time.delta());
         let percent = timer.percent();
-        bgcolor.0 = fade.color(percent);
+        bgcolor.0 = fader.color(percent);
         if timer.just_finished() {
             events.send(FaderFinishEvent { entity });
         }

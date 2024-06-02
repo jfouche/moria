@@ -2,7 +2,7 @@ use super::*;
 use crate::{
     components::*,
     schedule::{InGameLoadingSet, InGameSet},
-    ui::Fader,
+    ui::FaderBundle,
 };
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
@@ -34,11 +34,7 @@ fn load_assets(
 
 fn spawn_end_level(mut commands: Commands, level: Res<Level>, assets: Res<EndLevelAssets>) {
     commands
-        .spawn(
-            EndLevelBundle::new()
-                .at(level.end_position())
-                .with_assets(&assets),
-        )
+        .spawn(EndLevelBundle::new().at(level.end).with_assets(&assets))
         .with_children(|parent| {
             parent.spawn(EndLevelColliderBundle::default());
         });
@@ -67,5 +63,5 @@ fn player_ends_level(
 fn spawn_fader(mut commands: Commands) {
     let from = Color::NONE;
     let to = Color::BLACK;
-    commands.spawn(Fader::new(from, to, 3.0));
+    commands.spawn(FaderBundle::new(from, to, 3.0));
 }

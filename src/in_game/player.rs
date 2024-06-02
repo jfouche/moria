@@ -47,7 +47,7 @@ fn spawn_player(
     assets: Res<PlayerAssets>,
     level: Res<Level>,
 ) {
-    let pos = level.start_position();
+    let pos = level.start;
     if let Ok(mut player_transform) = players.get_single_mut() {
         // Reset player position
         *player_transform = Player::tranform(pos);
@@ -104,17 +104,21 @@ fn player_fires(
             // Use the camera to manage vertical view
             let cam_transform = cameras.get_single().expect("PlayerCamera");
             let direction = cam_transform.forward();
-            let origin = player_transform.translation + Player::fire_origin_offset();
-            let event = weapon_type
-                .fire()
-                .from(origin, FireEmitter::Player)
-                .to(direction)
-                .event();
+            let fire_origin = player_transform.translation + Player::fire_origin_offset();
+            let event = FireEvent {
+                weapon_type: *weapon_type,
+                from: FireEmitter::Player,
+                origin: fire_origin,
+                direction,
+                bonus: 1.0,
+            };
             ev_fire.send(event);
 
             // Reload
             let weapon = weapons.get(*weapon_type);
-            commands.entity(player_entity).insert(Reload::from(weapon));
+            commands
+                .entity(player_entity)
+                .insert(Reload::new(weapon, 1.0));
         }
     }
 }

@@ -1,90 +1,58 @@
 use super::*;
 use bevy::prelude::*;
 use rand::Rng;
-use std::collections::{hash_map, hash_set, HashMap, HashSet};
+use std::collections::{HashMap, HashSet};
 
 #[derive(Resource, Deref, DerefMut, Debug)]
 pub struct CurrentLevel(pub usize);
 
 #[derive(Resource)]
 pub struct Level {
-    maze: Maze,
-    start: Position,
-    end: Position,
-    enemies: HashSet<Position>,
-    items: HashMap<Position, Item>,
+    pub maze: Maze,
+    pub start: Position,
+    pub end: Position,
+    pub enemies: HashSet<Position>,
+    pub items: HashMap<Position, Item>,
+    pub enemy_bonus: f32,
 }
 
 impl Level {
-    pub fn new(width: u32, height: u32) -> Self {
-        let maze = MazeBuilder::new(width, height).create_maze();
+    pub fn new(config: &LevelConfig) -> Self {
+        // Create maze
+        let (n_col, n_row) = (config.rows, config.cols);
+        let maze = MazeBuilder::new(n_col, n_row).create_maze();
+
+        let mut rng = rand::thread_rng();
+        let n_rooms = (config.cols * config.rows) as f32;
+        let mut rng_pos = || Position(rng.gen_range(2..n_col), rng.gen_range(2..n_row));
+
+        // Add enemies
+        let mut enemies = HashSet::new();
+        let n_enemies = (n_rooms * config.enemy_density).round() as usize;
+        while enemies.len() < n_enemies {
+            enemies.insert(rng_pos());
+        }
+        info!("Added {n_enemies} enemies");
+
+        // Add items
+        let mut items = HashMap::new();
+        let n_items = (n_rooms * config.item_density).round() as usize;
+        while items.len() < n_items {
+            let pos = rng_pos();
+            if !enemies.contains(&pos) {
+                let item = Item::Potion(Potion::Life(20));
+                items.insert(pos, item);
+            }
+        }
+        info!("add_items() : {n_items}");
 
         Level {
             maze,
             start: Position(0, 0),
-            end: Position(width - 1, height - 1),
-            enemies: HashSet::new(),
-            items: HashMap::new(),
+            end: Position(n_col - 1, n_row - 1),
+            enemies,
+            items,
+            enemy_bonus: config.enemy_bonus,
         }
-    }
-
-    fn rnd_pos(&self) -> Position {
-        let mut rng = rand::thread_rng();
-        Position(
-            rng.gen_range(2..self.maze.width()),
-            rng.gen_range(2..self.maze.height()),
-        )
-    }
-
-    /// Add enemies in maze
-    ///
-    /// `enemy_density` is the percent of enemies according to the number of rooms
-    pub fn add_enemies(&mut self, enemy_density: f32) {
-        let n_rooms = self.maze.width() * self.maze.height();
-        let n_enemies = (n_rooms as f32 * enemy_density).round() as usize;
-        while self.enemies.len() < n_enemies {
-            self.enemies.insert(self.rnd_pos());
-        }
-        info!("add_enemies() : {n_enemies}")
-    }
-
-    /// Add items in maze
-    ///
-    /// `item_density` is the percent of item according to the number of rooms
-    pub fn add_items(&mut self, item_density: f32) {
-        let n_rooms = self.maze.width() * self.maze.height();
-        let n_items = (n_rooms as f32 * item_density).round() as usize;
-        while self.items.len() < n_items {
-            let pos = self.rnd_pos();
-            if !self.enemies.contains(&pos) {
-                let item = Item::Potion(Potion::Life(20));
-                self.items.insert(pos, item);
-            }
-        }
-        info!("add_items() : {n_items}")
-    }
-
-    pub fn maze(&self) -> &Maze {
-        &self.maze
-    }
-
-    pub fn maze_mut(&mut self) -> &mut Maze {
-        &mut self.maze
-    }
-
-    pub fn start_position(&self) -> Position {
-        self.start
-    }
-
-    pub fn end_position(&self) -> Position {
-        self.end
-    }
-
-    pub fn enemies_start_pos(&self) -> hash_set::Iter<Position> {
-        self.enemies.iter()
-    }
-
-    pub fn items(&self) -> hash_map::Iter<Position, Item> {
-        self.items.iter()
     }
 }

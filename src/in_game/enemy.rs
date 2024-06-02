@@ -63,7 +63,7 @@ fn load_impact_assets(
 
 fn spawn_enemies(mut commands: Commands, assets: Res<EnemyAssets>, level: Res<Level>) {
     info!("spawn_enemies()");
-    for &pos in level.enemies_start_pos() {
+    for &pos in level.enemies.iter() {
         commands
             .spawn(
                 EnemyBundle::new(WeaponType::EnemyGun)
@@ -186,6 +186,7 @@ fn enemy_fires(
     enemies: Query<(&Transform, &WeaponType), (With<Enemy>, Without<Reload>)>,
     player: Query<&Transform, (With<Player>, Without<Enemy>)>,
     weapons: Res<Weapons>,
+    level: Res<Level>,
     mut ev_fire: EventWriter<FireEvent>,
 ) {
     let player_transform = player.get_single().expect("Player");
@@ -195,16 +196,22 @@ fn enemy_fires(
             let fire_direction =
                 player_transform.translation + Player::center_offset() - fire_origin;
 
-            let event = weapon_type
-                .fire()
-                .from(fire_origin, FireEmitter::Enemy)
-                .to(Direction3d::new(fire_direction).unwrap())
-                .event();
-            ev_fire.send(event);
+            if let Ok(direction) = Direction3d::new(fire_direction) {
+                let event = FireEvent {
+                    weapon_type: *weapon_type,
+                    from: FireEmitter::Enemy,
+                    origin: fire_origin,
+                    direction,
+                    bonus: level.enemy_bonus,
+                };
+                ev_fire.send(event);
 
-            // Weapon reload
-            let weapon = weapons.get(*weapon_type);
-            commands.entity(enemy_entity).insert(Reload::from(weapon));
+                // Weapon reload
+                let weapon = weapons.get(*weapon_type);
+                commands
+                    .entity(enemy_entity)
+                    .insert(Reload::new(weapon, level.enemy_bonus));
+            }
         }
     }
 }

@@ -86,6 +86,7 @@ pub struct FireEvent {
     pub from: FireEmitter,
     pub origin: Vec3,
     pub direction: Direction3d,
+    pub bonus: f32,
 }
 
 // impl From<&FireEvent> for Velocity {
@@ -94,9 +95,9 @@ pub struct FireEvent {
 //     }
 // }
 
-impl From<&FireEvent> for CollisionGroups {
-    fn from(event: &FireEvent) -> Self {
-        let collision_filters = match event.from {
+impl FireEvent {
+    fn collision_groups(&self) -> CollisionGroups {
+        let collision_filters = match self.from {
             FireEmitter::Player => Group::ALL & !COLLISION_GROUP_PLAYER,
             FireEmitter::Enemy => Group::ALL & !COLLISION_GROUP_ENEMY,
         };
@@ -112,61 +113,7 @@ impl From<&FireEvent> for CollisionGroups {
 //     }
 // }
 
-/// FireEventBuilder
-pub struct FireEventBuilder<F, D> {
-    weapon_type: WeaponType,
-    from: F,
-    direction: D,
-}
-
-pub struct NoFrom;
-pub struct WithFrom(Vec3, FireEmitter);
-
-pub struct NoDirection;
-pub struct WithDirection(Direction3d);
-
-impl FireEventBuilder<NoFrom, NoDirection> {
-    fn new(weapon_type: WeaponType) -> Self {
-        FireEventBuilder {
-            weapon_type,
-            from: NoFrom,
-            direction: NoDirection,
-        }
-    }
-}
-
-impl<D> FireEventBuilder<NoFrom, D> {
-    pub fn from(self, origin: Vec3, from: FireEmitter) -> FireEventBuilder<WithFrom, D> {
-        FireEventBuilder {
-            weapon_type: self.weapon_type,
-            from: WithFrom(origin, from),
-            direction: self.direction,
-        }
-    }
-}
-
-impl<F> FireEventBuilder<F, NoDirection> {
-    pub fn to(self, direction: Direction3d) -> FireEventBuilder<F, WithDirection> {
-        FireEventBuilder {
-            weapon_type: self.weapon_type,
-            from: self.from,
-            direction: WithDirection(direction),
-        }
-    }
-}
-
-impl FireEventBuilder<WithFrom, WithDirection> {
-    pub fn event(self) -> FireEvent {
-        FireEvent {
-            weapon_type: self.weapon_type,
-            from: self.from.1,
-            origin: self.from.0,
-            direction: self.direction.0,
-        }
-    }
-}
-
-/// Fire emiter
+/// Fire emitter
 #[derive(Component, Clone, Copy, Debug, PartialEq)]
 pub enum FireEmitter {
     Player,
@@ -202,12 +149,6 @@ pub enum WeaponType {
     Gun,
     Shotgun,
     EnemyGun,
-}
-
-impl WeaponType {
-    pub fn fire(&self) -> FireEventBuilder<NoFrom, NoDirection> {
-        FireEventBuilder::<NoFrom, NoDirection>::new(*self)
-    }
 }
 
 impl TryFrom<&str> for WeaponType {
@@ -297,7 +238,7 @@ impl BulletBundle {
             collider_events: ActiveEvents::COLLISION_EVENTS,
             collision_tpes: ActiveCollisionTypes::default()
                 | ActiveCollisionTypes::KINEMATIC_STATIC,
-            collision_groups: fire_ev.into(),
+            collision_groups: fire_ev.collision_groups(),
         }
     }
 }
@@ -307,8 +248,9 @@ impl BulletBundle {
 pub struct Reload(Timer);
 
 impl Reload {
-    pub fn from(weapon: &Weapon) -> Self {
-        Reload(Timer::from_seconds(weapon.reload_delay, TimerMode::Once))
+    pub fn new(weapon: &Weapon, bonus: f32) -> Self {
+        let delay = weapon.reload_delay / bonus;
+        Reload(Timer::from_seconds(delay, TimerMode::Once))
     }
 
     pub fn finished(&mut self, time: &Time) -> bool {

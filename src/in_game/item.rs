@@ -32,7 +32,7 @@ pub fn plugin(app: &mut App) {
 
 fn spawn_items(mut commands: Commands, assets: Res<PotionAssets>, level: Res<Level>) {
     info!("spawn_items()");
-    for (&pos, item) in level.items() {
+    for (&pos, item) in level.items.iter() {
         match item {
             Item::Potion(potion) => {
                 commands

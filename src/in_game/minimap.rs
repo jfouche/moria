@@ -151,8 +151,6 @@ fn spawn_minimap(
         },
     ));
 
-    let maze = level.maze();
-
     commands
         .spawn((
             Minimap,
@@ -172,11 +170,11 @@ fn spawn_minimap(
             let texture_handle: Handle<Image> = asset_server.load(MINIMAP_ATLAS_FILENAME);
             let texture_atlas = TextureAtlasLayout::from_grid(GRID_SIZE, 4, 4, None, None);
             let texture_atlas_handle = texture_atlases.add(texture_atlas);
-            for x in 0..maze.width() {
-                for y in 00..maze.height() {
+            for x in 0..level.maze.width() {
+                for y in 00..level.maze.height() {
                     let pos = Position(x, y);
-                    if let Some(room) = maze.get_room(&pos) {
-                        let (grid_column, grid_row) = maze.to_grid_pos(&pos);
+                    if let Some(room) = level.maze.get_room(&pos) {
+                        let (grid_column, grid_row) = level.maze.to_grid_pos(&pos);
                         let visibiliy = if room.visited() {
                             Visibility::Visible
                         } else {
@@ -231,7 +229,7 @@ fn show_player(
 
 fn update_visibility(mut rooms: Query<(&RoomComponent, &mut Visibility)>, level: Res<Level>) {
     for (room_comp, mut visibility) in rooms.iter_mut() {
-        if let Some(room) = level.maze().get_room(&room_comp.pos) {
+        if let Some(room) = level.maze.get_room(&room_comp.pos) {
             if room.visited() {
                 *visibility = Visibility::Visible;
             }

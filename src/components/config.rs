@@ -46,11 +46,14 @@ pub struct BulletConfig {
 }
 
 // LevelConfig
-#[derive(Debug, Deserialize, Resource)]
+#[derive(Debug, Deserialize)]
 pub struct LevelConfig {
     pub rows: u32,
     pub cols: u32,
+    /// `enemy_density` is the percent of enemies according to the number of rooms
     pub enemy_density: f32,
+    pub enemy_bonus: f32,
+    /// `item_density` is the percent of item according to the number of rooms
     pub item_density: f32,
 }
 

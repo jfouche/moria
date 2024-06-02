@@ -41,11 +41,19 @@ rows = 7
 cols = 5
 enemy_density = 0.10 # percent
 item_density = 0.02 # percent
+enemy_bonus = 1.0
 
 [[levels]]
 rows = 10
 cols = 8
-enemy_density = 0.15 # percent
+enemy_density = 0.13 # percent
 item_density = 0.02 # percent
+enemy_bonus = 1.3
 
+[[levels]]
+rows = 12
+cols = 10
+enemy_density = 0.18 # percent
+item_density = 0.02 # percent
+enemy_bonus = 1.6
 
