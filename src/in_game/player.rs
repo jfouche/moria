@@ -98,7 +98,7 @@ fn player_fires(
     weapons: Res<Weapons>,
     mut ev_fire: EventWriter<FireEvent>,
 ) {
-    if keys.pressed(KeyCode::Space) || mouse.just_pressed(MouseButton::Left) {
+    if keys.pressed(KeyCode::Space) || mouse.pressed(MouseButton::Left) {
         // The query doesn't return if the weapon is reloading (eg. if it contains the [Reload] component)
         if let Ok((player_entity, player_transform, weapon_type)) = player.get_single() {
             // Use the camera to manage vertical view
