@@ -45,21 +45,22 @@ fn create_level(
     }
 }
 
+/// wait for fader to finish and start running
 fn start_level(
     mut commands: Commands,
     mut events: EventReader<FaderFinishEvent>,
     mut in_game_state: ResMut<NextState<InGameState>>,
 ) {
     for event in events.read() {
-        info!("start_level() - despawn({:?})", event.entity);
-        // TODO: better handling of end of fader
-        if commands.get_entity(event.entity).is_some() {
-            commands.entity(event.entity).despawn();
+        if let Some(mut cmd) = commands.get_entity(event.entity) {
+            info!("start_level() - despawn({:?})", event.entity);
+            cmd.despawn();
         }
         in_game_state.set(InGameState::Running);
     }
 }
 
+/// Wait for fader to finish and try to change level
 fn change_level(
     mut commands: Commands,
     mut events: EventReader<FaderFinishEvent>,
@@ -68,8 +69,10 @@ fn change_level(
     mut in_game_state: ResMut<NextState<InGameState>>,
 ) {
     for event in events.read() {
-        info!("change_level() - despawn({:?})", event.entity);
-        commands.entity(event.entity).despawn();
+        if let Some(mut cmd) = commands.get_entity(event.entity) {
+            info!("change_level() - despawn({:?})", event.entity);
+            cmd.despawn();
+        }
 
         match levels_config.next_level(&current_level) {
             Some(next_level) => {
