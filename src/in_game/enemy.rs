@@ -4,7 +4,7 @@ use crate::{
     math::SignedAngle,
     schedule::{InGameLoadingSet, InGameSet},
 };
-use bevy::prelude::*;
+use bevy::{color::palettes::css::RED, prelude::*};
 use bevy_rapier3d::prelude::*;
 
 /// Resource to store ray castings between Enemy and Player
@@ -56,7 +56,7 @@ fn load_impact_assets(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     let mesh = meshes.add(Sphere::new(0.1));
-    let material = materials.add(Color::RED);
+    let material = materials.add(Color::Srgba(RED));
     let assets = ImpactAssets { mesh, material };
     commands.insert_resource(assets);
 }
@@ -196,7 +196,7 @@ fn enemy_fires(
             let fire_direction =
                 player_transform.translation + Player::center_offset() - fire_origin;
 
-            if let Ok(direction) = Direction3d::new(fire_direction) {
+            if let Ok(direction) = Dir3::new(fire_direction) {
                 let event = FireEvent {
                     weapon_type: *weapon_type,
                     from: FireEmitter::Enemy,

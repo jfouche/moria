@@ -74,7 +74,7 @@ fn menu_action(
         if *interaction == Interaction::Pressed {
             match menu_button_action {
                 MenuButtonAction::ExitApplication => {
-                    app_exit_events.send(AppExit);
+                    app_exit_events.send(AppExit::Success);
                 }
                 MenuButtonAction::PlayGame => {
                     next_game_state.set(GameState::InGame);

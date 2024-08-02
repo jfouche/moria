@@ -102,6 +102,7 @@ impl From<ExposureSettings> for bevy::render::camera::PhysicalCameraParameters {
             aperture_f_stops,
             shutter_speed_s,
             sensitivity_iso,
+            sensor_height: 0.01866,
         }
     }
 }

@@ -24,7 +24,7 @@ enum MinimapState {
     Show,
 }
 
-const GRID_SIZE: Vec2 = Vec2::new(32.0, 32.0);
+const GRID_SIZE: UVec2 = UVec2::new(32, 32);
 
 trait IntoGridPlacement {
     /// .0 : col
@@ -162,7 +162,7 @@ fn spawn_minimap(
                     margin: UiRect::all(Val::Auto),
                     ..default()
                 },
-                background_color: Color::rgba(0.9, 0.9, 0.9, 0.3).into(),
+                background_color: Color::srgba(0.9, 0.9, 0.9, 0.3).into(),
                 ..Default::default()
             },
         ))
@@ -180,24 +180,25 @@ fn spawn_minimap(
                         } else {
                             Visibility::Hidden
                         };
-                        minimap_cmds
-                            .spawn(AtlasImageBundle {
+                        minimap_cmds.spawn((
+                            ImageBundle {
+                                image: UiImage::new(texture_handle.clone()),
                                 style: Style {
-                                    width: Val::Px(GRID_SIZE.x),
-                                    height: Val::Px(GRID_SIZE.y),
+                                    width: Val::Px(GRID_SIZE.x as f32),
+                                    height: Val::Px(GRID_SIZE.y as f32),
                                     grid_row,
                                     grid_column,
                                     ..default()
                                 },
-                                texture_atlas: TextureAtlas {
-                                    layout: texture_atlas_handle.clone(),
-                                    index: room.img_index(),
-                                },
-                                image: UiImage::new(texture_handle.clone()),
                                 visibility: visibiliy,
                                 ..Default::default()
-                            })
-                            .insert(RoomComponent { pos });
+                            },
+                            TextureAtlas {
+                                layout: texture_atlas_handle.clone(),
+                                index: room.img_index(),
+                            },
+                            RoomComponent { pos },
+                        ));
                     }
                 }
             }

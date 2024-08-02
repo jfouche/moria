@@ -76,9 +76,9 @@ fn debug_player_view(transform: Query<&Transform, With<Player>>) {
 #[allow(dead_code)]
 fn show_axes(mut gizmos: Gizmos, config: Res<GameConfig>) {
     if config.debug {
-        gizmos.ray(Vec3::ZERO, Vec3::new(1.0, 0.0, 0.0), Color::RED);
-        gizmos.ray(Vec3::ZERO, Vec3::new(0.0, 1.0, 0.0), Color::GREEN);
-        gizmos.ray(Vec3::ZERO, Vec3::new(0.0, 0.0, 1.0), Color::BLUE);
+        gizmos.ray(Vec3::ZERO, Vec3::new(1.0, 0.0, 0.0), Srgba::RED);
+        gizmos.ray(Vec3::ZERO, Vec3::new(0.0, 1.0, 0.0), Srgba::GREEN);
+        gizmos.ray(Vec3::ZERO, Vec3::new(0.0, 0.0, 1.0), Srgba::BLUE);
     }
 }
 
@@ -108,6 +108,6 @@ fn display_states(game_state: Res<State<GameState>>, in_game_state: Res<State<In
 fn state_transition<S: States>(mut events: EventReader<StateTransitionEvent<S>>) {
     for event in events.read() {
         let name = std::any::type_name::<S>();
-        info!("{name} : {:?} => {:?}", event.before, event.after);
+        info!("{name} : {:?} => {:?}", event.exited, event.entered);
     }
 }

@@ -19,7 +19,7 @@ pub fn plugin(app: &mut App) {
         );
 }
 
-const END_LEVEL_FADE_COLOR: Color = Color::rgba(0.0, 0.0, 0.8, 1.0);
+const END_LEVEL_FADE_COLOR: Color = Color::srgba(0.0, 0.0, 0.8, 1.0);
 
 fn hide_level(mut commands: Commands) {
     info!("hide_level()");

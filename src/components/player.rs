@@ -1,5 +1,5 @@
 use super::*;
-use bevy::prelude::*;
+use bevy::{color::palettes::css::PINK, prelude::*};
 use bevy_rapier3d::prelude::*;
 
 // #[derive(Resource, Deref, DerefMut)]
@@ -26,7 +26,7 @@ impl PlayerAssets {
         mut materials: ResMut<Assets<StandardMaterial>>,
     ) -> Self {
         let mesh = meshes.add(Cuboid::new(Player::SIZE.x, Player::SIZE.y, Player::SIZE.z));
-        let material = materials.add(Color::PINK);
+        let material = materials.add(Color::Srgba(PINK));
         PlayerAssets { mesh, material }
     }
 }

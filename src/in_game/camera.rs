@@ -57,6 +57,7 @@ fn load_config(config: Res<CameraConfig>, mut exposure: Query<&mut Exposure>) {
         aperture_f_stops: config.aperture_f_stops,
         shutter_speed_s: config.shutter_speed_s,
         sensitivity_iso: config.sensitivity_iso,
+        sensor_height: 0.01866,
     };
     *exposure.single_mut() = Exposure::from_physical_camera(params);
 }
@@ -89,7 +90,7 @@ fn camera_follows_player(
     let mut cam_transform = cameras.get_single_mut().expect("PlayerCamera");
     let player_dir = player_transform.forward().horizontal();
     cam_transform.translation = player_transform.translation + Player::camera_offset();
-    cam_transform.look_to(player_dir.into(), Vec3::Y);
+    cam_transform.look_to(player_dir, Vec3::Y);
 }
 
 fn update_camera_yaw(

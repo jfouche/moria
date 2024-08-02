@@ -1,5 +1,6 @@
 use crate::{components::*, math::*, schedule::InGameSet, ui::*};
 use bevy::{
+    color::palettes::css::RED,
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
     prelude::*,
 };
@@ -54,7 +55,7 @@ fn spawn_fps(mut commands: Commands, assets: Res<HudAssets>) {
                     height: Val::Px(30.),
                     ..centered_style()
                 },
-                background_color: Color::rgba(0.8, 0.8, 0.8, 0.3).into(),
+                background_color: Color::srgba(0.8, 0.8, 0.8, 0.3).into(),
                 ..Default::default()
             },
         ))
@@ -82,7 +83,7 @@ fn spawn_compass(mut commands: Commands, assets: Res<HudAssets>) {
         Hud,
         ImageBundle {
             image: UiImage::new(assets.compass.clone()),
-            background_color: Color::rgba(0.4, 0.4, 0.4, 0.7).into(),
+            background_color: Color::srgba(0.4, 0.4, 0.4, 0.7).into(),
             style: Style {
                 position_type: PositionType::Absolute,
                 top: Val::Px(20.0),
@@ -121,7 +122,7 @@ fn spawn_level(mut commands: Commands, assets: Res<HudAssets>) {
                     height: Val::Px(30.),
                     ..centered_style()
                 },
-                background_color: Color::rgba(0.8, 0.8, 0.8, 0.3).into(),
+                background_color: Color::srgba(0.8, 0.8, 0.8, 0.3).into(),
                 ..Default::default()
             },
         ))
@@ -147,7 +148,7 @@ fn spawn_life(mut commands: Commands) {
         HudLife,
         Hud,
         Name::new("HudLife"),
-        ProgressBar::new(0.0, 100.0, 60.0).with_colors(Color::BLACK, Color::RED),
+        ProgressBar::new(0.0, 100.0, 60.0).with_colors(Color::BLACK, RED.into()),
         NodeBundle {
             style: Style {
                 position_type: PositionType::Absolute,

@@ -1,11 +1,14 @@
-use bevy::prelude::*;
+use bevy::{
+    color::palettes::css::{BLUE, CRIMSON},
+    prelude::*,
+};
 
-const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
-const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
-const HOVERED_PRESSED_BUTTON: Color = Color::rgb(0.25, 0.65, 0.25);
-const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
+const NORMAL_BUTTON: Color = Color::srgb(0.15, 0.15, 0.15);
+const HOVERED_BUTTON: Color = Color::srgb(0.25, 0.25, 0.25);
+const HOVERED_PRESSED_BUTTON: Color = Color::srgb(0.25, 0.65, 0.25);
+const PRESSED_BUTTON: Color = Color::srgb(0.35, 0.75, 0.35);
 
-const BUTTON_TEXT_COLOR: Color = Color::rgb(0.9, 0.9, 0.9);
+const BUTTON_TEXT_COLOR: Color = Color::srgb(0.9, 0.9, 0.9);
 
 pub fn button_bundle() -> ButtonBundle {
     ButtonBundle {
@@ -66,8 +69,8 @@ pub fn centered() -> NodeBundle {
 pub fn menu() -> NodeBundle {
     let vsizer = vsizer();
     NodeBundle {
-        background_color: Color::CRIMSON.into(),
-        border_color: Color::BLUE.into(),
+        background_color: CRIMSON.into(),
+        border_color: BLUE.into(),
         style: Style {
             border: UiRect::all(Val::Px(2.0)),
             ..vsizer.style

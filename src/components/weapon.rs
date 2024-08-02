@@ -1,5 +1,5 @@
 use super::*;
-use bevy::{audio::Volume, prelude::*};
+use bevy::{audio::Volume, color::palettes::css::ORANGE, prelude::*};
 use bevy_rapier3d::prelude::*;
 use std::{collections::HashMap, f32::consts::FRAC_PI_2};
 
@@ -37,7 +37,7 @@ impl WeaponAssets {
         let mut bullet_assets = HashMap::new();
         for (weapon_type, weapon) in weapons.0.iter() {
             let mesh = meshes.add(Cylinder::new(weapon.bullet.radius, weapon.bullet.length));
-            let material = materials.add(Color::ORANGE);
+            let material = materials.add(Color::Srgba(ORANGE));
             let assets = BulletAssets { mesh, material };
             bullet_assets.insert(*weapon_type, assets);
         }
@@ -85,7 +85,7 @@ pub struct FireEvent {
     pub weapon_type: WeaponType,
     pub from: FireEmitter,
     pub origin: Vec3,
-    pub direction: Direction3d,
+    pub direction: Dir3,
     pub bonus: f32,
 }
 

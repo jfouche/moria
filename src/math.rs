@@ -1,5 +1,5 @@
 use bevy::{
-    math::{primitives::Direction3d, Vec3},
+    math::{Dir3, InvalidDirectionError, Vec3},
     transform::components::Transform,
 };
 use std::f32::consts::PI;
@@ -24,9 +24,16 @@ impl From<Vec3> for HorizontalVec {
     }
 }
 
-impl From<Direction3d> for HorizontalVec {
-    fn from(v: Direction3d) -> Self {
+impl From<Dir3> for HorizontalVec {
+    fn from(v: Dir3) -> Self {
         HorizontalVec(v.x, v.z)
+    }
+}
+
+impl TryFrom<HorizontalVec> for Dir3 {
+    type Error = InvalidDirectionError;
+    fn try_from(value: HorizontalVec) -> Result<Self, Self::Error> {
+        Dir3::new(value.into())
     }
 }
 
@@ -126,7 +133,7 @@ mod test {
 
     #[test]
     fn test_horizontal_trait() {
-        let x_dir = Direction3d::new(Vec3::X).unwrap();
+        let x_dir = Dir3::new(Vec3::X).unwrap();
         let x_dir = x_dir.horizontal();
         assert!(eq_f32(x_dir.0, Vec3::X.x));
         assert!(eq_f32(x_dir.1, Vec3::X.z));

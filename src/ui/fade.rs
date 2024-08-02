@@ -38,14 +38,14 @@ struct Fader {
 
 impl Fader {
     fn color(&self, percent: f32) -> Color {
-        let from = self.from.as_rgba_f32();
-        let to = self.to.as_rgba_f32();
+        let from = self.from.to_srgba().to_f32_array();
+        let to = self.to.to_srgba().to_f32_array();
         let cx = |i| from[i] + (to[i] - from[i]) * percent;
         let r = cx(0);
         let g = cx(1);
         let b = cx(2);
         let a = cx(3);
-        Color::rgba(r, g, b, a)
+        Color::srgba(r, g, b, a)
     }
 }
 

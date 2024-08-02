@@ -1,5 +1,5 @@
 use super::*;
-use bevy::prelude::*;
+use bevy::{math::vec2, prelude::*};
 use bevy_rapier3d::prelude::*;
 use std::f32::consts::FRAC_PI_2;
 
@@ -25,7 +25,7 @@ impl Wall {
             Wall::Right => Vec3::NEG_X,
         };
 
-        Plane3d::new(normal).mesh().size(Wall::WIDTH, Wall::HEIGHT)
+        Plane3d::new(normal, vec2(Wall::WIDTH, Wall::HEIGHT)).mesh()
     }
 }
 

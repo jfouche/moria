@@ -2,7 +2,7 @@ use crate::{
     components::*,
     schedule::{InGameLoadingSet, InGameSet},
 };
-use bevy::prelude::*;
+use bevy::{math::vec2, prelude::*};
 use bevy_rapier3d::prelude::*;
 
 pub fn plugin(app: &mut App) {
@@ -60,7 +60,8 @@ fn load_assets(
         ..default()
     });
 
-    let floor_mesh_handle = meshes.add(Plane3d::new(Vec3::Y).mesh().size(Wall::WIDTH, Wall::WIDTH));
+    let floor_mesh_handle =
+        meshes.add(Plane3d::new(Vec3::Y, vec2(Wall::WIDTH, Wall::WIDTH)).mesh());
 
     // load ceiling textures and materials
     let ceiling_texture_handle = asset_server.load("textures/Asset 17.png");
@@ -69,11 +70,8 @@ fn load_assets(
         ..default()
     });
 
-    let ceiling_mesh_handle = meshes.add(
-        Plane3d::new(Vec3::NEG_Y)
-            .mesh()
-            .size(Wall::WIDTH, Wall::WIDTH),
-    );
+    let ceiling_mesh_handle =
+        meshes.add(Plane3d::new(Vec3::NEG_Y, vec2(Wall::WIDTH, Wall::WIDTH)).mesh());
 
     // load wall textures and materials
     let wall_texture_handle = asset_server.load("textures/Asset 1.png");

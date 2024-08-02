@@ -14,7 +14,7 @@ impl EndLevelAssets {
         mut materials: ResMut<Assets<StandardMaterial>>,
     ) -> Self {
         let mesh = meshes.add(Cylinder::new(EndLevel::RADIUS, EndLevel::HEIGHT));
-        let material = materials.add(Color::rgba(0.0, 0.0, 0.8, 0.4));
+        let material = materials.add(Color::srgba(0.0, 0.0, 0.8, 0.4));
         EndLevelAssets { mesh, material }
     }
 }
