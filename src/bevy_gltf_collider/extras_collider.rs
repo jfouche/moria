@@ -57,8 +57,11 @@ struct ExtrasData {
 
 #[derive(Debug)]
 pub enum ColliderExtrasParsingError {
+    #[allow(dead_code)]
     InvalidColliderDataFormat(String),
+    #[allow(dead_code)]
     UnknownColliderType(String),
+    #[allow(dead_code)]
     InvalidColliderValue(Value),
 }
 

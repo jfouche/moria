@@ -15,7 +15,9 @@ pub struct SerializedCollider {
 
 #[derive(Debug)]
 pub enum ColliderFromSceneError {
+    #[allow(dead_code)]
     MeshParsingError(ColliderMeshParsingError),
+    #[allow(dead_code)]
     ExtrasParsingError(ColliderExtrasParsingError),
     #[allow(dead_code)]
     NoCollidersFound,
