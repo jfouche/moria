@@ -35,28 +35,17 @@ fn menu_setup(mut commands: Commands, mut menu_state: ResMut<NextState<MainMenuS
     menu_state.set(MainMenuState::Main);
 }
 
-fn spawn_main_menu(mut commands: Commands) {
-    commands
-        .spawn((centered(), Name::new("MainMenu"), MainMenu))
-        .with_children(|wnd| {
-            wnd.spawn(menu()).with_children(|menu| {
-                // Display the game name
-                menu.spawn(menu_title("Moria"));
-
-                menu.spawn((button_bundle(), MenuButtonAction::PlayGame))
-                    .with_children(|parent| {
-                        parent.spawn(button_text("New Game"));
-                    });
-                menu.spawn((button_bundle(), MenuButtonAction::Settings))
-                    .with_children(|parent| {
-                        parent.spawn(button_text("Settings"));
-                    });
-                menu.spawn((button_bundle(), MenuButtonAction::ExitApplication))
-                    .with_children(|parent| {
-                        parent.spawn(button_text("Exit"));
-                    });
-            });
-        });
+fn spawn_main_menu(commands: Commands) {
+    spawn_popup(
+        commands,
+        "Moria",
+        (Name::new("MainMenu"), MainMenu),
+        |popup| {
+            spawn_button(popup, "New Game", MenuButtonAction::PlayGame);
+            spawn_button(popup, "Settings", MenuButtonAction::Settings);
+            spawn_button(popup, "Exit", MenuButtonAction::ExitApplication);
+        },
+    );
 }
 
 fn menu_action(

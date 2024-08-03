@@ -27,18 +27,13 @@ pub fn plugin(app: &mut App) {
         );
 }
 
-fn spawn_level_win_menu(mut commands: Commands) {
-    commands
-        .spawn((centered(), Name::new("LevelWinMenu"), LevelWinMenu))
-        .with_children(|wnd| {
-            wnd.spawn(menu()).with_children(|menu| {
-                menu.spawn(menu_title("You Win !"));
-                menu.spawn((button_bundle(), MenuButtonAction::QuitGame))
-                    .with_children(|parent| {
-                        parent.spawn(button_text("Quit"));
-                    });
-            });
-        });
+fn spawn_level_win_menu(commands: Commands) {
+    spawn_popup(
+        commands,
+        "Display settings",
+        (Name::new("LevelWinMenu"), LevelWinMenu),
+        |popup| spawn_button(popup, "Quit", MenuButtonAction::QuitGame),
+    );
 }
 
 fn menu_action(

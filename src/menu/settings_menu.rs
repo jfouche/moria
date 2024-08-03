@@ -15,21 +15,19 @@ impl<S: States + Copy> Plugin for SettingsPlugin<S> {
     }
 }
 
-fn spawn_settings_menu(mut commands: Commands) {
-    commands
-        .spawn((centered(), Name::new("SettingsMenu"), SettingsMenu))
-        .with_children(|wnd| {
-            wnd.spawn(menu()).with_children(|menu| {
-                for (action, text) in [
-                    (MenuButtonAction::SettingsSound, "Sound"),
-                    (MenuButtonAction::SettingsDisplay, "Display"),
-                    (MenuButtonAction::BackToMainMenu, "Back"),
-                ] {
-                    menu.spawn((button_bundle(), action))
-                        .with_children(|parent| {
-                            parent.spawn(button_text(text));
-                        });
-                }
-            });
-        });
+fn spawn_settings_menu(commands: Commands) {
+    spawn_popup(
+        commands,
+        "Settings",
+        (Name::new("SettingsMenu"), SettingsMenu),
+        |popup| {
+            for (action, text) in [
+                (MenuButtonAction::SettingsSound, "Sound"),
+                (MenuButtonAction::SettingsDisplay, "Display"),
+                (MenuButtonAction::BackToMainMenu, "Back"),
+            ] {
+                spawn_button(popup, text, action);
+            }
+        },
+    );
 }

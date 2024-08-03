@@ -33,27 +33,29 @@ fn menu_setup(mut menu_state: ResMut<NextState<PauseMenuState>>) {
     menu_state.set(PauseMenuState::Main);
 }
 
-fn spawn_pause_menu(mut commands: Commands) {
-    commands
-        .spawn((centered(), Name::new("PauseMenu"), PauseMenu))
-        .with_children(|wnd| {
-            wnd.spawn(menu()).with_children(|menu| {
-                menu.spawn(menu_title("Moria - Pause"));
-
-                menu.spawn((button_bundle(), MenuButtonAction::PlayGame))
-                    .with_children(|parent| {
-                        parent.spawn(button_text("Resume"));
-                    });
-                menu.spawn((button_bundle(), MenuButtonAction::Settings))
-                    .with_children(|parent| {
-                        parent.spawn(button_text("Settings"));
-                    });
-                menu.spawn((button_bundle(), MenuButtonAction::QuitGame))
-                    .with_children(|parent| {
-                        parent.spawn(button_text("Quit"));
-                    });
-            });
-        });
+fn spawn_pause_menu(commands: Commands) {
+    spawn_popup(
+        commands,
+        "Moria - Pause",
+        (Name::new("PauseMenu"), PauseMenu),
+        |popup| {
+            popup
+                .spawn((button_bundle(), MenuButtonAction::PlayGame))
+                .with_children(|parent| {
+                    parent.spawn(button_text("Resume"));
+                });
+            popup
+                .spawn((button_bundle(), MenuButtonAction::Settings))
+                .with_children(|parent| {
+                    parent.spawn(button_text("Settings"));
+                });
+            popup
+                .spawn((button_bundle(), MenuButtonAction::QuitGame))
+                .with_children(|parent| {
+                    parent.spawn(button_text("Quit"));
+                });
+        },
+    );
 }
 
 fn menu_action(

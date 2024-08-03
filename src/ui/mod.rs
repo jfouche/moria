@@ -1,12 +1,17 @@
+mod button;
 mod fade;
-mod menu;
+mod popup;
 mod progressbar;
 
+pub use button::*;
 pub use fade::*;
-pub use menu::*;
+pub use popup::*;
 pub use progressbar::*;
 
-use bevy::app::{PluginGroup, PluginGroupBuilder};
+use bevy::{
+    app::{PluginGroup, PluginGroupBuilder},
+    prelude::*,
+};
 
 pub struct UiPlugins;
 
@@ -15,5 +20,50 @@ impl PluginGroup for UiPlugins {
         PluginGroupBuilder::start::<Self>()
             .add(progressbar::plugin)
             .add(fade::plugin)
+    }
+}
+
+pub fn fullscreen_style() -> Style {
+    Style {
+        width: Val::Percent(100.0),
+        height: Val::Percent(100.0),
+        ..default()
+    }
+}
+
+pub fn centered_style() -> Style {
+    Style {
+        align_items: AlignItems::Center,
+        justify_content: JustifyContent::Center,
+        ..fullscreen_style()
+    }
+}
+
+pub fn centered() -> NodeBundle {
+    NodeBundle {
+        style: centered_style(),
+        ..default()
+    }
+}
+
+pub fn hsizer() -> NodeBundle {
+    NodeBundle {
+        style: Style {
+            flex_direction: FlexDirection::Row,
+            align_items: AlignItems::Center,
+            ..default()
+        },
+        ..default()
+    }
+}
+
+pub fn vsizer() -> NodeBundle {
+    NodeBundle {
+        style: Style {
+            flex_direction: FlexDirection::Column,
+            align_items: AlignItems::Center,
+            ..default()
+        },
+        ..default()
     }
 }

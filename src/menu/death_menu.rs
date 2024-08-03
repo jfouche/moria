@@ -24,18 +24,16 @@ pub fn plugin(app: &mut App) {
         );
 }
 
-fn spawn_death_menu(mut commands: Commands) {
-    commands
-        .spawn((centered(), Name::new("DeathMenu"), DeathMenu))
-        .with_children(|wnd| {
-            wnd.spawn(menu()).with_children(|menu| {
-                menu.spawn(menu_title("You died !"));
-                menu.spawn((button_bundle(), MenuButtonAction::QuitGame))
-                    .with_children(|parent| {
-                        parent.spawn(button_text("Quit"));
-                    });
-            });
-        });
+fn spawn_death_menu(commands: Commands) {
+    spawn_popup(
+        commands,
+        "You died !",
+        (Name::new("DeathMenu"), DeathMenu),
+        |popup| {
+            popup.spawn(popup_text_content("This is the end of your journey..."));
+            spawn_button(popup, "Quit", MenuButtonAction::QuitGame);
+        },
+    );
 }
 
 fn menu_action(

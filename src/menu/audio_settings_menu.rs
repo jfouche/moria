@@ -21,64 +21,56 @@ impl<S: States + Copy> Plugin for SoundSettingsPlugin<S> {
 }
 
 fn spawn_sound_settings_menu(
-    mut commands: Commands,
+    commands: Commands,
     music_volume: Res<MusicVolume>,
     sound_volume: Res<SoundVolume>,
 ) {
-    commands
-        .spawn((
-            centered(),
-            Name::new("SoundSettingsMenu"),
-            AudioSettingsMenu,
-        ))
-        .with_children(|wnd| {
-            wnd.spawn(menu()).with_children(|menu| {
-                menu.spawn(menu_title("Sound settings"));
-
-                menu.spawn(button_text("Music volume"));
-                menu.spawn(hsizer()).with_children(|sizer| {
-                    for volume_setting in AudioVolume::range() {
-                        let mut entity = sizer.spawn((
-                            ButtonBundle {
-                                style: Style {
-                                    width: Val::Px(30.0),
-                                    height: Val::Px(65.0),
-                                    ..button_style()
-                                },
-                                ..button_bundle()
+    spawn_popup(
+        commands,
+        "Sound settings",
+        (Name::new("SoundSettingsMenu"), AudioSettingsMenu),
+        |popup| {
+            popup.spawn(button_text("Music volume"));
+            popup.spawn(hsizer()).with_children(|sizer| {
+                for volume_setting in AudioVolume::range() {
+                    let mut entity = sizer.spawn((
+                        ButtonBundle {
+                            style: Style {
+                                width: Val::Px(30.0),
+                                height: Val::Px(65.0),
+                                ..button_style()
                             },
-                            MusicVolume(AudioVolume(volume_setting)),
-                        ));
-                        if *music_volume == volume_setting {
-                            entity.insert(SelectedOption);
-                        }
+                            ..button_bundle()
+                        },
+                        MusicVolume(AudioVolume(volume_setting)),
+                    ));
+                    if *music_volume == volume_setting {
+                        entity.insert(SelectedOption);
                     }
-                });
-
-                menu.spawn(button_text("Sound volume"));
-                menu.spawn(hsizer()).with_children(|sizer| {
-                    for volume_setting in AudioVolume::range() {
-                        let mut entity = sizer.spawn((
-                            ButtonBundle {
-                                style: Style {
-                                    width: Val::Px(30.0),
-                                    height: Val::Px(65.0),
-                                    ..button_style()
-                                },
-                                ..button_bundle()
-                            },
-                            SoundVolume(AudioVolume(volume_setting)),
-                        ));
-                        if *sound_volume == volume_setting {
-                            entity.insert(SelectedOption);
-                        }
-                    }
-                });
-
-                menu.spawn((button_bundle(), MenuButtonAction::BackToSettings))
-                    .with_children(|parent| {
-                        parent.spawn(button_text("Back"));
-                    });
+                }
             });
-        });
+
+            popup.spawn(button_text("Sound volume"));
+            popup.spawn(hsizer()).with_children(|sizer| {
+                for volume_setting in AudioVolume::range() {
+                    let mut entity = sizer.spawn((
+                        ButtonBundle {
+                            style: Style {
+                                width: Val::Px(30.0),
+                                height: Val::Px(65.0),
+                                ..button_style()
+                            },
+                            ..button_bundle()
+                        },
+                        SoundVolume(AudioVolume(volume_setting)),
+                    ));
+                    if *sound_volume == volume_setting {
+                        entity.insert(SelectedOption);
+                    }
+                }
+            });
+
+            spawn_button(popup, "Back", MenuButtonAction::BackToSettings);
+        },
+    );
 }

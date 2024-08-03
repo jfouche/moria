@@ -1,11 +1,8 @@
-use bevy::{
-    color::palettes::css::{BLUE, CRIMSON},
-    prelude::*,
-};
+use bevy::prelude::*;
 
-const NORMAL_BUTTON: Color = Color::srgb(0.15, 0.15, 0.15);
-const HOVERED_BUTTON: Color = Color::srgb(0.25, 0.25, 0.25);
-const HOVERED_PRESSED_BUTTON: Color = Color::srgb(0.25, 0.65, 0.25);
+const NORMAL_BUTTON: Color = Color::srgb(0.15, 0.35, 0.15);
+const HOVERED_BUTTON: Color = Color::srgb(0.25, 0.55, 0.25);
+const HOVERED_PRESSED_BUTTON: Color = Color::srgb(0.35, 0.75, 0.35);
 const PRESSED_BUTTON: Color = Color::srgb(0.35, 0.75, 0.35);
 
 const BUTTON_TEXT_COLOR: Color = Color::srgb(0.9, 0.9, 0.9);
@@ -43,77 +40,12 @@ pub fn button_text(text: &str) -> TextBundle {
     TextBundle::from_section(text, button_text_style())
 }
 
-pub fn fullscreen_style() -> Style {
-    Style {
-        width: Val::Percent(100.0),
-        height: Val::Percent(100.0),
-        ..default()
-    }
-}
-
-pub fn centered_style() -> Style {
-    Style {
-        align_items: AlignItems::Center,
-        justify_content: JustifyContent::Center,
-        ..fullscreen_style()
-    }
-}
-
-pub fn centered() -> NodeBundle {
-    NodeBundle {
-        style: centered_style(),
-        ..default()
-    }
-}
-
-pub fn menu() -> NodeBundle {
-    let vsizer = vsizer();
-    NodeBundle {
-        background_color: CRIMSON.into(),
-        border_color: BLUE.into(),
-        style: Style {
-            border: UiRect::all(Val::Px(2.0)),
-            ..vsizer.style
-        },
-        ..vsizer
-    }
-}
-
-pub fn menu_title(title: &str) -> TextBundle {
-    TextBundle::from_section(
-        title,
-        TextStyle {
-            font_size: 60.0,
-            color: BUTTON_TEXT_COLOR,
-            ..default()
-        },
-    )
-    .with_style(Style {
-        margin: UiRect::all(Val::Px(50.0)),
-        ..default()
-    })
-}
-
-pub fn hsizer() -> NodeBundle {
-    NodeBundle {
-        style: Style {
-            flex_direction: FlexDirection::Row,
-            align_items: AlignItems::Center,
-            ..default()
-        },
-        ..default()
-    }
-}
-
-pub fn vsizer() -> NodeBundle {
-    NodeBundle {
-        style: Style {
-            flex_direction: FlexDirection::Column,
-            align_items: AlignItems::Center,
-            ..default()
-        },
-        ..default()
-    }
+pub fn spawn_button(commands: &mut ChildBuilder, label: &str, bundle: impl Bundle) {
+    commands
+        .spawn((button_bundle(), bundle))
+        .with_children(|parent| {
+            parent.spawn(button_text(label));
+        });
 }
 
 /// Tag component used to mark which setting is currently selected
