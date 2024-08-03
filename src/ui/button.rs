@@ -7,6 +7,7 @@ const PRESSED_BUTTON: Color = Color::srgb(0.35, 0.75, 0.35);
 
 const BUTTON_TEXT_COLOR: Color = Color::srgb(0.9, 0.9, 0.9);
 
+#[inline]
 pub fn button_bundle() -> ButtonBundle {
     ButtonBundle {
         style: button_style(),
@@ -16,6 +17,7 @@ pub fn button_bundle() -> ButtonBundle {
     }
 }
 
+#[inline]
 pub fn button_style() -> Style {
     Style {
         width: Val::Px(160.0),
@@ -28,6 +30,7 @@ pub fn button_style() -> Style {
     }
 }
 
+#[inline]
 pub fn button_text_style() -> TextStyle {
     TextStyle {
         font_size: 24.0,
@@ -36,6 +39,7 @@ pub fn button_text_style() -> TextStyle {
     }
 }
 
+#[inline]
 pub fn button_text(text: &str) -> TextBundle {
     TextBundle::from_section(text, button_text_style())
 }

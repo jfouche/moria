@@ -39,21 +39,9 @@ fn spawn_pause_menu(commands: Commands) {
         "Moria - Pause",
         (Name::new("PauseMenu"), PauseMenu),
         |popup| {
-            popup
-                .spawn((button_bundle(), MenuButtonAction::PlayGame))
-                .with_children(|parent| {
-                    parent.spawn(button_text("Resume"));
-                });
-            popup
-                .spawn((button_bundle(), MenuButtonAction::Settings))
-                .with_children(|parent| {
-                    parent.spawn(button_text("Settings"));
-                });
-            popup
-                .spawn((button_bundle(), MenuButtonAction::QuitGame))
-                .with_children(|parent| {
-                    parent.spawn(button_text("Quit"));
-                });
+            spawn_button(popup, "Resume", MenuButtonAction::PlayGame);
+            spawn_button(popup, "Settings", MenuButtonAction::Settings);
+            spawn_button(popup, "Quit", MenuButtonAction::QuitGame);
         },
     );
 }

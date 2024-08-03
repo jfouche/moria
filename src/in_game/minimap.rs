@@ -175,7 +175,7 @@ fn spawn_minimap(
                     let pos = Position(x, y);
                     if let Some(room) = level.maze.get_room(&pos) {
                         let (grid_column, grid_row) = level.maze.to_grid_pos(&pos);
-                        let visibiliy = if room.visited() {
+                        let visibility = if room.visited() {
                             Visibility::Visible
                         } else {
                             Visibility::Hidden
@@ -190,7 +190,7 @@ fn spawn_minimap(
                                     grid_column,
                                     ..default()
                                 },
-                                visibility: visibiliy,
+                                visibility,
                                 ..Default::default()
                             },
                             TextureAtlas {

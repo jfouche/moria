@@ -1,6 +1,7 @@
 use super::vsizer;
 use bevy::prelude::*;
 
+#[inline]
 fn popup() -> NodeBundle {
     let vsizer = vsizer();
     NodeBundle {
@@ -22,6 +23,7 @@ fn popup() -> NodeBundle {
     }
 }
 
+#[inline]
 fn popup_title_bar() -> NodeBundle {
     NodeBundle {
         background_color: Color::srgb(0.1, 0.1, 0.1).into(),
@@ -35,9 +37,10 @@ fn popup_title_bar() -> NodeBundle {
     }
 }
 
-fn popup_title(title: &str) -> TextBundle {
+#[inline]
+fn popup_title(title: impl Into<String>) -> TextBundle {
     TextBundle::from_section(
-        title,
+        title.into(),
         TextStyle {
             font_size: 32.0,
             color: Color::srgb(0.72, 0.72, 0.72),
@@ -46,7 +49,8 @@ fn popup_title(title: &str) -> TextBundle {
     )
 }
 
-pub fn popup_text_content(content: &str) -> TextBundle {
+#[inline]
+pub fn popup_text_content(content: impl Into<String>) -> TextBundle {
     TextBundle::from_section(
         content,
         TextStyle {
@@ -63,7 +67,7 @@ pub fn popup_text_content(content: &str) -> TextBundle {
 
 pub fn spawn_popup(
     mut commands: Commands,
-    title: &str,
+    title: impl Into<String>,
     bundle: impl Bundle,
     spawn_content: impl FnOnce(&mut ChildBuilder),
 ) -> Entity {
