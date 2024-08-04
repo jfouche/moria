@@ -83,7 +83,7 @@ fn spawn_compass(mut commands: Commands, assets: Res<HudAssets>) {
         Hud,
         ImageBundle {
             image: UiImage::new(assets.compass.clone()),
-            background_color: Color::srgba(0.4, 0.4, 0.4, 0.7).into(),
+            background_color: Color::srgba(0., 0., 0., 0.).into(),
             style: Style {
                 position_type: PositionType::Absolute,
                 top: Val::Px(20.0),

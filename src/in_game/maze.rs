@@ -61,7 +61,7 @@ fn load_assets(
     });
 
     let floor_mesh_handle =
-        meshes.add(Plane3d::new(Vec3::Y, vec2(Wall::WIDTH, Wall::WIDTH)).mesh());
+        meshes.add(Plane3d::new(Vec3::Y, vec2(Wall::WIDTH / 2., Wall::WIDTH / 2.)).mesh());
 
     // load ceiling textures and materials
     let ceiling_texture_handle = asset_server.load("textures/Asset 17.png");
@@ -71,7 +71,7 @@ fn load_assets(
     });
 
     let ceiling_mesh_handle =
-        meshes.add(Plane3d::new(Vec3::NEG_Y, vec2(Wall::WIDTH, Wall::WIDTH)).mesh());
+        meshes.add(Plane3d::new(Vec3::NEG_Y, vec2(Wall::WIDTH / 2., Wall::WIDTH / 2.)).mesh());
 
     // load wall textures and materials
     let wall_texture_handle = asset_server.load("textures/Asset 1.png");

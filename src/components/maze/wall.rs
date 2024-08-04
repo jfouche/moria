@@ -25,7 +25,7 @@ impl Wall {
             Wall::Right => Vec3::NEG_X,
         };
 
-        Plane3d::new(normal, vec2(Wall::WIDTH, Wall::HEIGHT)).mesh()
+        Plane3d::new(normal, vec2(Wall::WIDTH / 2., Wall::HEIGHT / 2.)).mesh()
     }
 }
 
