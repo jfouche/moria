@@ -17,7 +17,7 @@ impl Wall {
 
     pub const COLLIDER_WIDTH: f32 = 0.02;
 
-    pub fn mesh(&self) -> impl Into<Mesh> {
+    pub fn mesh(&self) -> Mesh {
         let normal = match self {
             Wall::Top => Vec3::Z,
             Wall::Bottom => Vec3::NEG_Z,
@@ -25,7 +25,11 @@ impl Wall {
             Wall::Right => Vec3::NEG_X,
         };
 
-        Plane3d::new(normal, vec2(Wall::WIDTH / 2., Wall::HEIGHT / 2.)).mesh()
+        Plane3d::new(normal, vec2(Wall::WIDTH / 2., Wall::HEIGHT / 2.))
+            .mesh()
+            .build()
+            .with_generated_tangents() // for normal map
+            .expect("Failed to generate tangents")
     }
 }
 

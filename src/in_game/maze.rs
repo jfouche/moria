@@ -75,8 +75,10 @@ fn load_assets(
 
     // load wall textures and materials
     let wall_texture_handle = asset_server.load("textures/Asset 1.png");
+    let wall_normal_map_handle = asset_server.load("textures/NormalMap.png");
     let wall_material_handle = materials.add(StandardMaterial {
         base_color_texture: Some(wall_texture_handle.clone()),
+        normal_map_texture: Some(wall_normal_map_handle),
         ..default()
     });
 
